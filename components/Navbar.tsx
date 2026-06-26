@@ -212,6 +212,7 @@ export default function Navbar() {
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             <Link href="/" className="flex items-center gap-1.5 text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight hover:scale-105 active:scale-95 transition-transform duration-200">
+              <img src="/logo.png" alt="Zenzy Logo" className="w-8 h-8 object-contain" />
               <span>{siteConfig?.siteName || "zenzy"}</span>
               <span className="w-2.5 h-2.5 rounded-full bg-primary-600 dark:bg-primary-500 mt-1.5 brand-pulse-dot"></span>
             </Link>

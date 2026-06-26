@@ -718,9 +718,18 @@ export default function AdminPage() {
       await updateDoc(doc(db, "users", walletUser.id), {
         walletBalance: newBalance
       });
+
+      // Notify user of wallet change
+      await triggerNotification(
+        walletUser.id,
+        walletActionType === "add" ? "Wallet Credited 💰" : "Wallet Deducted",
+        `₹${walletAmount} has been ${walletActionType === "add" ? "credited to" : "deducted from"} your Zenzy wallet. New balance: ₹${newBalance}`,
+        "payment"
+      );
+
       await logActivityAndAudit("CRM Wallet Action", `Adjusted client ${walletUser.name}'s wallet by ₹${adjustment} (New Balance: ₹${newBalance}).`);
       setWalletUser(null);
-      showToast("Wallet balance adjusted successfully!");
+      showToast(`Wallet adjusted! New balance: ₹${newBalance.toLocaleString()}`);
     } catch (err) {
       showToast("Wallet adjustment failed.", "error");
     }
@@ -918,7 +927,6 @@ export default function AdminPage() {
     { url: "", title: "", subtitle: "" }
   ]);
 
-  // View States
   const [viewingBookingDetails, setViewingBookingDetails] = useState<any | null>(null);
   const [bookingSearch, setBookingSearch] = useState("");
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
@@ -1862,12 +1870,16 @@ export default function AdminPage() {
       if (bookingSnap.exists()) {
         const bData = bookingSnap.data();
         const invoiceNum = bData.invoiceNumber;
+        const bookingPrice = bData.price || 0;
+        const couponCode = bData.couponCode;
+        const discountAmount = bData.discountAmount || 0;
         
         await updateDoc(bookingRef, {
           paymentStatus: "Paid",
           status: "Accepted"
         });
 
+        // Also update matching payment document
         if (invoiceNum) {
           const q = query(collection(db, "payments"), where("invoiceNumber", "==", invoiceNum));
           const snap = await getDocs(q);
@@ -1877,6 +1889,41 @@ export default function AdminPage() {
             });
           }
         }
+
+        // Track coupon revenue if a coupon was used
+        if (couponCode) {
+          const couponQ = query(collection(db, "coupons"), where("code", "==", couponCode));
+          const couponSnap = await getDocs(couponQ);
+          for (const cDoc of couponSnap.docs) {
+            const existing = cDoc.data();
+            await updateDoc(doc(db, "coupons", cDoc.id), {
+              revenueGenerated: (existing.revenueGenerated || 0) + bookingPrice,
+              uses: (existing.uses || 0) + 1
+            });
+          }
+        }
+
+        // Send payment confirmation to customer
+        if (bData.customerId) {
+          await triggerNotification(
+            bData.customerId,
+            "Payment Approved ✓",
+            `Your payment of ₹${bookingPrice} for booking #${invoiceNum} has been verified. Service accepted.`,
+            "payment"
+          );
+        }
+
+        // Notify worker to begin service  
+        if (bData.workerId) {
+          await triggerNotification(
+            bData.workerId,
+            "New Job Confirmed",
+            `Payment verified for booking #${invoiceNum}. Please confirm with customer.`,
+            "booking"
+          );
+        }
+
+        await logActivityAndAudit("Verify Payment", `Approved payment for booking #${invoiceNum}. Amount: ₹${bookingPrice}${couponCode ? ` | Coupon: ${couponCode} (saved ₹${discountAmount})` : ""}`);
       }
       showToast("Payment status marked as PAID!");
     } catch (err: any) {
@@ -2334,6 +2381,18 @@ export default function AdminPage() {
   const activeB = bookings.filter((b) => ["Pending", "Accepted", "OnTheWay", "Started"].includes(b.status)).length;
   const totalRev = bookings.filter((b) => b.status === "Completed").reduce((s, b) => s + (b.price || 0), 0);
   const openSupport = messages.filter((m) => m.status === "Open").length;
+  // Payments needing approval: bookings with paymentMethod "UPI QR" / "Online" that are not yet verified
+  const pendingPayments = bookings.filter((b) => 
+    b.paymentStatus === "Pending" && 
+    b.status !== "Cancelled" &&
+    (b.paymentMethod === "UPI QR" || b.paymentMethod === "Online" || b.paymentMethod === "Prepaid")
+  ).length;
+  // Total coupon revenue (sum of all coupons' revenueGenerated)
+  const totalCouponRevenue = coupons.reduce((s: number, c: any) => s + (c.revenueGenerated || 0), 0);
+  // Active/inactive user stats
+  const activeUsers = allUsers.filter((u: any) => !u.suspended).length;
+  const inactiveUsers = allUsers.filter((u: any) => u.suspended).length;
+  const activeWorkers = workers.filter((w: any) => !w.suspended && w.documentStatus === "approved").length;
 
   const tabs: { id: Tab; label: string; icon: any; badge?: number }[] = [
     { id: "dashboard", label: "Dashboard", icon: Layers },
@@ -2341,7 +2400,7 @@ export default function AdminPage() {
     { id: "verification", label: "Verification KYC", icon: Users, badge: pendingV },
     { id: "bookings", label: "Service Bookings", icon: Calendar, badge: activeB },
     { id: "rentalbookings", label: "Rental Inquiries", icon: Building },
-    { id: "payments", label: "Transactions Log", icon: CreditCard },
+    { id: "payments", label: "Transactions Log", icon: CreditCard, badge: pendingPayments },
     { id: "coupons", label: "Coupon codes", icon: Tag },
     { id: "reviews", label: "Reviews Mod", icon: Star },
     { id: "categories", label: "Services list", icon: ImageIcon },
@@ -2361,7 +2420,10 @@ export default function AdminPage() {
       {/* SIDEBAR PANEL */}
       <aside className="w-64 bg-slate-950 text-white flex flex-col shadow-xl z-20 h-full shrink-0">
         <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-          <h1 className="text-xl font-extrabold">zenzy<span className="text-primary-500 text-2xl">.</span></h1>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Zenzy" className="w-8 h-8 object-contain" />
+            <h1 className="text-xl font-extrabold">zenzy<span className="text-primary-500 text-2xl">.</span></h1>
+          </div>
           <span className="bg-primary-600 text-[8px] font-extrabold px-2 py-0.5 rounded-full">GOD MODE</span>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
@@ -2433,8 +2495,12 @@ export default function AdminPage() {
                 {[
                   { label: "Revenue Completed", val: `₹${totalRev.toLocaleString()}`, color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400", icon: TrendingUp },
                   { label: "Active Service Bookings", val: activeB, color: "bg-primary-50 text-primary-600 dark:bg-primary-950/20 dark:text-primary-400", icon: Calendar },
-                  { label: "Rental Inquiries", val: rentals.length, color: "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/20 dark:text-indigo-400", icon: Building },
-                  { label: "Verified Providers", val: workers.filter(w=>w.verified).length, color: "bg-amber-50 text-amber-600 dark:bg-amber-955/20 dark:text-amber-400", icon: ShieldAlert }
+                  { label: "Pending Payment Approvals", val: pendingPayments, color: pendingPayments > 0 ? "bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400" : "bg-slate-50 text-slate-400 dark:bg-slate-900 dark:text-slate-500", icon: CreditCard },
+                  { label: "Verified Providers", val: activeWorkers, color: "bg-amber-50 text-amber-600 dark:bg-amber-955/20 dark:text-amber-400", icon: ShieldAlert },
+                  { label: "Coupon Revenue Generated", val: `₹${totalCouponRevenue.toLocaleString()}`, color: "bg-violet-50 text-violet-600 dark:bg-violet-950/20 dark:text-violet-400", icon: Tag },
+                  { label: "Rental Inquiries", val: bookings.filter((b:any) => b.type === "Rental Inquire").length, color: "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/20 dark:text-indigo-400", icon: Building },
+                  { label: "Active Users", val: activeUsers, color: "bg-teal-50 text-teal-600 dark:bg-teal-950/20 dark:text-teal-400", icon: Users },
+                  { label: "Suspended Accounts", val: inactiveUsers, color: inactiveUsers > 0 ? "bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400" : "bg-slate-50 text-slate-400 dark:bg-slate-900 dark:text-slate-500", icon: AlertTriangle }
                 ].map((card, i) => {
                   const Icon = card.icon;
                   return (
@@ -2864,33 +2930,230 @@ export default function AdminPage() {
           )}
 
           {/* TAB: PAYMENTS LOG */}
-          {activeTab === "payments" && (
-            <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-3xl overflow-hidden shadow-subtle animate-fade-up">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 dark:bg-slate-850 border-b dark:border-slate-800 font-bold text-[10px] uppercase text-slate-400">
-                      <th className="p-4 pl-6">Invoice</th><th className="p-4">Client</th><th className="p-4">Amount</th><th className="p-4">Method / TXID</th><th className="p-4">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-semibold">
-                    {payments.map((p) => (
-                      <tr key={p.id}>
-                        <td className="p-4 pl-6 font-mono font-bold">{p.invoiceNumber}</td>
-                        <td className="p-4">{p.customerName}</td>
-                        <td className="p-4 font-black">₹{p.amount}</td>
-                        <td className="p-4">
-                          <span className="block font-bold">{p.paymentMethod}</span>
-                          <span className="text-[10px] text-slate-400 block font-mono">{p.transactionId || "—"}</span>
-                        </td>
-                        <td className="p-4">{p.status}</td>
-                      </tr>
+          {activeTab === "payments" && (() => {
+            const filteredPayments = payments.filter((p: any) => {
+              if (filterPaymentStatus !== "All" && p.status !== filterPaymentStatus) return false;
+              if (filterPaymentMethod !== "All" && p.paymentMethod !== filterPaymentMethod) return false;
+              return true;
+            });
+
+            const pendingApprovalBookings = bookings.filter((b: any) => 
+              b.paymentStatus === "Pending" && 
+              b.status !== "Cancelled" &&
+              (b.paymentMethod === "UPI QR" || b.paymentMethod === "Online" || b.paymentMethod === "Prepaid")
+            );
+
+            const paidTotal = payments.filter((p: any) => p.status === "Paid").reduce((s: number, p: any) => s + (p.amount || 0), 0);
+            const pendingTotal = payments.filter((p: any) => p.status === "Pending").reduce((s: number, p: any) => s + (p.amount || 0), 0);
+            const refundedTotal = payments.filter((p: any) => p.status === "Refunded").reduce((s: number, p: any) => s + (p.amount || 0), 0);
+
+            return (
+              <div className="space-y-6 animate-fade-up">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    { label: "Total Revenue (Paid)", val: `₹${paidTotal.toLocaleString()}`, color: "bg-emerald-600", icon: TrendingUp },
+                    { label: "Pending Approval", val: pendingApprovalBookings.length, color: pendingApprovalBookings.length > 0 ? "bg-amber-500" : "bg-slate-600", icon: Clock },
+                    { label: "Pending Amount", val: `₹${pendingTotal.toLocaleString()}`, color: "bg-blue-600", icon: CreditCard },
+                    { label: "Refunded Amount", val: `₹${refundedTotal.toLocaleString()}`, color: "bg-rose-600", icon: RefreshCw }
+                  ].map((c, i) => {
+                    const Icon = c.icon;
+                    return (
+                      <div key={i} className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl p-4 shadow-subtle flex items-center gap-4">
+                        <div className={`w-10 h-10 ${c.color} rounded-xl flex items-center justify-center text-white shrink-0`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 font-bold uppercase block">{c.label}</span>
+                          <span className="text-lg font-black text-slate-900 dark:text-white">{c.val}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Pending Approval Section */}
+                {pendingApprovalBookings.length > 0 && (
+                  <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 rounded-3xl p-6 shadow-subtle space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-amber-500 rounded-xl flex items-center justify-center text-white shrink-0">
+                        <AlertTriangle className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-sm text-amber-900 dark:text-amber-200">
+                          {pendingApprovalBookings.length} Payment{pendingApprovalBookings.length > 1 ? "s" : ""} Awaiting Approval
+                        </h3>
+                        <p className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold">These UPI/Online payments need admin verification before service can begin.</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {pendingApprovalBookings.map((b: any) => (
+                        <div key={b.id} className="bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-extrabold text-sm text-slate-900 dark:text-white">#{b.invoiceNumber}</span>
+                              <span className="text-[9px] bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-400 font-black px-2 py-0.5 rounded-full uppercase">{b.paymentMethod}</span>
+                              {b.couponCode && (
+                                <span className="text-[9px] bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-400 font-black px-2 py-0.5 rounded-full uppercase">🏷 {b.couponCode}</span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">
+                              {b.customerName} → {b.workerName || b.propertyTitle} ({b.workerCategory || "Rental"})
+                            </p>
+                            {b.transactionId && (
+                              <p className="text-[10px] text-slate-400 font-mono">TxnID: {b.transactionId}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 shrink-0">
+                            <span className="text-lg font-black text-slate-900 dark:text-white">₹{b.price || 0}</span>
+                            <button
+                              onClick={() => handleVerifyPayment(b.id)}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl font-bold text-[10px] transition flex items-center gap-1 cursor-pointer"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" /> Approve
+                            </button>
+                            <button
+                              onClick={() => handleRejectPayment(b.id)}
+                              className="bg-red-50 dark:bg-red-950/20 hover:bg-red-500 hover:text-white text-red-500 border border-red-200 dark:border-red-900/40 px-3 py-1.5 rounded-xl font-bold text-[10px] transition flex items-center gap-1 cursor-pointer"
+                            >
+                              <XCircle className="w-3.5 h-3.5" /> Reject
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Filters */}
+                <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 p-4 rounded-2xl shadow-subtle flex gap-4 flex-wrap items-center">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Filter:</span>
+                  <div className="flex gap-2 flex-wrap">
+                    {["All", "Paid", "Pending", "Refunded", "Rejected"].map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setFilterPaymentStatus(s)}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition cursor-pointer ${
+                          filterPaymentStatus === s ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900" : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700"
+                        }`}
+                      >
+                        {s}
+                      </button>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                  <div className="ml-auto flex items-center gap-2">
+                    <select
+                      value={filterPaymentMethod}
+                      onChange={(e) => setFilterPaymentMethod(e.target.value)}
+                      className="px-3 py-1.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl text-[10px] font-bold outline-none"
+                    >
+                      {["All", "UPI QR", "Online", "COD", "Wallet", "Prepaid"].map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => exportToCSV(filteredPayments, "zenzy_payments")}
+                      className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-3 py-1.5 rounded-xl font-bold text-[10px] flex items-center gap-1.5 cursor-pointer"
+                    >
+                      Export CSV
+                    </button>
+                  </div>
+                </div>
+
+                {/* Transactions Table */}
+                <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-3xl overflow-hidden shadow-subtle">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 dark:bg-slate-850 border-b dark:border-slate-800 font-bold text-[10px] uppercase text-slate-400">
+                          <th className="p-4 pl-6">Invoice</th>
+                          <th className="p-4">Client</th>
+                          <th className="p-4">Amount</th>
+                          <th className="p-4">Method / TXID</th>
+                          <th className="p-4">Coupon</th>
+                          <th className="p-4">Date</th>
+                          <th className="p-4">Status</th>
+                          <th className="p-4 text-right pr-6">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-semibold">
+                        {filteredPayments.length === 0 ? (
+                          <tr>
+                            <td colSpan={8} className="py-16 text-center text-slate-400 font-semibold">
+                              No transactions matching current filter.
+                            </td>
+                          </tr>
+                        ) : filteredPayments.map((p: any) => {
+                          const statusColors: Record<string, string> = {
+                            Paid: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400",
+                            Pending: "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400",
+                            Refunded: "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400",
+                            Rejected: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400"
+                          };
+                          return (
+                            <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                              <td className="p-4 pl-6 font-mono font-bold text-slate-900 dark:text-white">{p.invoiceNumber}</td>
+                              <td className="p-4">
+                                <button
+                                  onClick={() => handleOpenUserDetail(p.customerId, p.customerEmail, p.customerPhone, p.customerName)}
+                                  className="font-bold hover:text-primary-600 dark:hover:text-primary-400 hover:underline text-left cursor-pointer"
+                                >
+                                  {p.customerName}
+                                </button>
+                              </td>
+                              <td className="p-4 font-black text-slate-900 dark:text-white">₹{p.amount}</td>
+                              <td className="p-4">
+                                <span className="block font-bold">{p.paymentMethod}</span>
+                                <span className="text-[10px] text-slate-400 block font-mono">{p.transactionId || "—"}</span>
+                              </td>
+                              <td className="p-4">
+                                {p.couponCode ? (
+                                  <span className="bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 px-2 py-0.5 rounded font-black text-[9px] uppercase">
+                                    {p.couponCode}
+                                  </span>
+                                ) : <span className="text-slate-300 dark:text-slate-700">—</span>}
+                              </td>
+                              <td className="p-4 text-slate-500">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "—"}</td>
+                              <td className="p-4">
+                                <span className={`px-2 py-0.5 rounded font-black text-[9px] uppercase ${statusColors[p.status] || "bg-slate-100 text-slate-600"}`}>
+                                  {p.status || "Unknown"}
+                                </span>
+                              </td>
+                              <td className="p-4 text-right pr-6 space-x-1">
+                                {(p.status === "Pending" || !p.status) && (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        // Find corresponding booking
+                                        const booking = bookings.find((b: any) => b.invoiceNumber === p.invoiceNumber);
+                                        if (booking) handleVerifyPayment(booking.id);
+                                      }}
+                                      className="bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold text-[9px] cursor-pointer hover:bg-emerald-700 transition"
+                                    >
+                                      Approve
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        const booking = bookings.find((b: any) => b.invoiceNumber === p.invoiceNumber);
+                                        if (booking) handleRejectPayment(booking.id);
+                                      }}
+                                      className="bg-red-50 text-red-500 border border-red-200 dark:border-red-900/40 px-2.5 py-1 rounded-lg font-bold text-[9px] cursor-pointer hover:bg-red-500 hover:text-white transition"
+                                    >
+                                      Reject
+                                    </button>
+                                  </>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* TAB: COUPON CODES CRUD */}
           {activeTab === "coupons" && (

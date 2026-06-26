@@ -120,7 +120,7 @@ function RequestTimer({ booking, onExpire }: { booking: any; onExpire: (id: stri
 
 export default function ProviderDashboardPage() {
   const router = useRouter();
-  const { user, userData, role, logout } = useAuth();
+  const { user, userData, role, logout, updateProfileImage } = useAuth();
 
   const [activeTab, setActiveTab] = useState<Tab>("analytics");
   const [loading, setLoading] = useState(true);
@@ -321,18 +321,17 @@ export default function ProviderDashboardPage() {
     }
   };
 
-  // Image uploads
+  // Image uploads — avatar uses Firebase Storage for persistent URL
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     setAvatarUploading(true);
     try {
-      const b64 = await compressImageToBase64(file, 400, 0.8);
-      setPAvatar(b64);
-      await updateDoc(doc(db, "workers", user.uid), { avatar: b64 });
+      const avatarUrl = await updateProfileImage(file);
+      setPAvatar(avatarUrl);
       showToast("Profile avatar updated!");
     } catch {
-      showToast("Image size too large.");
+      showToast("Image size too large or upload failed.");
     } finally {
       setAvatarUploading(false);
     }

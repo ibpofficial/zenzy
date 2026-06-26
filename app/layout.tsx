@@ -17,6 +17,16 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "zenzy · India's Premium Local Service Marketplace",
   description: "Zomato for services, LinkedIn for unorganized workers, and Airbnb for home rentals. Fast, transparent, and verified.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    title: "zenzy · India's Premium Local Service Marketplace",
+    description: "Zomato for services, LinkedIn for unorganized workers, and Airbnb for home rentals. Fast, transparent, and verified.",
+    images: ["/logo.png"],
+  },
 };
 
 import EmailVerificationGuard from "@/components/EmailVerificationGuard";

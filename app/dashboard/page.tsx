@@ -56,7 +56,7 @@ type Tab =
 
 export default function CustomerDashboardPage() {
   const router = useRouter();
-  const { user, userData, role, logout } = useAuth();
+  const { user, userData, role, logout, updateProfileImage } = useAuth();
 
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [loading, setLoading] = useState(true);
@@ -269,21 +269,18 @@ export default function CustomerDashboardPage() {
     }
   };
 
-  // Avatar compress and upload
+  // Avatar compress, upload to Firebase Storage, and save URL
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     try {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = async (event) => {
-        const b64 = event.target?.result as string;
-        setProfAvatar(b64);
-        await updateDoc(doc(db, "users", user.uid), { avatar: b64 });
-        showToast("Profile image updated successfully!");
-      };
+      showToast("Uploading profile photo...");
+      const avatarUrl = await updateProfileImage(file);
+      setProfAvatar(avatarUrl);
+      showToast("Profile image updated successfully!");
     } catch (err) {
-      showToast("Failed to process image.");
+      console.error("Avatar upload error:", err);
+      showToast("Failed to upload image. Check storage permissions.");
     }
   };
 

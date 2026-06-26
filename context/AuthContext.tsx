@@ -13,8 +13,9 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail
 } from "firebase/auth";
-import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { uploadProfileImage } from "@/lib/imageUtils";
 
 interface AuthContextType {
   user: User | null;
@@ -27,6 +28,8 @@ interface AuthContextType {
   loginWithPhoneMock: (phone: string, name: string, userRole: "user" | "worker") => Promise<void>;
   logout: () => Promise<void>;
   updateUserWallet: (amount: number) => Promise<void>;
+  updateProfileImage: (file: File) => Promise<string>;
+  refreshUserData: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   isAuthModalOpen: boolean;
   authModalTab: "login" | "signup" | "forgot";
@@ -444,6 +447,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserData(updated);
   };
 
+  /**
+   * Upload, compress, and persist a profile image for the current user.
+   * Works for all roles: user, worker, admin.
+   * Returns the new avatar URL.
+   */
+  const updateProfileImage = async (file: File): Promise<string> => {
+    if (!user) throw new Error("Not authenticated");
+    
+    const avatarUrl = await uploadProfileImage(file, user.uid);
+    
+    // Persist URL to the correct Firestore collection based on role
+    const collection_name = role === "worker" ? "workers" : role === "admin" ? "admins" : "users";
+    await updateDoc(doc(db, collection_name, user.uid), { avatar: avatarUrl });
+    
+    // Also update Firebase Auth profile for Google-style avatar
+    try {
+      await updateProfile(user, { photoURL: avatarUrl });
+    } catch (e) {
+      console.warn("Could not update auth profile photoURL:", e);
+    }
+    
+    // Update in-memory userData immediately so all components re-render
+    setUserData((prev: any) => ({ ...prev, avatar: avatarUrl }));
+    
+    return avatarUrl;
+  };
+
+  /**
+   * Force-refresh user data from Firestore (useful after profile updates).
+   */
+  const refreshUserData = async () => {
+    if (!user || !role) return;
+    const collection_name = role === "worker" ? "workers" : role === "admin" ? "admins" : "users";
+    const snap = await getDoc(doc(db, collection_name, user.uid));
+    if (snap.exists()) {
+      setUserData({ uid: user.uid, ...snap.data() });
+    }
+  };
+
   const sendPasswordReset = async (email: string) => {
     try {
       await sendPasswordResetEmail(auth, email);
@@ -464,6 +506,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loginWithPhoneMock,
       logout,
       updateUserWallet,
+      updateProfileImage,
+      refreshUserData,
       sendPasswordReset,
       isAuthModalOpen,
       authModalTab,
