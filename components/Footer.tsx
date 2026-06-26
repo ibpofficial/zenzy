@@ -54,7 +54,7 @@ export default function Footer() {
                 <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white hover:bg-primary-600 transition hover:-translate-y-1">
                   <i className="fab fa-twitter"></i>
                 </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white hover:bg-primary-600 transition hover:-translate-y-1">
+                <a href="https://www.instagram.com/zenzyforall/" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white hover:bg-primary-600 transition hover:-translate-y-1">
                   <i className="fab fa-instagram"></i>
                 </a>
                 <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white hover:bg-primary-600 transition hover:-translate-y-1">
