@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Safety Guidelines · Zenzy</title>
+  <meta name="description"
+    content="Safety guidelines for using Zenzy's platform — tips to stay safe while booking and receiving services." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #0b0f1a;
+      color: #cbd5e1;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -30%;
+      right: -20%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -20%;
+      left: -15%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.07) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 60px 28px 80px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 40px;
+      padding: 10px 20px;
+      border-radius: 50px;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(71, 85, 105, 0.3);
+      backdrop-filter: blur(8px);
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateX(-12px);
+      animation: slideRight 0.5s ease 0.2s forwards;
+    }
+
+    .back-btn:hover {
+      color: #e2e8f0;
+      background: rgba(30, 41, 59, 0.9);
+      border-color: rgba(16, 185, 129, 0.4);
+      transform: translateX(-4px);
+    }
+
+    .back-btn svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.3s ease;
+    }
+
+    .back-btn:hover svg {
+      transform: translateX(-3px);
+    }
+
+    .page-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      padding: 6px 16px;
+      border-radius: 50px;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.3s forwards;
+    }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      color: #f1f5f9;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.4s forwards;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: #64748b;
+      margin-bottom: 48px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.5s forwards;
+    }
+
+    .section {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(51, 65, 85, 0.4);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(8px);
+      transition: all 0.35s ease;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .section:hover {
+      border-color: rgba(16, 185, 129, 0.25);
+      background: rgba(15, 23, 42, 0.8);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .section h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section h2 .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #10b981, #06b6d4);
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .section p,
+    .section li {
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.8;
+    }
+
+    .section ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 10px;
+    }
+
+    .section li {
+      padding: 4px 0 4px 20px;
+      position: relative;
+    }
+
+    .section li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 13px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+    }
+
+    /* Emergency card */
+    .emergency-card {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 20px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.35s ease;
+    }
+
+    .emergency-card:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(239, 68, 68, 0.1);
+    }
+
+    .emergency-card h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fca5a5;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .emergency-card h2 .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      font-size: 16px;
+      flex-shrink: 0;
+      animation: pulse-icon 2s ease-in-out infinite;
+    }
+
+    .emergency-card p,
+    .emergency-card li {
+      font-size: 14px;
+      color: #fca5a5;
+      line-height: 1.8;
+    }
+
+    .emergency-card ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 10px;
+    }
+
+    .emergency-card li {
+      padding: 4px 0 4px 20px;
+      position: relative;
+    }
+
+    .emergency-card li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 13px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+
+    /* Tip boxes */
+    .tip-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .tip-box {
+      background: rgba(16, 185, 129, 0.06);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .tip-box:hover {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .tip-box .tip-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .tip-box p {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideRight {
+      from {
+        opacity: 0;
+        transform: translateX(-12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes pulse-icon {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3);
+      }
+
+      50% {
+        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+      }
+    }
+
+    .visible {
+      animation: fadeUp 0.6s ease forwards;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 12px;
+      color: #475569;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(51, 65, 85, 0.3);
+      opacity: 0;
+      animation: fadeUp 0.6s ease 1s forwards;
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 40px 18px 60px;
+      }
+
+      .section,
+      .emergency-card {
+        padding: 24px 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <a href="/" class="back-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+      </svg>
+      Back to Zenzy
+    </a>
+
+    <span class="page-badge">Safety</span>
+    <h1>Safety Guidelines</h1>
+    <p class="subtitle">Your safety is our priority. Follow these guidelines when using Zenzy's services.</p>
+
+    <div class="section" data-animate>
+      <h2><span class="icon">🛡️</span> Before Booking</h2>
+      <p>Take these precautions before confirming a service booking:</p>
+      <ul>
+        <li>Always book through the official Zenzy platform — never via personal contacts shared by providers</li>
+        <li>Check the service provider's ratings, reviews, and verification badges</li>
+        <li>Review the service description, pricing, and included items carefully</li>
+        <li>Ensure your address and contact details are accurate for the booking</li>
+        <li>For high-value services, consider being present or having someone you trust at the location</li>
+      </ul>
+    </div>
+
+    <div class="section" data-animate>
+      <h2><span class="icon">🏠</span> During Service</h2>
+      <p>Stay safe while the service is being performed at your location:</p>
+      <ul>
+        <li>Verify the provider's identity using the OTP code generated through the app</li>
+        <li>Never share personal financial information (bank details, passwords, PINs) with providers</li>
+        <li>Keep a family member or friend informed about the service appointment</li>
+        <li>Do not leave valuables unattended in the work area</li>
+        <li>Monitor the work being performed — ask questions if something seems unusual</li>
+        <li>Use the in-app chat for all communication to maintain a record</li>
+      </ul>
+    </div>
+
+    <div class="section" data-animate>
+      <h2><span class="icon">💳</span> Payment Safety</h2>
+      <p>Protect yourself during transactions:</p>
+      <ul>
+        <li>Always pay through the Zenzy platform — avoid cash payments when possible</li>
+        <li>Never transfer money directly to a provider's personal account</li>
+        <li>Verify the final amount matches what was quoted before confirming payment</li>
+        <li>Save payment receipts and transaction IDs for your records</li>
+        <li>Report any requests for additional payments outside the platform immediately</li>
+      </ul>
+    </div>
+
+    <div class="section" data-animate>
+      <h2><span class="icon">🏘️</span> Rental Property Safety</h2>
+      <p>If you're using Zenzy's rental marketplace:</p>
+      <ul>
+        <li>Always visit the property in person before making any payment or commitment</li>
+        <li>Verify the landlord's identity and ownership documents through official channels</li>
+        <li>Never pay deposits or advance rent outside the Zenzy platform</li>
+        <li>Check the neighborhood, connectivity, and safety of the area</li>
+        <li>Read and understand the lease agreement thoroughly before signing</li>
+        <li>Document the property condition with photos during move-in</li>
+      </ul>
+    </div>
+
+    <div class="section" data-animate>
+      <h2><span class="icon">✅</span> Quick Safety Tips</h2>
+      <div class="tip-grid">
+        <div class="tip-box">
+          <div class="tip-icon">📱</div>
+          <p>Book only through the Zenzy app or website</p>
+        </div>
+        <div class="tip-box">
+          <div class="tip-icon">🔐</div>
+          <p>Verify provider identity with OTP</p>
+        </div>
+        <div class="tip-box">
+          <div class="tip-icon">💬</div>
+          <p>Use in-app chat for all communication</p>
+        </div>
+        <div class="tip-box">
+          <div class="tip-icon">⭐</div>
+          <p>Rate and review after every service</p>
+        </div>
+        <div class="tip-box">
+          <div class="tip-icon">🚫</div>
+          <p>Never share OTPs, PINs, or passwords</p>
+        </div>
+        <div class="tip-box">
+          <div class="tip-icon">📞</div>
+          <p>Contact support for any concerns</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" data-animate>
+      <h2><span class="icon">👷</span> For Service Providers</h2>
+      <p>If you're a registered service professional on Zenzy:</p>
+      <ul>
+        <li>Always carry your Zenzy ID and verification documents during service calls</li>
+        <li>Confirm the booking details and OTP with the customer before starting work</li>
+        <li>Maintain professional conduct and respect the customer's property and privacy</li>
+        <li>Report any unsafe situations or customer misconduct through the app</li>
+        <li>Do not accept or request payments outside the Zenzy platform</li>
+      </ul>
+    </div>
+
+    <div class="emergency-card" data-animate>
+      <h2><span class="icon">🚨</span> Emergency &amp; Reporting</h2>
+      <p>If you encounter a safety issue or emergency:</p>
+      <ul>
+        <li><strong>In-App SOS:</strong> Use the emergency button in the app for immediate assistance</li>
+        <li><strong>Zenzy Support:</strong> Contact our 24/7 support team through the Help Desk</li>
+        <li><strong>Police Emergency:</strong> Dial <strong>112</strong> for immediate police assistance</li>
+        <li><strong>Women's Helpline:</strong> Dial <strong>1091</strong> for women's safety concerns</li>
+      </ul>
+      <p style="margin-top: 12px;">All safety reports are treated with the highest priority and confidentiality. We take
+        every report seriously and investigate thoroughly.</p>
+    </div>
+
+    <p class="footer-note">© 2026 Zenzy Technologies Private Limited. All rights reserved.</p>
+  </div>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationDelay = `${index * 0.08}s`;
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
+  </script>
+</body>
+
+</html>

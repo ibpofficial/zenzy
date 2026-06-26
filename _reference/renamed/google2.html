@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zenzy · the modern service protocol</title>
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (for utility classes used in the original React code) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* --- ORIGINAL ZENZY CSS FOR PRESERVATION --- */
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #0f172a;
+            --accent: #10b981;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius-lg: 20px;
+            --radius-xl: 32px;
+            --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.08);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Views Management */
+        .app-view { display: none; }
+        .app-view.active { display: block; }
+
+        /* General Custom Styles */
+        .header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+            padding: 0.8rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .header-container { max-width: 1440px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
+        .brand-wrapper { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .brand { font-weight: 800; font-size: 1.8rem; letter-spacing: -0.04em; color: var(--secondary); display: flex; align-items: center; }
+        .brand-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; margin-left: 2px; box-shadow: 0 0 12px var(--primary); animation: pulseDot 2s infinite; }
+        
+        @keyframes pulseDot {
+            0% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.4); background-color: var(--primary); }
+            100% { opacity: 0.6; transform: scale(1); }
+        }
+
+        .admin-micro { font-size: 0.7rem; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .nav-links { display: flex; gap: 2.5rem; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--text-muted); font-weight: 600; font-size: 0.9rem; transition: all 0.2s; position: relative; }
+        .nav-links a:hover { color: var(--secondary); }
+        .user-actions { display: flex; gap: 1rem; align-items: center; }
+        .icon-btn { width: 40px; height: 40px; background: white; border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: var(--secondary); }
+        .icon-btn:hover { transform: scale(1.1); border-color: var(--primary); color: var(--primary); box-shadow: var(--shadow-sm); }
+
+        .hero { padding: 1.5rem 2rem; max-width: 1440px; margin: 0 auto; }
+        .slideshow-container { height: 380px; width: 100%; position: relative; border-radius: var(--radius-xl); overflow: hidden; background: #000; box-shadow: var(--shadow-lg); }
+        .slide-track { display: flex; width: 300%; height: 100%; animation: slideAuto 18s cubic-bezier(0.25, 0.1, 0.25, 1) infinite; }
+        
+        @keyframes slideAuto {
+            0%, 22% { transform: translateX(0); }
+            33%, 55% { transform: translateX(-33.333%); }
+            66%, 88% { transform: translateX(-66.666%); }
+            100% { transform: translateX(0); }
+        }
+
+        .slide { flex: 1; background-size: cover; background-position: center; display: flex; align-items: center; padding: 0 4rem; position: relative; }
+        .slide::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.1) 100%); }
+        .slide-content { position: relative; z-index: 2; color: white; max-width: 600px; }
+        .slide-content h2 { font-size: 2.8rem; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 1rem; display: flex; align-items: center; gap: 15px; }
+        .slide-badge { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 100px; font-size: 1.1rem; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 500; }
+        .branch-info-bar { max-width: 1440px; margin: 1.5rem auto; display: flex; flex-wrap: wrap; gap: 1.5rem; background: #ecf3fa; border-radius: 100px; padding: 0.8rem 2rem; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 600; color: #1e3a5f; }
+
+        /* Grid & Cards */
+        .trending-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; padding: 0 2rem 2.5rem; }
+        .pro-card { background: white; border-radius: 28px; border: 1px solid var(--border); overflow: hidden; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; cursor: pointer; }
+        .pro-card:hover { transform: translateY(-8px); border-color: #b9d6f0; box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.15); }
+        .pro-img-wrapper { height: 160px; position: relative; overflow: hidden; }
+        .pro-img { width: 100%; height: 100%; background-size: cover; background-position: center; transition: transform 0.5s ease; }
+        .pro-card:hover .pro-img { transform: scale(1.1); }
+        .pro-work-badge { position: absolute; bottom: 12px; left: 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); color: white; padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; text-transform: capitalize; }
+        .pro-info { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+        .pro-name-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+        .pro-name { font-size: 1.1rem; font-weight: 800; color: var(--secondary); }
+        .pro-verified { font-size: 0.7rem; color: var(--primary); background: #e0edff; padding: 2px 8px; border-radius: 40px; font-weight: 700; text-transform: capitalize; }
+        .pro-rating-row { display: flex; align-items: center; gap: 5px; margin-bottom: 0.8rem; }
+        .stars { color: #f4b740; font-size: 0.85rem; letter-spacing: 1px; }
+        .reviews { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+        .pro-meta-row { display: flex; justify-content: space-between; margin-bottom: 1.2rem; font-size: 0.75rem; font-weight: 600; }
+        .pro-price { color: #0f4e3a; background: #e0f0ea; padding: 2px 10px; border-radius: 40px; }
+        .pro-dist { color: #2a4868; background: #edf4fc; padding: 2px 10px; border-radius: 40px; }
+        .book-btn { background: var(--secondary); color: white; padding: 0.8rem; border-radius: 100px; text-align: center; text-decoration: none; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s; margin-top: auto; border: none; cursor: pointer; }
+        .book-btn:not(:disabled):hover { background: var(--primary); gap: 15px; transform: scale(1.02); }
+
+        /* Footer */
+        .footer { background: #0f212f; color: #d4e0ec; padding: 4rem 2rem 2rem; border-radius: 50px 50px 0 0; }
+        .footer-grid { max-width: 1440px; margin: 0 auto; margin-bottom: 3rem; }
+        .footer-logo-col h2 { font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 1rem; }
+        .footer-logo-col .dot { display: inline-block; width: 12px; height: 12px; background: var(--primary); border-radius: 50%; margin-left: 5px; }
+        .footer-bottom { max-width: 1440px; margin: 0 auto; padding-top: 2rem; border-top: 1px solid #264a63; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; opacity: 0.8; }
+
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slideUp { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* Loader */
+        #loading-screen { position: fixed; inset: 0; background: #f8fafc; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .admin-tab { display: none; }
+        .admin-tab.active { display: block; }
+    </style>
+</head>
+<body class="font-sans antialiased text-slate-900 min-h-screen">
+
+    
+
+    <!-- ========================================== -->
+    <!-- 1. HOME VIEW -->
+    <!-- ========================================== -->
+    <div id="view-home" class="app-view active">
+        <header class="header">
+            <div class="header-container">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <a href="#" class="brand-wrapper" onclick="window.navigate('home', null); event.preventDefault();">
+                        <span class="brand">zenzy<span class="brand-dot"></span></span>
+                    </a>
+                    <div class="admin-micro" onclick="window.navigate('admin', null)" title="Open Admin Portal">
+                        <i class="fas fa-code-branch"></i> branch/block · admin protocol
+                    </div>
+                </div>
+                <nav class="nav-links hidden md:flex">
+                    <a href="#">HOME</a>
+                    <a href="#">SERVICES</a>
+                    <a href="#">ABOUT</a>
+                    <a href="#">CONTACT</a>
+                </nav>
+                <div class="user-actions">
+                    <span class="icon-btn"><i class="fas fa-search"></i></span>
+                    <span class="icon-btn" onclick="window.navigate('admin', null)" title="Admin Portal"><i class="fas fa-user-shield"></i></span>
+                </div>
+            </div>
+        </header>
+
+        <section class="hero mt-4">
+            <div class="slideshow-container">
+                <div class="slide-track">
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1581244276823-86f7a47ef6c0?auto=format&fit=crop&w=1600&q=80')">
+                        <div class="slide-content">
+                            <h2><span class="slide-badge"><i class="fas fa-bolt"></i> Protocol Alpha</span></h2>
+                            <h2 style="font-size: 3.5rem;">Plumbing & Electrical.</h2>
+                            <p>900+ Verified Professionals available in your block. Instant response guaranteed by protocol.</p>
+                        </div>
+                    </div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1589939705384-5185138a04b9?auto=format&fit=crop&w=1600&q=80')">
+                        <div class="slide-content">
+                            <h2><span class="slide-badge"><i class="fas fa-paint-roller"></i> Protocol Beta</span></h2>
+                            <h2 style="font-size: 3.5rem;">Masonry & Painting.</h2>
+                            <p>Contractors, Beldars, and Master Painters. High-end finishes protocol-vetted for your home.</p>
+                        </div>
+                    </div>
+                    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1600&q=80')">
+                        <div class="slide-content">
+                            <h2><span class="slide-badge"><i class="fas fa-home"></i> Protocol Gamma</span></h2>
+                            <h2 style="font-size: 3.5rem;">Rent & Property Sale.</h2>
+                            <p>Thekedars and property experts. Find your next space with transparent block-level listings.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="branch-info-bar">
+            <span><i class="fas fa-diagram-project"></i> branch (territory hubs) · 4 zones</span>
+            <span><i class="fas fa-cubes"></i> block (0.5km clusters) · 22 blocks</span>
+            <span><i class="fas fa-database"></i> backend data exchange active</span>
+        </div>
+
+        <section class="max-w-[1400px] mx-auto my-8 bg-slate-100 rounded-[50px]">
+            <div class="flex items-center justify-between p-8">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-fire text-blue-600 bg-blue-100 p-3 rounded-xl"></i>
+                    <h2 class="text-2xl font-bold text-slate-800">Trending in Block 4</h2>
+                </div>
+            </div>
+            <div id="home-trending-grid" class="trending-grid">
+                <!-- Workers injected here by JS -->
+            </div>
+        </section>
+
+        <footer class="footer mt-24">
+            <div class="footer-grid">
+                <div class="footer-logo-col">
+                    <h2>zenzy<span class="dot"></span></h2>
+                    <p style="font-size: 0.9rem; margin-bottom: 20px;">Bridging the access gap · since 2025. Reliable local skilled labor protocolized for the modern home.</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div>© 2025 Zenzy Technologies · all good</div>
+                <div onclick="window.navigate('admin', null)" class="cursor-pointer hover:bg-blue-900 transition-colors" style="display: flex; gap: 10px; align-items: center; background: #153145; padding: 5px 20px; border-radius: 40px; border: 1px solid #3b6385;">
+                    <i class="fas fa-user-shield"></i> Access Admin Portal
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. WORKER PROFILE VIEW -->
+    <!-- ========================================== -->
+    <div id="view-worker" class="app-view bg-slate-50 pb-32 min-h-screen">
+        <div class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+            <button onclick="window.navigate('home', null)" class="flex items-center gap-2 text-slate-600 hover:text-blue-600 font-semibold transition-colors">
+                <i class="fas fa-arrow-left"></i> Back to Protocols
+            </button>
+            <span class="font-bold text-xl text-slate-800 tracking-tight">Profile Details</span>
+            <div class="w-24"></div>
+        </div>
+
+        <div class="max-w-4xl mx-auto mt-8 px-6">
+            <div class="bg-white rounded-[32px] overflow-hidden shadow-sm border border-slate-200" id="worker-profile-content">
+                <!-- Profile details injected here -->
+            </div>
+        </div>
+
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] z-40">
+            <div class="max-w-4xl mx-auto flex justify-between items-center">
+                <div>
+                    <div class="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Est.</div>
+                    <div id="worker-price-footer" class="text-xl font-extrabold text-slate-800">--</div>
+                </div>
+                <button id="btn-book-now" onclick="window.handleBook()" class="px-8 py-4 rounded-full font-bold text-white shadow-lg transition-all flex items-center gap-2 bg-blue-600 hover:bg-blue-700 hover:scale-105">
+                    <i class="fas fa-calendar-check"></i> Book Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. CHAT MODAL -->
+    <!-- ========================================== -->
+    <div id="chat-modal" class="fixed inset-0 z-[100] hidden items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] shadow-2xl flex flex-col h-[600px] max-h-[90vh] overflow-hidden animate-slideUp">
+            
+            <div class="bg-slate-800 text-white p-4 flex justify-between items-center rounded-t-[32px]">
+                <div class="flex items-center gap-3">
+                    <div id="chat-worker-img" class="w-10 h-10 rounded-full bg-cover bg-center border-2 border-slate-600"></div>
+                    <div>
+                        <h4 id="chat-worker-name" class="font-bold text-sm">--</h4>
+                        <p class="text-xs text-blue-300 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Online</p>
+                    </div>
+                </div>
+                <button onclick="window.closeChat()" class="w-8 h-8 flex justify-center items-center bg-white/10 hover:bg-white/20 rounded-full transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 bg-slate-50 p-4 overflow-y-auto flex flex-col gap-3" id="chat-messages">
+                <!-- Messages injected here -->
+            </div>
+
+            <div class="p-4 bg-white border-t border-slate-100" id="chat-input-area">
+                <form onsubmit="window.handleSendChat(event)" class="flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Message..." class="flex-1 bg-slate-100 border-none rounded-full px-5 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" autocomplete="off"/>
+                    <button type="submit" id="chat-submit" class="w-12 h-12 bg-blue-600 text-white rounded-full flex justify-center items-center disabled:opacity-50 disabled:bg-slate-300 transition-colors">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 4. ADMIN PORTAL -->
+    <!-- ========================================== -->
+    <div id="view-admin" class="app-view h-screen bg-slate-100 font-sans flex">
+        <div class="w-64 bg-slate-900 text-white flex flex-col flex-shrink-0">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                <div class="font-extrabold text-2xl tracking-tight text-blue-400">Admin<span class="text-white">OS</span></div>
+                <button onclick="window.navigate('home', null)" class="text-slate-400 hover:text-white"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+            <nav class="flex-1 p-4 space-y-2">
+                <button onclick="window.setAdminTab('workers')" id="tab-btn-workers" class="w-full text-left px-4 py-3 rounded-xl transition-colors bg-blue-600 text-white font-bold">
+                    <i class="fas fa-users w-6"></i> Provider Network
+                </button>
+                <button onclick="window.setAdminTab('bookings')" id="tab-btn-bookings" class="w-full text-left px-4 py-3 rounded-xl transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i class="fas fa-calendar-alt w-6"></i> Booking Requests
+                </button>
+                <button onclick="window.setAdminTab('chats')" id="tab-btn-chats" class="w-full text-left px-4 py-3 rounded-xl transition-colors text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i class="fas fa-comments w-6"></i> Comm Logs
+                </button>
+            </nav>
+        </div>
+
+        <div class="flex-1 overflow-auto p-8 relative">
+            <h1 id="admin-header-title" class="text-3xl font-bold text-slate-800 mb-8 tracking-tight capitalize">Workers Dashboard</h1>
+
+            <!-- Workers Tab -->
+            <div id="admin-tab-workers" class="admin-tab active bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-500 text-sm uppercase tracking-wider">
+                            <th class="p-4 font-semibold border-b">Provider</th>
+                            <th class="p-4 font-semibold border-b">Service</th>
+                            <th class="p-4 font-semibold border-b">Rating</th>
+                            <th class="p-4 font-semibold border-b">Status</th>
+                            <th class="p-4 font-semibold border-b">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-workers-tbody"></tbody>
+                </table>
+            </div>
+
+            <!-- Bookings Tab -->
+            <div id="admin-tab-bookings" class="admin-tab bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-500 text-sm uppercase tracking-wider">
+                            <th class="p-4 font-semibold border-b">Date</th>
+                            <th class="p-4 font-semibold border-b">Provider</th>
+                            <th class="p-4 font-semibold border-b">Customer ID</th>
+                            <th class="p-4 font-semibold border-b">Status</th>
+                            <th class="p-4 font-semibold border-b">Admin Override</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-bookings-tbody"></tbody>
+                </table>
+            </div>
+
+            <!-- Chats Tab -->
+            <div id="admin-tab-chats" class="admin-tab">
+                <div id="admin-chats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT & FIREBASE -->
+    <!-- ========================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, addDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Initialization
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'zenzy-app-id';
+
+        // Globals (exposed to window for inline HTML onclicks)
+        window.zenzyState = {
+            user: null,
+            view: 'home',
+            selectedWorkerId: null,
+            adminActiveTab: 'workers',
+            workers: [],
+            bookings: [],
+            chats: []
+        };
+
+        const DEFAULT_WORKERS = [
+            { id: 'w1', name: 'R.K. Plumbing', type: 'plumbing', icon: 'fas fa-wrench', rating: '5.0', reviews: 312, price: '₹350 /hr', distance: '0.6 km', image: 'https://images.unsplash.com/photo-1595814433015-e6f5cd696144?auto=format&fit=crop&w=600&q=80', badge: 'verified', status: 'Available' },
+            { id: 'w2', name: 'Zen Electrics', type: 'electrics', icon: 'fas fa-bolt', rating: '4.8', reviews: 207, price: '₹420 /fix', distance: '1.1 km', image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80', badge: 'pro pro', status: 'Available' },
+            { id: 'w3', name: 'Cooldude AC', type: 'AC repair', icon: 'fas fa-snowflake', rating: '4.9', reviews: 431, price: '₹399 /svc', distance: '2.3 km', image: 'https://images.unsplash.com/photo-1558979158-65a1eaa14271?auto=format&fit=crop&w=600&q=80', badge: 'elite', status: 'Available' },
+            { id: 'w4', name: 'Asian Paints Pro', type: 'painting', icon: 'fas fa-paint-roller', rating: '4.2', reviews: 95, price: '₹1.8k /rm', distance: '0.3 km', image: 'https://images.unsplash.com/photo-1562259946-08c5475d8d61?auto=format&fit=crop&w=600&q=80', badge: 'top pro', status: 'Available' }
+        ];
+
+        // Ensure variables are properly scoped
+        const workersRef = collection(db, 'artifacts', appId, 'public', 'data', 'zenzy_workers');
+        const bookingsRef = collection(db, 'artifacts', appId, 'public', 'data', 'zenzy_bookings');
+        const chatsRef = collection(db, 'artifacts', appId, 'public', 'data', 'zenzy_chats');
+
+        // Main Auth Flow
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth Error:", err);
+            }
+        }
+        initAuth();
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.zenzyState.user = user;
+                setupListeners();
+            }
+        });
+
+        function setupListeners() {
+            onSnapshot(workersRef, (snap) => {
+                const wData = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+                
+                if (wData.length === 0 && snap.metadata.hasPendingWrites === false) {
+                    DEFAULT_WORKERS.forEach(async (w) => {
+                        await setDoc(doc(workersRef, w.id), w);
+                    });
+                } else {
+                    window.zenzyState.workers = wData;
+                    renderAll();
+                    document.getElementById('loading-screen').style.display = 'none';
+                }
+            }, console.error);
+
+            onSnapshot(bookingsRef, (snap) => {
+                window.zenzyState.bookings = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+                if (window.zenzyState.view === 'admin') renderAdminBookings();
+            }, console.error);
+
+            onSnapshot(chatsRef, (snap) => {
+                window.zenzyState.chats = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+                if (window.zenzyState.view === 'worker' && document.getElementById('chat-modal').classList.contains('flex')) {
+                    renderChatModal(); // Re-render if open
+                }
+                if (window.zenzyState.view === 'admin') renderAdminChats();
+            }, console.error);
+        }
+
+        // --- Render Functions ---
+
+        function renderAll() {
+            renderHomeGrid();
+            if (window.zenzyState.view === 'worker') renderWorkerProfile();
+            if (window.zenzyState.view === 'admin') {
+                renderAdminWorkers();
+                renderAdminBookings();
+                renderAdminChats();
+            }
+        }
+
+        function renderHomeGrid() {
+            const grid = document.getElementById('home-trending-grid');
+            if(!grid) return;
+            
+            grid.innerHTML = window.zenzyState.workers.map(pro => {
+                const isBooked = pro.status === 'Booked';
+                return `
+                <div class="pro-card" onclick="if(!${isBooked}) window.navigate('worker', '${pro.id}')">
+                    <div class="pro-img-wrapper">
+                        <div class="pro-img" style="background-image: linear-gradient(0deg, rgba(0,0,0,0.4), transparent), url('${pro.image}')"></div>
+                        <span class="pro-work-badge"><i class="${pro.icon}"></i> ${pro.type}</span>
+                        ${isBooked ? `<span class="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">Currently Booked</span>` : ''}
+                    </div>
+                    <div class="pro-info">
+                        <div class="pro-name-row">
+                            <h4 class="pro-name">${pro.name}</h4>
+                            <span class="pro-verified"><i class="fas fa-check-circle"></i> ${pro.badge}</span>
+                        </div>
+                        <div class="pro-rating-row">
+                            <span class="stars">★★★★★</span>
+                            <span class="reviews">(${pro.reviews} reviews)</span>
+                        </div>
+                        <div class="pro-meta-row">
+                            <span class="pro-price">${pro.price}</span>
+                            <span class="pro-dist"><i class="fas fa-map-pin"></i> ${pro.distance}</span>
+                        </div>
+                        <button class="book-btn w-full mt-auto ${isBooked ? 'opacity-50 cursor-not-allowed bg-slate-500 hover:bg-slate-500 hover:scale-100' : ''}"
+                                onclick="event.stopPropagation(); if(!${isBooked}) window.navigate('worker', '${pro.id}')"
+                                ${isBooked ? 'disabled' : ''}>
+                            ${isBooked ? 'Unavailable' : 'View Profile & Book'} <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderWorkerProfile() {
+            const worker = window.zenzyState.workers.find(w => w.id === window.zenzyState.selectedWorkerId);
+            if (!worker) return;
+
+            document.getElementById('worker-price-footer').textContent = worker.price;
+            
+            const btn = document.getElementById('btn-book-now');
+            if (worker.status === 'Booked') {
+                btn.className = "px-8 py-4 rounded-full font-bold text-white shadow-lg transition-all flex items-center gap-2 bg-slate-400 cursor-not-allowed";
+                btn.innerHTML = `<i class="fas fa-calendar-check"></i> Currently Unavailable`;
+                btn.disabled = true;
+            } else {
+                btn.className = "px-8 py-4 rounded-full font-bold text-white shadow-lg transition-all flex items-center gap-2 bg-blue-600 hover:bg-blue-700 hover:scale-105";
+                btn.innerHTML = `<i class="fas fa-calendar-check"></i> Book Now`;
+                btn.disabled = false;
+            }
+
+            const statusClass = worker.status === 'Available' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700';
+            const statusIcon = worker.status === 'Available' ? 'fa-check-circle' : 'fa-clock';
+
+            document.getElementById('worker-profile-content').innerHTML = `
+                <div class="h-64 w-full bg-cover bg-center relative" style="background-image: url('${worker.image}')">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
+                    <div class="absolute bottom-6 left-8 text-white">
+                        <span class="bg-blue-600/90 backdrop-blur text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3 inline-block">
+                            <i class="${worker.icon}"></i> ${worker.type}
+                        </span>
+                        <h1 class="text-4xl font-extrabold tracking-tight">${worker.name}</h1>
+                        <div class="flex items-center gap-4 mt-2 text-sm font-medium">
+                            <span class="flex items-center gap-1 text-yellow-400"><i class="fas fa-star"></i> ${worker.rating} (${worker.reviews} reviews)</span>
+                            <span class="text-slate-300">•</span>
+                            <span><i class="fas fa-map-marker-alt text-blue-400"></i> ${worker.distance}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Service Details</h3>
+                        <ul class="space-y-4">
+                            <li class="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
+                                <span class="text-slate-500 font-medium">Standard Rate</span>
+                                <span class="font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full">${worker.price}</span>
+                            </li>
+                            <li class="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
+                                <span class="text-slate-500 font-medium">Verification</span>
+                                <span class="font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full capitalize">${worker.badge}</span>
+                            </li>
+                            <li class="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
+                                <span class="text-slate-500 font-medium">Current Status</span>
+                                <span class="font-bold px-3 py-1 rounded-full ${statusClass}">
+                                    <i class="fas ${statusIcon}"></i> ${worker.status}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">About Provider</h3>
+                        <p class="text-slate-600 leading-relaxed text-sm">
+                            Zenzy verified professional with over 5 years of experience in the block. Adheres to strict service protocols, ensuring transparent pricing and high-quality finishes. Fully insured and background-checked by the administrative territory hub.
+                        </p>
+                        <button onclick="window.openChat()" class="mt-6 w-full py-3 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-blue-50 hover:text-blue-700 transition-colors flex justify-center items-center gap-2 border border-slate-200">
+                            <i class="fas fa-comments"></i> Inquire via Chat (Free)
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Navigation ---
+        window.navigate = (viewName, workerId) => {
+            window.zenzyState.view = viewName;
+            if (workerId) window.zenzyState.selectedWorkerId = workerId;
+            
+            document.querySelectorAll('.app-view').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            
+            window.scrollTo(0, 0);
+            renderAll();
+        };
+
+        // --- Booking Actions ---
+        window.handleBook = async () => {
+            const worker = window.zenzyState.workers.find(w => w.id === window.zenzyState.selectedWorkerId);
+            if (!worker || worker.status === 'Booked') return;
+
+            const btn = document.getElementById('btn-book-now');
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Booking...`;
+            btn.disabled = true;
+
+            try {
+                await addDoc(bookingsRef, {
+                    workerId: worker.id,
+                    workerName: worker.name,
+                    customerId: window.zenzyState.user.uid,
+                    status: 'Pending',
+                    timestamp: new Date().toISOString()
+                });
+
+                const workerDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'zenzy_workers', worker.id);
+                await updateDoc(workerDocRef, { status: 'Booked' });
+            } catch (err) {
+                console.error("Booking failed:", err);
+                alert("Failed to book. Please try again.");
+            }
+        };
+
+        // --- Chat Modal Logic ---
+        window.openChat = () => {
+            document.getElementById('chat-modal').classList.remove('hidden');
+            document.getElementById('chat-modal').classList.add('flex');
+            renderChatModal();
+        };
+
+        window.closeChat = () => {
+            document.getElementById('chat-modal').classList.add('hidden');
+            document.getElementById('chat-modal').classList.remove('flex');
+        };
+
+        function renderChatModal() {
+            const worker = window.zenzyState.workers.find(w => w.id === window.zenzyState.selectedWorkerId);
+            if (!worker) return;
+
+            document.getElementById('chat-worker-img').style.backgroundImage = `url('${worker.image}')`;
+            document.getElementById('chat-worker-name').textContent = worker.name;
+
+            const chatRoom = window.zenzyState.chats.find(c => c.workerId === worker.id && c.customerId === window.zenzyState.user.uid);
+            const messages = chatRoom?.messages || [];
+            const customerCount = messages.filter(m => m.senderId === window.zenzyState.user.uid).length;
+            const canSend = customerCount < 3;
+
+            let msgsHtml = `
+                <div class="text-center mb-4">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">Protocol Chat Initialized</span>
+                    <p class="text-xs text-slate-500 mt-2">You have ${3 - customerCount} free messages remaining.</p>
+                </div>
+            `;
+
+            messages.forEach(msg => {
+                const isMe = msg.senderId === window.zenzyState.user.uid;
+                if (isMe) {
+                    msgsHtml += `<div class="max-w-[80%] rounded-2xl px-4 py-2 text-sm bg-blue-600 text-white self-end rounded-br-sm shadow-md">${msg.text}</div>`;
+                } else {
+                    msgsHtml += `<div class="max-w-[80%] rounded-2xl px-4 py-2 text-sm bg-white text-slate-800 self-start rounded-bl-sm border border-slate-200 shadow-sm">${msg.text}</div>`;
+                }
+            });
+
+            const msgContainer = document.getElementById('chat-messages');
+            msgContainer.innerHTML = msgsHtml;
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+
+            const inputArea = document.getElementById('chat-input-area');
+            if (!canSend) {
+                inputArea.innerHTML = `
+                    <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm p-3 rounded-xl text-center font-medium flex items-center justify-center gap-2">
+                        <i class="fas fa-lock text-amber-500"></i> Free message limit reached. Book service to continue.
+                    </div>`;
+            } else {
+                inputArea.innerHTML = `
+                    <form onsubmit="window.handleSendChat(event)" class="flex gap-2">
+                        <input type="text" id="chat-input" placeholder="Message ${worker.name}..." class="flex-1 bg-slate-100 border-none rounded-full px-5 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" autocomplete="off"/>
+                        <button type="submit" id="chat-submit" class="w-12 h-12 bg-blue-600 text-white rounded-full flex justify-center items-center disabled:opacity-50 disabled:bg-slate-300 transition-colors">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>`;
+                
+                // Add realtime validation
+                const inp = document.getElementById('chat-input');
+                const btn = document.getElementById('chat-submit');
+                btn.disabled = true;
+                inp.oninput = () => btn.disabled = !inp.value.trim();
+            }
+        }
+
+        window.handleSendChat = async (e) => {
+            e.preventDefault();
+            const worker = window.zenzyState.workers.find(w => w.id === window.zenzyState.selectedWorkerId);
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            
+            if (!text || !worker) return;
+
+            const chatRoom = window.zenzyState.chats.find(c => c.workerId === worker.id && c.customerId === window.zenzyState.user.uid);
+            const newMessage = { id: Date.now().toString(), senderId: window.zenzyState.user.uid, text, timestamp: new Date().toISOString() };
+
+            input.value = '';
+            document.getElementById('chat-submit').disabled = true;
+
+            try {
+                if (chatRoom) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'zenzy_chats', chatRoom.docId), {
+                        messages: [...chatRoom.messages, newMessage],
+                        lastUpdated: new Date().toISOString()
+                    });
+                } else {
+                    await addDoc(chatsRef, {
+                        workerId: worker.id,
+                        workerName: worker.name,
+                        customerId: window.zenzyState.user.uid,
+                        messages: [newMessage],
+                        createdAt: new Date().toISOString(),
+                        lastUpdated: new Date().toISOString()
+                    });
+                }
+            } catch (err) {
+                console.error("Chat send error:", err);
+            }
+        };
+
+        // --- Admin Portal Logic ---
+        window.setAdminTab = (tabId) => {
+            window.zenzyState.adminActiveTab = tabId;
+            document.getElementById('admin-header-title').textContent = `${tabId} Dashboard`;
+            
+            document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(`admin-tab-${tabId}`).classList.add('active');
+
+            ['workers', 'bookings', 'chats'].forEach(id => {
+                const btn = document.getElementById(`tab-btn-${id}`);
+                if (id === tabId) {
+                    btn.className = "w-full text-left px-4 py-3 rounded-xl transition-colors bg-blue-600 text-white font-bold";
+                } else {
+                    btn.className = "w-full text-left px-4 py-3 rounded-xl transition-colors text-slate-400 hover:bg-slate-800 hover:text-white";
+                }
+            });
+
+            if (tabId === 'workers') renderAdminWorkers();
+            if (tabId === 'bookings') renderAdminBookings();
+            if (tabId === 'chats') renderAdminChats();
+        };
+
+        function renderAdminWorkers() {
+            const tbody = document.getElementById('admin-workers-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = window.zenzyState.workers.map(w => `
+                <tr class="border-b hover:bg-slate-50/50">
+                    <td class="p-4 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-cover bg-center" style="background-image: url('${w.image}')"></div>
+                        <span class="font-bold text-slate-800">${w.name}</span>
+                    </td>
+                    <td class="p-4 text-slate-600 capitalize"><i class="${w.icon} text-blue-500 mr-2"></i>${w.type}</td>
+                    <td class="p-4 font-medium">${w.rating} ⭐</td>
+                    <td class="p-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold ${w.status === 'Available' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${w.status}</span>
+                    </td>
+                    <td class="p-4">
+                        <select onchange="window.updateWorkerStatus('${w.id}', this.value)" class="bg-slate-100 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-blue-500 block w-full p-2 outline-none cursor-pointer">
+                            <option value="Available" ${w.status === 'Available' ? 'selected' : ''}>Set Available</option>
+                            <option value="Booked" ${w.status === 'Booked' ? 'selected' : ''}>Set Booked</option>
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAdminBookings() {
+            const tbody = document.getElementById('admin-bookings-tbody');
+            if(!tbody) return;
+            const sorted = [...window.zenzyState.bookings].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            if(sorted.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500">No bookings found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = sorted.map(b => {
+                let badgeClass = 'bg-amber-100 text-amber-700';
+                if(b.status === 'Accepted') badgeClass = 'bg-blue-100 text-blue-700';
+                if(b.status === 'Completed') badgeClass = 'bg-emerald-100 text-emerald-700';
+                if(b.status === 'Rejected') badgeClass = 'bg-red-100 text-red-700';
+
+                return `
+                <tr class="border-b hover:bg-slate-50/50">
+                    <td class="p-4 text-sm text-slate-600">${new Date(b.timestamp).toLocaleString()}</td>
+                    <td class="p-4 font-bold text-slate-800">${b.workerName}</td>
+                    <td class="p-4 text-xs font-mono text-slate-400">${b.customerId}</td>
+                    <td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${badgeClass}">${b.status}</span></td>
+                    <td class="p-4">
+                        <select onchange="window.updateBookingStatus('${b.docId}', this.value, '${b.workerId}')" class="bg-slate-100 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-blue-500 p-2 outline-none cursor-pointer">
+                            <option value="Pending" ${b.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option value="Accepted" ${b.status === 'Accepted' ? 'selected' : ''}>Accept</option>
+                            <option value="Completed" ${b.status === 'Completed' ? 'selected' : ''}>Complete (Free Worker)</option>
+                            <option value="Rejected" ${b.status === 'Rejected' ? 'selected' : ''}>Reject (Free Worker)</option>
+                        </select>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderAdminChats() {
+            const grid = document.getElementById('admin-chats-grid');
+            if(!grid) return;
+            
+            if(window.zenzyState.chats.length === 0) {
+                grid.innerHTML = `<div class="col-span-full p-8 text-center text-slate-500">No communication logs.</div>`;
+                return;
+            }
+
+            grid.innerHTML = window.zenzyState.chats.map(c => `
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col h-64">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-bold text-slate-800">${c.workerName}</h3>
+                            <p class="text-xs font-mono text-slate-400 mt-1" title="${c.customerId}">Cust: ${c.customerId.substring(0,8)}...</p>
+                        </div>
+                        <span class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded-md">${c.messages.length} msgs</span>
+                    </div>
+                    <div class="flex-1 bg-slate-50 rounded-xl p-3 overflow-y-auto text-sm space-y-2 border border-slate-100">
+                        ${c.messages.map(m => `
+                            <div class="p-2 rounded-lg ${m.senderId === c.customerId ? 'bg-blue-100 text-blue-900 ml-4' : 'bg-white border border-slate-200 mr-4'}">
+                                <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">
+                                    ${m.senderId === c.customerId ? 'Customer' : 'Worker'}
+                                </span>
+                                ${m.text}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- Admin Actions ---
+        window.updateWorkerStatus = async (workerId, newStatus) => {
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'zenzy_workers', workerId), { status: newStatus });
+            } catch (err) { console.error("Status update error", err); }
+        };
+
+        window.updateBookingStatus = async (bookingId, newStatus, workerId) => {
+            try {
+                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'zenzy_bookings', bookingId), { status: newStatus });
+                if (newStatus === 'Completed' || newStatus === 'Rejected') {
+                    window.updateWorkerStatus(workerId, 'Available');
+                } else if (newStatus === 'Accepted') {
+                    window.updateWorkerStatus(workerId, 'Booked');
+                }
+            } catch (err) { console.error("Booking update error", err); }
+        };
+
+    </script>
+</body>
+</html>
