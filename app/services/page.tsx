@@ -275,26 +275,36 @@ function ServicesContent() {
                 {filteredWorkers.map((pro, index) => (
                   <article
                     key={pro.id}
-                    className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-300 hover:shadow-card shadow-subtle animate-fade-up"
+                    className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-300 ease-out shadow-[0_4px_16px_rgba(0,0,0,0.02)] dark:shadow-none hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] hover:border-blue-500 dark:hover:border-blue-400 group animate-fade-up"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     {/* Header Image */}
-                    <div className="relative h-44 bg-slate-100 dark:bg-slate-950">
+                    <div className="relative h-44 bg-slate-100 dark:bg-slate-950 overflow-hidden">
                       <img
                         src={pro.coverImage}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         alt="Service Banner"
                       />
-                      <span className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md text-white px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent"></div>
+                      <span className="absolute top-3 left-3 bg-slate-950/60 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest border border-white/10 z-10">
                         {pro.category}
                       </span>
+                      
+                      <div className="absolute bottom-3 left-3 w-11 h-11 rounded-full overflow-hidden border-2 border-white dark:border-slate-900 shadow-md bg-slate-100 shrink-0 z-10">
+                        <img
+                          src={pro.avatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=100&h=100&q=80"}
+                          className="w-full h-full object-cover"
+                          alt={pro.name}
+                        />
+                      </div>
+
                       {pro.status === "Available" ? (
-                        <span className="absolute top-3 right-3 bg-emerald-500 text-white px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider">
-                          🟢 Available
+                        <span className="absolute top-3 right-3 bg-emerald-500/90 backdrop-blur-md text-white border border-emerald-400/50 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm z-10">
+                          <span className="w-1.5 h-1.5 bg-white rounded-full brand-pulse-dot"></span> Available
                         </span>
                       ) : (
-                        <span className="absolute top-3 right-3 bg-red-500 text-white px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider">
-                          🔴 Busy
+                        <span className="absolute top-3 right-3 bg-red-500/90 backdrop-blur-md text-white border border-red-400/50 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm z-10">
+                          <span className="w-1.5 h-1.5 bg-white rounded-full"></span> Busy
                         </span>
                       )}
                     </div>
@@ -302,29 +312,29 @@ function ServicesContent() {
                     {/* Information */}
                     <div className="p-6 flex-grow flex flex-col justify-between">
                       <div>
-                        <div className="flex justify-between items-start mb-1">
-                          <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-snug">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-snug group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                             {pro.name}
                           </h3>
                           <div className="flex gap-1 shrink-0">
                             {pro.verified && (
                               <span className="text-primary-500" title="Verified Professional">
-                                <CheckCircle className="w-5 h-5 fill-primary-100 dark:fill-primary-950/20" />
+                                <CheckCircle className="w-4 h-4 fill-primary-50 dark:fill-primary-950/20" />
                               </span>
                             )}
                             {pro.premium && (
-                              <span className="text-gold" title="Premium Partner">
-                                <Award className="w-5 h-5 fill-gold/20" />
+                              <span className="text-amber-500" title="Premium Partner">
+                                <Award className="w-4 h-4 fill-amber-50 dark:fill-amber-950/20" />
                               </span>
                             )}
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2 mb-3">
-                          <span className="text-gold font-extrabold text-sm flex items-center gap-1">
+                          <span className="text-amber-500 font-extrabold text-sm flex items-center gap-1">
                             ★ {pro.stars}
                           </span>
-                          <span className="text-slate-400 dark:text-slate-500 text-xs font-semibold">({pro.reviewsCount} reviews)</span>
+                          <span className="text-slate-400 dark:text-slate-500 text-[11px] font-bold">({pro.reviewsCount} reviews)</span>
                         </div>
 
                         <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-snug line-clamp-3 mb-5 font-semibold">

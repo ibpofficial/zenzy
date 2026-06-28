@@ -495,32 +495,32 @@ export default function RentPage() {
                   <article
                     key={p.id}
                     onClick={() => router.push(`/rent/${p.id}`)}
-                    className="bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-slate-250 dark:border-slate-800 hover:-translate-y-1.5 transition-all duration-300 group cursor-pointer shadow-subtle flex flex-col"
+                    className="bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-slate-200/80 dark:border-slate-800/80 hover:-translate-y-1.5 transition-all duration-300 group cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.015)] hover:shadow-[0_20px_40px_rgba(37,99,235,0.06)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:border-blue-500 dark:hover:border-blue-400 flex flex-col"
                   >
                     <div className="relative h-52 bg-slate-100 dark:bg-slate-850 overflow-hidden shrink-0">
-                      <img src={p.images?.[0]} className="w-full h-full object-cover group-hover:scale-102 transition duration-500" alt="" />
+                      <img src={p.images?.[0]} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="" />
                       
                       {/* Badges */}
                       <div className="absolute top-3 left-3 flex gap-1.5">
                         {p.assured && (
-                          <span className="glass-badge text-slate-900 text-[9px] font-black uppercase px-2 py-1 rounded shadow">
+                          <span className="bg-gradient-to-r from-amber-500 to-amber-600 backdrop-blur-md text-white border border-amber-400/30 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
                             ★ Assured
                           </span>
                         )}
                         {p.verified && (
-                          <span className="glass-badge text-slate-900 text-[9px] font-black uppercase px-2 py-1 rounded shadow">
+                          <span className="bg-gradient-to-r from-blue-500 to-indigo-600 backdrop-blur-md text-white border border-blue-400/30 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
                             ✓ Verified
                           </span>
                         )}
                       </div>
-                      <span className="absolute bottom-3 right-3 bg-black/60 text-white px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider">
+                      <span className="absolute bottom-3 right-3 bg-slate-950/60 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest border border-white/10 z-10">
                         {p.type}
                       </span>
                     </div>
 
-                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="p-6 flex-grow flex flex-col justify-between space-y-4">
                       <div className="space-y-1.5">
-                        <h4 className="font-extrabold text-[17px] text-slate-900 dark:text-white leading-tight truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                        <h4 className="font-extrabold text-[16px] text-slate-855 dark:text-slate-100 leading-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                           {p.title}
                         </h4>
                         <span className="text-slate-400 font-bold text-xs flex items-center gap-1 truncate">
@@ -528,19 +528,19 @@ export default function RentPage() {
                         </span>
                       </div>
 
-                      <div className="flex gap-2 text-[11px] font-bold text-slate-500">
-                        <span className="bg-slate-50 dark:bg-slate-850 px-2.5 py-1.5 rounded-lg border dark:border-slate-800">{p.beds} Beds</span>
-                        <span className="bg-slate-50 dark:bg-slate-850 px-2.5 py-1.5 rounded-lg border dark:border-slate-800">{p.baths} Baths</span>
-                        <span className="bg-slate-50 dark:bg-slate-850 px-2.5 py-1.5 rounded-lg border dark:border-slate-800">{p.furnishing}</span>
+                      <div className="flex gap-2 text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        <span className="bg-slate-50 dark:bg-slate-850/80 px-2.5 py-1.5 rounded-xl border border-slate-100 dark:border-slate-800">{p.beds} Beds</span>
+                        <span className="bg-slate-50 dark:bg-slate-850/80 px-2.5 py-1.5 rounded-xl border border-slate-100 dark:border-slate-800">{p.baths} Baths</span>
+                        <span className="bg-slate-50 dark:bg-slate-850/80 px-2.5 py-1.5 rounded-xl border border-slate-100 dark:border-slate-800">{p.furnishing}</span>
                       </div>
 
-                      <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
-                        <span className="text-xl font-black text-slate-900 dark:text-white">
-                          ₹{p.price?.toLocaleString()}
-                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">/ Month</span>
-                        </span>
+                      <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 flex justify-between items-center shrink-0">
+                        <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-850 px-3.5 py-1.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-inner">
+                          <span className="text-lg font-black text-slate-900 dark:text-white">₹{p.price?.toLocaleString()}</span>
+                          <span className="text-[9px] text-slate-400 dark:text-slate-505 font-bold uppercase tracking-wider block">/mo</span>
+                        </div>
                         {!p.brokerage && (
-                          <span className="text-[9px] font-black uppercase bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded">
+                          <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-full">
                             0 Brokerage
                           </span>
                         )}

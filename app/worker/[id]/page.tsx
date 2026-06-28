@@ -89,7 +89,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
         setBookingLocation("Sector 12, Dwarka, New Delhi, Delhi, 110075");
         setDetectingLocation(false);
       },
-      { timeout: 5000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 

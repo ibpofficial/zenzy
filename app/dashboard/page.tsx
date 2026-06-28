@@ -395,7 +395,7 @@ export default function CustomerDashboardPage() {
         showToast("Location access denied or timed out.");
         setDetectingLocation(false);
       },
-      { enableHighAccuracy: true, timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 
@@ -536,51 +536,51 @@ export default function CustomerDashboardPage() {
       <main className="max-w-7xl mx-auto w-full px-5 sm:px-8 pt-28 pb-16 flex-grow">
         
         {/* Welcome Section */}
-        <div className="relative bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 border border-slate-800 rounded-[32px] p-6 sm:p-8 text-white overflow-hidden mb-8 shadow-[0_24px_50px_rgba(0,0,0,0.15)]">
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary-600 rounded-full blur-[120px] opacity-30 pointer-events-none" />
-          <div className="absolute -bottom-16 -left-12 w-48 h-48 bg-indigo-600 rounded-full blur-[100px] opacity-20 pointer-events-none" />
-          <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+        <div className="relative bg-slate-900 dark:bg-slate-925 border border-slate-800 rounded-[32px] p-6 sm:p-8 text-white overflow-hidden mb-8 shadow-[0_24px_50px_rgba(0,0,0,0.18)]">
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-blue-500/20 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute -bottom-16 -left-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="flex items-center gap-5">
-              {/* Avatar with ring and upload on hover */}
+              {/* Profile Avatar with double rings & upload button */}
               <div className="relative group shrink-0">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white/20 bg-slate-800 ring-2 ring-primary-500/30 shadow-lg">
+                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/10 ring-4 ring-blue-500/20 shadow-xl bg-slate-800">
                   <img
                     src={profAvatar || userData?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80"}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     alt="Customer Profile"
                   />
                 </div>
                 <button
                   onClick={() => avatarInputRef.current?.click()}
-                  className="absolute inset-0 bg-black/55 rounded-2xl flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer shadow-inner"
+                  title="Upload profile photo"
                 >
-                  <Upload className="w-5 h-5 text-white" />
-                  <span className="text-[9px] font-bold text-white/80">Change</span>
+                  <Upload className="w-4 h-4 text-white" />
+                  <span className="text-[8px] font-bold text-white/90">Upload</span>
                 </button>
-                {/* Online dot */}
-                <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-900 shadow" />
+                <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-900 shadow-md" />
               </div>
               <div>
-                <p className="text-[10px] font-black text-primary-400 uppercase tracking-widest mb-0.5">Welcome back</p>
-                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">{userData?.name || "User"}!</h1>
-                <p className="text-slate-400 text-[11px] font-semibold mt-1 flex items-center gap-1.5">
-                  <CheckCircle className="w-3 h-3 text-emerald-400" />
-                  Verified Customer Account
+                <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">Welcome back</p>
+                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">{userData?.name || "User"}!</h1>
+                <p className="text-slate-400 text-[11px] font-semibold mt-1.5 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Verified Account
                 </p>
               </div>
             </div>
-            <div className="flex gap-3 text-xs font-bold">
-              <div className="bg-white/8 hover:bg-white/12 border border-white/10 px-4 py-3 rounded-2xl text-center transition cursor-default">
+            <div className="flex flex-wrap gap-3 text-xs font-bold w-full md:w-auto">
+              <div className="flex-1 md:flex-none bg-white/5 backdrop-blur-md border border-white/10 px-5 py-3 rounded-2xl text-center hover:bg-white/10 hover:border-white/20 transition-all duration-300">
                 <span className="block text-xl font-black text-white">{bookings.length}</span>
-                <span className="text-[9px] uppercase text-slate-400 tracking-wider">Bookings</span>
+                <span className="text-[9px] uppercase text-slate-400 tracking-wider font-extrabold">Bookings</span>
               </div>
-              <div className="bg-white/8 hover:bg-white/12 border border-white/10 px-4 py-3 rounded-2xl text-center transition cursor-default">
+              <div className="flex-1 md:flex-none bg-white/5 backdrop-blur-md border border-white/10 px-5 py-3 rounded-2xl text-center hover:bg-white/10 hover:border-white/20 transition-all duration-300">
                 <span className="block text-xl font-black text-white">{addresses.length}</span>
-                <span className="text-[9px] uppercase text-slate-400 tracking-wider">Addresses</span>
+                <span className="text-[9px] uppercase text-slate-400 tracking-wider font-extrabold">Addresses</span>
               </div>
-              <div className="bg-white/8 hover:bg-white/12 border border-white/10 px-4 py-3 rounded-2xl text-center transition cursor-default">
+              <div className="flex-1 md:flex-none bg-white/5 backdrop-blur-md border border-white/10 px-5 py-3 rounded-2xl text-center hover:bg-white/10 hover:border-white/20 transition-all duration-300">
                 <span className="block text-xl font-black text-white">{favorites.length}</span>
-                <span className="text-[9px] uppercase text-slate-400 tracking-wider">Favorites</span>
+                <span className="text-[9px] uppercase text-slate-400 tracking-wider font-extrabold">Favorites</span>
               </div>
             </div>
           </div>
@@ -592,9 +592,9 @@ export default function CustomerDashboardPage() {
           {/* Sidebar Menu */}
           <aside className="lg:col-span-1 space-y-3">
             {/* Profile mini card in sidebar */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-3xl shadow-subtle mb-1">
-              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100 dark:border-slate-800">
-                <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4 rounded-3xl shadow-sm mb-1">
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 shadow-sm">
                   <img
                     src={profAvatar || userData?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80"}
                     className="w-full h-full object-cover"
@@ -603,10 +603,10 @@ export default function CustomerDashboardPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="font-extrabold text-xs text-slate-900 dark:text-white truncate">{userData?.name}</p>
-                  <p className="text-[10px] text-slate-400 font-semibold truncate">{userData?.email || user?.email}</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold truncate">{userData?.email || user?.email}</p>
                 </div>
               </div>
-              <div className="flex flex-col gap-0.5">
+              <div className="flex flex-col gap-1">
               {[
                 { id: "overview", label: "Overview", icon: User },
                 { id: "bookings", label: "My Bookings", icon: Calendar, badge: bookings.filter(b=>["Pending","Accepted","OnTheWay","Started","Job Done"].includes(b.status)).length },
@@ -622,16 +622,16 @@ export default function CustomerDashboardPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as Tab)}
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 cursor-pointer ${
                       isActive
-                        ? "bg-gradient-to-r from-primary-600 to-indigo-600 text-white shadow-md"
-                        : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                        ? "bg-blue-50/70 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500"
+                        : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white border-l-4 border-transparent"
                     }`}
                   >
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? "" : "opacity-70"}`} />
+                    <Icon className="w-4 h-4 shrink-0" />
                     <span className="flex-1 text-left">{tab.label}</span>
                     {tab.badge && tab.badge > 0 ? (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-white text-primary-600" : "bg-red-500 text-white"}`}>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-blue-600 text-white" : "bg-red-500 text-white"}`}>
                         {tab.badge}
                       </span>
                     ) : null}
@@ -642,7 +642,7 @@ export default function CustomerDashboardPage() {
             </div>
             <button
               onClick={logout}
-              className="w-full flex items-center justify-center gap-2 bg-red-50 dark:bg-red-950/20 text-red-500 hover:bg-red-500 hover:text-white py-3.5 rounded-2xl font-bold text-xs transition cursor-pointer border border-red-150 dark:border-red-900/40"
+              className="w-full flex items-center justify-center gap-2 bg-red-50 dark:bg-red-950/20 text-red-500 hover:bg-red-500 hover:text-white py-3.5 rounded-2xl font-bold text-xs transition duration-200 cursor-pointer border border-red-100 dark:border-red-900/40"
             >
               Logout Session
             </button>
@@ -657,43 +657,43 @@ export default function CustomerDashboardPage() {
                 {/* Stats quick panel */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Wallet Balance Card */}
-                  <div className="bg-gradient-to-br from-indigo-600 to-primary-600 text-white p-5 rounded-2xl shadow-[0_10px_20px_rgba(99,102,241,0.15)] flex items-center gap-4 hover:scale-[1.03] transition-transform duration-300">
-                    <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
-                      <CreditCard className="w-5 h-5 text-white" />
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] transition-all duration-300 flex items-center gap-4 group">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 border border-blue-100/50 dark:border-blue-900/30">
+                      <CreditCard className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] text-indigo-150 font-extrabold uppercase tracking-wider block">Wallet Balance</span>
-                      <span className="text-xl font-black">₹{(userData?.walletBalance ?? 500).toLocaleString("en-IN")}</span>
+                      <span className="text-[10px] text-slate-455 dark:text-slate-500 font-extrabold uppercase tracking-wider block">Wallet Balance</span>
+                      <span className="text-xl font-black text-slate-900 dark:text-white">₹{(userData?.walletBalance ?? 500).toLocaleString("en-IN")}</span>
                     </div>
                   </div>
                   {/* Completed Jobs */}
-                  <div className="bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 p-5 rounded-2xl shadow-subtle flex items-center gap-4 hover:scale-[1.03] transition-transform duration-300">
-                    <div className="w-12 h-12 rounded-xl bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400 flex items-center justify-center shrink-0">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] transition-all duration-300 flex items-center gap-4 group">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 border border-indigo-100/50 dark:border-indigo-900/30">
                       <Calendar className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Completed Jobs</span>
-                      <span className="text-xl font-black">{bookings.filter(b => b.status === "Completed").length} Services</span>
+                      <span className="text-[10px] text-slate-455 dark:text-slate-500 font-extrabold uppercase tracking-wider block">Completed Jobs</span>
+                      <span className="text-xl font-black text-slate-900 dark:text-white">{bookings.filter(b => b.status === "Completed").length} Services</span>
                     </div>
                   </div>
                   {/* Favorites */}
-                  <div className="bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 p-5 rounded-2xl shadow-subtle flex items-center gap-4 hover:scale-[1.03] transition-transform duration-300">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] transition-all duration-300 flex items-center gap-4 group">
+                    <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 border border-rose-100/50 dark:border-rose-900/30">
                       <Heart className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Favored Pros</span>
-                      <span className="text-xl font-black">{favorites.length} Workers</span>
+                      <span className="text-[10px] text-slate-455 dark:text-slate-500 font-extrabold uppercase tracking-wider block">Favored Pros</span>
+                      <span className="text-xl font-black text-slate-900 dark:text-white">{favorites.length} Workers</span>
                     </div>
                   </div>
                   {/* Reviews */}
-                  <div className="bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 p-5 rounded-2xl shadow-subtle flex items-center gap-4 hover:scale-[1.03] transition-transform duration-300">
-                    <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-955 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] transition-all duration-300 flex items-center gap-4 group">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 border border-amber-100/50 dark:border-amber-900/30">
                       <Star className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Reviews Written</span>
-                      <span className="text-xl font-black">{userReviews.length} Reviews</span>
+                      <span className="text-[10px] text-slate-455 dark:text-slate-500 font-extrabold uppercase tracking-wider block">Reviews Written</span>
+                      <span className="text-xl font-black text-slate-900 dark:text-white">{userReviews.length} Reviews</span>
                     </div>
                   </div>
                 </div>
@@ -787,58 +787,70 @@ export default function CustomerDashboardPage() {
                         ) : (
                           <div className="space-y-4">
                             {activeBookingsList.map((book) => (
-                              <div key={book.id} className="border border-slate-200 dark:border-slate-800 p-5 rounded-2xl flex flex-col gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+                              <div key={book.id} className="bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-900/50 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-[2rem] flex flex-col gap-5 shadow-[0_4px_20px_rgba(0,0,0,0.015)] hover:shadow-[0_20px_40px_rgba(37,99,235,0.06)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 group">
                                 {/* Summary Header */}
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                  <div className="flex gap-3">
-                                    <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden shrink-0 border">
-                                      <img src={book.workerAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=100&h=100&q=80"} className="w-full h-full object-cover" alt="" />
+                                  <div className="flex gap-4">
+                                    <div className="relative w-14 h-14 rounded-2xl overflow-hidden shrink-0 border border-slate-200/80 dark:border-slate-850 shadow-md bg-slate-100 dark:bg-slate-955 flex items-center justify-center group-hover:border-blue-500 dark:group-hover:border-blue-400 transition-colors duration-300">
+                                      <img src={book.workerAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=100&h=100&q=80"} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="" />
                                     </div>
-                                    <div>
+                                    <div className="space-y-1">
                                       <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="font-extrabold text-[15px]">{book.workerName || book.propertyTitle}</span>
-                                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${badgeColors[book.status] || "bg-slate-100"}`}>
-                                          {book.status}
+                                        <span className="font-extrabold text-[15px] text-slate-855 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{book.workerName || book.propertyTitle}</span>
+                                        <span className={`inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+                                          book.status === "Pending" ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400" :
+                                          book.status === "Accepted" ? "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400" :
+                                          book.status === "OnTheWay" ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400" :
+                                          book.status === "Started" ? "bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400" :
+                                          "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                                        }`}>
+                                          <span className={`w-1.5 h-1.5 rounded-full ${
+                                            book.status === "Pending" ? "bg-amber-500 animate-pulse" :
+                                            book.status === "Accepted" ? "bg-blue-500 animate-pulse" :
+                                            book.status === "OnTheWay" ? "bg-indigo-500 animate-pulse" :
+                                            "bg-purple-500 animate-pulse"
+                                          }`}></span>
+                                          {book.status === "OnTheWay" ? "On The Way" : book.status === "Job Done" ? "Pending Approval" : book.status}
                                         </span>
                                       </div>
-                                      <span className="text-[11px] text-slate-400 block mt-0.5">
+                                      <span className="text-[11px] text-slate-400 dark:text-slate-500 font-bold block">
                                         {book.workerCategory || "Rental Inquiry"} · {book.date} at {book.time}
                                       </span>
                                       {book.invoiceNumber && (
-                                        <span className="text-[10px] text-slate-500 font-mono block mt-1">Invoice: {book.invoiceNumber}</span>
+                                        <span className="text-[9.5px] text-slate-500 font-mono block">ID: {book.invoiceNumber}</span>
                                       )}
                                     </div>
                                   </div>
-                                  <div className="text-right">
-                                    <span className="text-lg font-black text-slate-900 dark:text-white">₹{book.price || 0}</span>
-                                    <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{book.paymentMethod || "COD"}</span>
+                                  <div className="text-right sm:text-right w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100 dark:border-slate-800/80 flex sm:flex-col justify-between sm:justify-start items-center sm:items-end gap-1">
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-505 font-black uppercase tracking-widest block">{book.paymentMethod || "COD"}</span>
+                                    <span className="text-[16.5px] font-black text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-850 px-3.5 py-1 rounded-xl border border-slate-100 dark:border-slate-800 block shadow-inner">₹{book.price || 0}</span>
                                   </div>
                                 </div>
 
                                 {/* Tracker Visual */}
                                 {book.type !== "Rental Inquire" && (
-                                  <div className="border-t border-b border-slate-100 dark:border-slate-800 py-4 my-1">
+                                  <div className="border-t border-b border-slate-100/60 dark:border-slate-800/60 py-3 my-0.5">
                                     <BookingTracker status={book.status} />
                                   </div>
                                 )}
 
                                 {/* Job completion verification block */}
                                 {book.status === "Job Done" && (
-                                  <div className="bg-primary-50 dark:bg-primary-950/20 border border-primary-150 dark:border-primary-900/50 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                                  <div className="bg-emerald-50/30 dark:bg-emerald-955/10 border border-emerald-200/40 dark:border-emerald-900/30 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                                     <div>
-                                      <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200">The professional finished the task!</p>
-                                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Confirm job verification to release standard payouts.</p>
+                                      <p className="text-xs font-extrabold text-slate-855 dark:text-slate-200">The professional finished the task!</p>
+                                      <p className="text-[10.5px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">Confirm job verification to release standard payouts.</p>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 w-full md:w-auto">
                                       <button
                                         onClick={() => handleOpenComplaintModal(book)}
-                                        className="bg-red-50 hover:bg-red-100 text-red-500 border border-red-150 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+                                        className="flex-1 md:flex-initial bg-red-50 hover:bg-red-100/80 dark:bg-red-955/20 dark:hover:bg-red-955/40 text-red-500 border border-red-200/40 px-3.5 py-2 rounded-xl text-xs font-bold transition duration-205 cursor-pointer"
                                       >
                                         Raise Complaint
                                       </button>
                                       <button
                                         onClick={() => handleVerifyWork(book.id, book.workerId)}
-                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow cursor-pointer animate-pulse"
+                                        className="flex-1 md:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition duration-205 shadow-sm cursor-pointer animate-pulse"
                                       >
                                         Verify & Close
                                       </button>
@@ -847,13 +859,13 @@ export default function CustomerDashboardPage() {
                                 )}
 
                                 {/* Footer Quick Actions */}
-                                <div className="flex justify-end gap-2 border-t border-slate-205 dark:border-slate-800/80 pt-3">
+                                <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800/80 pt-3">
                                   {["Accepted", "OnTheWay", "Started", "Job Done"].includes(book.status) && (
                                     <button
                                       onClick={() => setActiveChatBooking(book)}
-                                      className="bg-white dark:bg-slate-850 hover:bg-slate-50 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-subtle text-slate-700 dark:text-slate-350"
+                                      className="bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-850 px-4 py-2 rounded-xl text-xs font-bold transition duration-205 flex items-center gap-1.5 cursor-pointer shadow-sm text-slate-700 dark:text-slate-300"
                                     >
-                                      <MessageSquare className="w-3.5 h-3.5 text-slate-405" /> Chat with Pro
+                                      <MessageSquare className="w-3.5 h-3.5 text-slate-450" /> Chat with Pro
                                     </button>
                                   )}
                                 </div>
@@ -1082,9 +1094,9 @@ export default function CustomerDashboardPage() {
                 </div>
 
                 {/* Avatar Upload Section — prominent */}
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 bg-slate-50 dark:bg-slate-850/30 rounded-3xl border border-slate-200/80 dark:border-slate-800/85">
                   <div className="relative group shrink-0">
-                    <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-primary-200 dark:border-primary-800 shadow-md">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-md">
                       <img
                         src={profAvatar || userData?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80"}
                         className="w-full h-full object-cover transition-transform group-hover:scale-105"
@@ -1093,61 +1105,61 @@ export default function CustomerDashboardPage() {
                     </div>
                     <button
                       onClick={() => avatarInputRef.current?.click()}
-                      className="absolute inset-0 bg-black/50 rounded-2xl flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                      className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer shadow-inner"
                     >
                       <Upload className="w-5 h-5 text-white" />
                       <span className="text-[9px] text-white font-bold">Upload</span>
                     </button>
                   </div>
-                  <div className="text-center sm:text-left space-y-2">
-                    <p className="font-extrabold text-sm text-slate-900 dark:text-white">Profile Photo</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-[240px]">
-                      Upload a clear photo. Supports JPG, PNG, WebP. Max size 5MB. Your photo is shown to service providers.
+                  <div className="text-center sm:text-left space-y-2.5">
+                    <p className="font-extrabold text-[15px] text-slate-900 dark:text-white">Profile Photo</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold leading-relaxed max-w-[280px]">
+                      Upload a high-quality picture. Supports PNG, JPG, and WebP formats. Your photo helps service partners recognize you.
                     </p>
                     <button
                       onClick={() => avatarInputRef.current?.click()}
-                      className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow cursor-pointer"
+                      className="inline-flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90 transition duration-200 shadow-sm cursor-pointer"
                     >
                       <Upload className="w-3.5 h-3.5" /> Change Photo
                     </button>
                   </div>
                 </div>
 
-                <form onSubmit={handleSaveProfile} className="space-y-4 max-w-xl">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Full Name</label>
+                <form onSubmit={handleSaveProfile} className="space-y-5 max-w-xl">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wider">Full Name</label>
                     <input
                       type="text"
                       required
                       value={profName}
                       onChange={(e) => setProfName(e.target.value)}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold outline-none focus:border-primary-400 transition"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-850/40 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl text-xs font-bold outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-1 focus:ring-blue-500/10 transition-all duration-200"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Phone Number</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wider">Phone Number</label>
                     <input
                       type="tel"
                       required
                       value={profPhone}
                       onChange={(e) => setProfPhone(e.target.value)}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold outline-none focus:border-primary-400 transition"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-850/40 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl text-xs font-bold outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-1 focus:ring-blue-500/10 transition-all duration-200"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Bio / Description</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wider">Bio / Description</label>
                     <textarea
                       rows={4}
                       value={profBio}
                       onChange={(e) => setProfBio(e.target.value)}
                       placeholder="Write a brief profile description..."
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none resize-none focus:border-primary-400 transition"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-855/40 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl text-xs font-semibold outline-none resize-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-1 focus:ring-blue-500/10 transition-all duration-200"
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={savingProfile}
-                    className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-white dark:to-slate-100 text-white dark:text-slate-900 hover:opacity-90 px-6 py-3.5 rounded-xl font-bold text-xs uppercase flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
+                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-3.5 rounded-2xl font-bold text-xs uppercase flex items-center justify-center gap-2 transition duration-200 cursor-pointer shadow-md"
                   >
                     <Save className="w-4 h-4" />
                     {savingProfile ? "Saving..." : "Save Settings"}

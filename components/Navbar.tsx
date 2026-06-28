@@ -451,13 +451,13 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <button
-                onClick={() => openAuthModal("login")}
+              <Link
+                href="/auth"
                 className="px-5 py-2.5 rounded-full bg-slate-950 dark:bg-white text-white dark:text-slate-950 hover:bg-slate-800 dark:hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all duration-200 shadow-md font-extrabold text-[12px] tracking-wide flex items-center gap-2 cursor-pointer border border-transparent dark:border-slate-800 hover:shadow-lg"
               >
                 <UserIcon className="w-4 h-4" />
                 <span>Sign In</span>
-              </button>
+              </Link>
             )}
 
             {/* Hidden Admin Access Trigger for admins */}

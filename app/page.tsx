@@ -969,21 +969,22 @@ export default function HomePage() {
           className="flex overflow-x-auto sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 hide-scrollbar scroll-smooth pb-4 sm:pb-0"
         >
           {categories.map((cat, idx) => {
-            const colorClass = CAT_COLORS[cat.name] || "cat-icon-blue";
+            const countNum = parseInt(cat.count) || 0;
+            const isProperty = cat.name.toLowerCase().includes("rent") || cat.name.toLowerCase().includes("sale");
+            const displayCount = isProperty ? `${countNum} listings` : `${countNum} workers`;
+
             return (
               <Link
                 key={cat.id}
                 href={cat.link || `/services?category=${encodeURIComponent(cat.name || "")}`}
-                className={`relative bg-white dark:bg-slate-900 p-5 rounded-[24px] border border-slate-100 dark:border-slate-800/80 text-center flex flex-col items-center justify-center hover:-translate-y-2 transition-all duration-300 cursor-pointer group animate-fade-up w-[148px] shrink-0 sm:w-auto shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none ${CAT_GLOWS[cat.name] || "hover:border-primary-400/40 hover:shadow-[0_12px_32px_rgba(37,99,235,0.13)]"}`}
+                className="relative bg-white dark:bg-slate-900 p-6 rounded-[24px] border border-slate-200/80 dark:border-slate-800/80 text-center flex flex-col items-center justify-center hover:-translate-y-1.5 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 ease-out cursor-pointer group animate-fade-up w-[148px] shrink-0 sm:w-auto shadow-[0_4px_16px_rgba(0,0,0,0.02)] dark:shadow-none hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)]"
                 style={{ animationDelay: `${idx * 0.04}s` }}
               >
-                {/* Subtle top accent line */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-0.5 rounded-full bg-gradient-to-r from-transparent via-primary-400/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className={`w-14 h-14 rounded-2xl ${colorClass} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4 bg-slate-50 dark:bg-slate-850/60 border border-slate-100 dark:border-slate-800/60 text-slate-600 dark:text-slate-400 group-hover:scale-110 group-hover:border-blue-200 dark:group-hover:border-blue-900/40 group-hover:bg-blue-50/50 dark:group-hover:bg-blue-950/20 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all duration-300 shadow-sm">
                   <i className={`fas ${cat.icon} text-xl`}></i>
                 </div>
-                <h3 className="font-black text-[13px] text-slate-800 dark:text-slate-100 tracking-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors leading-tight">{cat.name}</h3>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-1.5 bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded-full">{cat.count}</p>
+                <h3 className="font-black text-[13px] text-slate-800 dark:text-slate-100 tracking-tight transition-colors leading-tight">{cat.name}</h3>
+                <p className="text-[10px] text-slate-500 dark:text-slate-450 font-bold mt-1.5">{displayCount}</p>
               </Link>
             );
           })}
@@ -1012,49 +1013,66 @@ export default function HomePage() {
             {workers.filter(w => w.documentStatus === "approved").slice(0, 3).map((pro, idx) => (
               <article
                 key={pro.id}
-                className="bg-white dark:bg-slate-900/60 rounded-3xl border border-slate-200/60 dark:border-slate-800/80 overflow-hidden flex flex-col hover:-translate-y-2 transition-all duration-300 hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)] dark:hover:shadow-none shadow-subtle group animate-scale-in"
+                className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-300 ease-out shadow-[0_4px_16px_rgba(0,0,0,0.02)] dark:shadow-none hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] hover:border-blue-500 dark:hover:border-blue-400 group animate-scale-in"
                 style={{ animationDelay: `${idx * 0.1}s` }}
               >
                 <div className="relative h-48 bg-slate-100 dark:bg-slate-950 overflow-hidden">
                   <img
                     src={pro.coverImage}
                     loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     alt={pro.name}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent"></div>
                   
-                  <span className="absolute bottom-3 left-3 bg-slate-950/70 backdrop-blur-md text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border border-white/10">
+                  <span className="absolute top-3 left-3 bg-slate-950/60 backdrop-blur-md text-white px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest border border-white/10 z-10">
                     {pro.category}
                   </span>
-                  
-                  <span className="absolute bottom-3 right-3 bg-slate-950/80 dark:bg-white/95 backdrop-blur-md text-white dark:text-slate-950 px-2.5 py-1.5 rounded-xl text-[11px] font-black flex items-center gap-1 shadow border border-white/10 dark:border-slate-100/10">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    {pro.stars}
-                  </span>
 
-                  {pro.verified && (
-                    <span className="absolute top-3 left-3 bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase tracking-wide flex items-center gap-1.5 shadow-sm">
-                      <CheckCircle className="w-3 h-3 fill-white text-emerald-500" /> Verified
+                  <div className="absolute bottom-3 left-3 w-11 h-11 rounded-full overflow-hidden border-2 border-white dark:border-slate-900 shadow-md bg-slate-100 shrink-0 z-10">
+                    <img
+                      src={pro.avatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=100&h=100&q=80"}
+                      className="w-full h-full object-cover"
+                      alt={pro.name}
+                    />
+                  </div>
+                  
+                  {pro.status === "Available" ? (
+                    <span className="absolute top-3 right-3 bg-emerald-500/90 backdrop-blur-md text-white border border-emerald-400/50 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm z-10">
+                      <span className="w-1.5 h-1.5 bg-white rounded-full brand-pulse-dot"></span> Available
                     </span>
-                  )}
-                  {pro.premium && (
-                    <span className="absolute top-3 right-3 bg-amber-500 text-white px-2.5 py-1 rounded-lg text-[9px] font-extrabold uppercase tracking-wide flex items-center gap-1 shadow-sm">
-                      <Award className="w-3 h-3" /> Premium
+                  ) : (
+                    <span className="absolute top-3 right-3 bg-red-500/90 backdrop-blur-md text-white border border-red-400/50 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm z-10">
+                      <span className="w-1.5 h-1.5 bg-white rounded-full"></span> Busy
                     </span>
                   )}
                 </div>
 
                 <div className="p-6 flex-1 flex flex-col justify-between">
                   <div>
-                    <h4 className="font-extrabold text-slate-900 dark:text-white text-[16px] leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors mb-2">
-                      {pro.name}
-                    </h4>
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-extrabold text-slate-900 dark:text-white text-[16px] leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                        {pro.name}
+                      </h4>
+                      <div className="flex gap-1 shrink-0">
+                        {pro.verified && (
+                          <span className="text-primary-500" title="Verified Professional">
+                            <CheckCircle className="w-4 h-4 fill-primary-50 dark:fill-primary-950/20" />
+                          </span>
+                        )}
+                        {pro.premium && (
+                          <span className="text-amber-500" title="Premium Partner">
+                            <Award className="w-4 h-4 fill-amber-50 dark:fill-amber-950/20" />
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
                     <div className="flex items-center gap-2 mb-3 text-[11px] font-bold text-slate-400 dark:text-slate-500">
+                      <span className="text-amber-500 text-sm flex items-center gap-1">★ {pro.stars}</span>
                       <span>({pro.reviewsCount} reviews)</span>
                       <span>·</span>
-                      <span className="text-slate-500 dark:text-slate-400">{pro.serviceArea?.split(',')[0]}</span>
+                      <span className="text-slate-500 dark:text-slate-400 truncate">{pro.serviceArea?.split(',')[0]}</span>
                     </div>
 
                     <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed font-semibold line-clamp-2 mb-5">

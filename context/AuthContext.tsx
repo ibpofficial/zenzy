@@ -155,13 +155,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const savedRole = typeof window !== "undefined" ? localStorage.getItem("zenzy_active_role") as "user" | "worker" | null : null;
           let targetRole: "user" | "worker" = "user";
 
-          if (workerSnap.exists() && !userSnap.exists()) {
+          if (savedRole) {
+            targetRole = savedRole;
+          } else if (workerSnap.exists() && !userSnap.exists()) {
             targetRole = "worker";
           } else if (userSnap.exists() && !workerSnap.exists()) {
             targetRole = "user";
           } else {
-            // Either both exist or neither exists: default to savedRole or "user"
-            targetRole = savedRole || "user";
+            targetRole = "user";
           }
 
           // Save the target role in localStorage so it stays in sync

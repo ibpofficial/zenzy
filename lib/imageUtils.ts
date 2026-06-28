@@ -16,12 +16,9 @@ export async function compressImageToBlob(
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.readAsDataURL(file);
     reader.onerror = reject;
     reader.onload = (e) => {
       const img = new window.Image();
-      img.src = e.target?.result as string;
-      img.onerror = reject;
       img.onload = () => {
         const tryCompress = (q: number): string => {
           const canvas = document.createElement("canvas");
@@ -51,7 +48,10 @@ export async function compressImageToBlob(
         }
         resolve(new Blob([ab], { type: "image/jpeg" }));
       };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
     };
+    reader.readAsDataURL(file);
   });
 }
 
@@ -66,12 +66,9 @@ export async function compressImageToBase64(
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.readAsDataURL(file);
     reader.onerror = reject;
     reader.onload = (e) => {
       const img = new window.Image();
-      img.src = e.target?.result as string;
-      img.onerror = reject;
       img.onload = () => {
         const tryCompress = (q: number): string => {
           const canvas = document.createElement("canvas");
@@ -92,7 +89,10 @@ export async function compressImageToBase64(
         }
         resolve(result);
       };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
     };
+    reader.readAsDataURL(file);
   });
 }
 

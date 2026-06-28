@@ -62,16 +62,16 @@ export default function BookingTracker({ status }: BookingTrackerProps) {
   ];
 
   return (
-    <div className="w-full py-6">
+    <div className="w-full py-4 selection:bg-primary-500/30">
       {/* Desktop Horizontal Tracker */}
-      <div className="hidden md:flex items-center justify-between relative w-full px-4">
+      <div className="hidden md:flex items-center justify-between relative w-full px-8">
         {/* Connector Line Background */}
-        <div className="absolute top-7 left-10 right-10 h-1 bg-slate-200 dark:bg-slate-800 z-0 rounded-full" />
+        <div className="absolute top-[28px] left-[10%] right-[10%] h-[3px] bg-slate-100 dark:bg-slate-800 z-0 rounded-full" />
         
         {/* Active Progress Filler Line */}
         <div
-          className="absolute top-7 left-10 h-1 bg-gradient-to-r from-primary-500 to-primary-600 z-0 transition-all duration-750 rounded-full"
-          style={{ width: `${(currentStep / (steps.length - 1)) * 82}%` }}
+          className="absolute top-[28px] left-[10%] h-[3px] bg-gradient-to-r from-blue-500 to-indigo-500 z-0 transition-all duration-700 ease-out rounded-full"
+          style={{ width: `${currentStep === 0 ? 0 : (currentStep / (steps.length - 1)) * 80}%` }}
         />
 
         {steps.map((step, idx) => {
@@ -82,34 +82,40 @@ export default function BookingTracker({ status }: BookingTrackerProps) {
 
           return (
             <div key={idx} className="flex flex-col items-center relative z-10 text-center flex-1">
-              {/* Step Circle */}
+              {/* Step Circle/Box */}
               <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-md ${
+                className={`w-[54px] h-[54px] rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm ${
                   isCompleted
-                    ? "bg-primary-600 text-white"
+                    ? "bg-gradient-to-br from-blue-500 to-indigo-650 text-white shadow-md shadow-blue-500/20"
                     : isActive
-                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 ring-4 ring-primary-500/30 dark:ring-primary-500/50 scale-105 animate-pulse"
-                    : "bg-white dark:bg-slate-850 border-2 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600"
+                    ? "bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-2 border-blue-500 ring-4 ring-blue-500/10 dark:ring-blue-400/20 scale-105"
+                    : "bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600"
                 }`}
               >
-                {isCompleted ? <Check className="w-6 h-6" /> : <Icon className="w-5 h-5" />}
+                {isCompleted ? (
+                  <Check className="w-5.5 h-5.5 stroke-[3]" />
+                ) : (
+                  <Icon className={`w-5 h-5 ${isActive ? "animate-pulse" : ""}`} />
+                )}
               </div>
               
               {/* Step Label */}
               <span
-                className={`text-[13px] font-extrabold mt-3 tracking-tight ${
+                className={`text-[12.5px] font-black mt-3.5 tracking-tight transition-colors duration-300 ${
                   isActive
-                    ? "text-primary-600 dark:text-primary-400"
+                    ? "text-blue-600 dark:text-blue-400"
                     : isCompleted
-                    ? "text-slate-800 dark:text-slate-200"
-                    : "text-slate-400 dark:text-slate-650"
+                    ? "text-slate-800 dark:text-slate-250 font-bold"
+                    : "text-slate-400 dark:text-slate-600"
                 }`}
               >
                 {step.label}
               </span>
               
               {/* Step Description */}
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5 max-w-[120px] leading-tight">
+              <span className={`text-[10px] font-medium mt-1 max-w-[125px] leading-tight transition-colors duration-300 ${
+                isActive ? "text-slate-500 dark:text-slate-400" : "text-slate-405 dark:text-slate-500"
+              }`}>
                 {step.description}
               </span>
             </div>
@@ -118,14 +124,14 @@ export default function BookingTracker({ status }: BookingTrackerProps) {
       </div>
 
       {/* Mobile Vertical Tracker */}
-      <div className="flex md:hidden flex-col gap-6 pl-4 relative">
+      <div className="flex md:hidden flex-col gap-5 pl-3.5 relative">
         {/* Connector Line Background */}
-        <div className="absolute left-7 top-4 bottom-4 w-1 bg-slate-200 dark:bg-slate-800 z-0 rounded-full" />
+        <div className="absolute left-[23px] top-4 bottom-4 w-[3px] bg-slate-100 dark:bg-slate-800 z-0 rounded-full" />
         
         {/* Active Progress Filler Line */}
         <div
-          className="absolute left-7 top-4 w-1 bg-gradient-to-b from-primary-500 to-primary-600 z-0 transition-all duration-750 rounded-full"
-          style={{ height: `${(currentStep / (steps.length - 1)) * 88}%` }}
+          className="absolute left-[23px] top-4 w-[3px] bg-gradient-to-b from-blue-500 to-indigo-500 z-0 transition-all duration-700 ease-out rounded-full"
+          style={{ height: `${currentStep === 0 ? 0 : (currentStep / (steps.length - 1)) * 88}%` }}
         />
 
         {steps.map((step, idx) => {
@@ -137,26 +143,26 @@ export default function BookingTracker({ status }: BookingTrackerProps) {
             <div key={idx} className="flex items-center gap-4 relative z-10">
               {/* Step Circle */}
               <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-500 shadow-sm ${
+                className={`w-[44px] h-[44px] rounded-xl flex items-center justify-center shrink-0 transition-all duration-500 shadow-sm ${
                   isCompleted
-                    ? "bg-primary-600 text-white"
+                    ? "bg-gradient-to-br from-blue-500 to-indigo-650 text-white"
                     : isActive
-                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 ring-4 ring-primary-500/20 dark:ring-primary-500/40 animate-pulse"
-                    : "bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600"
+                    ? "bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 border-2 border-blue-500 ring-4 ring-blue-500/10 dark:ring-blue-400/20"
+                    : "bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-650"
                 }`}
               >
-                {isCompleted ? <Check className="w-5 h-5" /> : <Icon className="w-4 h-4" />}
+                {isCompleted ? <Check className="w-4.5 h-4.5 stroke-[3]" /> : <Icon className="w-4 h-4" />}
               </div>
               
               <div className="flex flex-col">
                 <span
                   className={`text-xs font-black tracking-tight ${
-                    isActive ? "text-primary-600 dark:text-primary-400" : "text-slate-800 dark:text-slate-200"
+                    isActive ? "text-blue-600 dark:text-blue-400" : isCompleted ? "text-slate-800 dark:text-slate-200" : "text-slate-400 dark:text-slate-600"
                   }`}
                 >
                   {step.label}
                 </span>
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
                   {step.description}
                 </span>
               </div>
