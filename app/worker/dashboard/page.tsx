@@ -16,7 +16,8 @@ import {
   getDocs,
   getDoc
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
+import { updateProfile } from "firebase/auth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
@@ -35,7 +36,8 @@ import {
   User,
   ShieldCheck,
   ChevronRight,
-  LifeBuoy
+  LifeBuoy,
+  AlertTriangle
 } from "lucide-react";
 import { triggerNotification } from "@/lib/notifications";
 
@@ -120,7 +122,7 @@ function RequestTimer({ booking, onExpire }: { booking: any; onExpire: (id: stri
 
 export default function ProviderDashboardPage() {
   const router = useRouter();
-  const { user, userData, role, logout, updateProfileImage } = useAuth();
+  const { user, userData, role, logout, updateProfileImage, updateProfileDetails } = useAuth();
 
   const [activeTab, setActiveTab] = useState<Tab>("analytics");
   const [loading, setLoading] = useState(true);
@@ -148,6 +150,7 @@ export default function ProviderDashboardPage() {
   const [pPortfolio, setPPortfolio] = useState<string[]>([]);
 
   const [savingProfile, setSavingProfile] = useState(false);
+  const hasInitialized = useRef(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const [portfolioUploading, setPortfolioUploading] = useState(false);
@@ -186,18 +189,21 @@ export default function ProviderDashboardPage() {
       return;
     }
 
-    // Bind worker profile fields
+    // Bind worker profile fields only once to prevent overwriting user input in real-time
     if (userData && role === "worker") {
-      setPName(userData.name || "");
-      setPPhone(userData.phone || "");
-      setPBio(userData.bio || "");
-      setPDesc(userData.description || "");
-      setPPricing(userData.pricing || "₹399/hr");
-      setPArea(userData.serviceArea || "");
-      setPExp(userData.experience || "2 years");
-      setPLanguages(Array.isArray(userData.languages) ? userData.languages.join(", ") : "");
-      setPSkills(Array.isArray(userData.skills) ? userData.skills.join(", ") : "");
-      setPCategories(userData.categories || (userData.category ? [userData.category] : []));
+      if (!hasInitialized.current) {
+        setPName(userData.name || "");
+        setPPhone(userData.phone || "");
+        setPBio(userData.bio || "");
+        setPDesc(userData.description || "");
+        setPPricing(userData.pricing || "₹399/hr");
+        setPArea(userData.serviceArea || "");
+        setPExp(userData.experience || "2 years");
+        setPLanguages(Array.isArray(userData.languages) ? userData.languages.join(", ") : "");
+        setPSkills(Array.isArray(userData.skills) ? userData.skills.join(", ") : "");
+        setPCategories(userData.categories || (userData.category ? [userData.category] : []));
+        hasInitialized.current = true;
+      }
       setPStatus(userData.status || "Available");
       setPAvatar(userData.avatar || "");
       setPCover(userData.coverImage || "");
@@ -330,8 +336,9 @@ export default function ProviderDashboardPage() {
       const avatarUrl = await updateProfileImage(file);
       setPAvatar(avatarUrl);
       showToast("Profile avatar updated!");
-    } catch {
-      showToast("Image size too large or upload failed.");
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      showToast(`Upload failed: ${errMsg}`);
     } finally {
       setAvatarUploading(false);
     }
@@ -405,6 +412,14 @@ export default function ProviderDashboardPage() {
         category: pCategories[0] || "AC Service"
       };
       await updateDoc(doc(db, "workers", user.uid), payload);
+      try {
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { displayName: pName });
+          await auth.currentUser.reload();
+        }
+      } catch (e) {
+        console.warn("Could not reload auth profile:", e);
+      }
       showToast("Partner details updated live!");
     } catch (err) {
       showToast("Failed to save credentials.");
@@ -459,6 +474,26 @@ export default function ProviderDashboardPage() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto w-full px-5 sm:px-8 pt-28 pb-16 flex-grow">
+        
+        {/* WARNING NOTIFICATION BANNER */}
+        {userData?.status === "Warned" && (
+          <div className="bg-amber-500/10 border-2 border-amber-500/30 p-5 rounded-[24px] flex items-start gap-4 mb-6 shadow-md animate-fade-up">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-extrabold text-[14px] text-amber-600 dark:text-amber-400">Account Under Warning</h3>
+              <p className="text-[12px] text-slate-650 dark:text-slate-350 leading-relaxed font-semibold">
+                The administrator has issued a warning notice regarding your profile or behavior. Please review the details below. Continued violations may result in temporary or permanent suspension.
+              </p>
+              {userData.suspensionReason && (
+                <p className="text-[12px] bg-amber-500/5 border border-amber-500/15 p-3 rounded-2xl text-amber-700 dark:text-amber-300 font-bold mt-2 leading-relaxed">
+                  ⚠️ Notice Details: "{userData.suspensionReason}"
+                </p>
+              )}
+            </div>
+          </div>
+        )}
         
         {/* Welcome Section */}
         <div className="bg-slate-900 border border-slate-800 rounded-[32px] p-6 sm:p-8 text-white relative overflow-hidden mb-8 shadow-float">

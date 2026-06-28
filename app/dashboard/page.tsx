@@ -16,11 +16,13 @@ import {
   getDocs,
   getDoc
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
+import { updateProfile } from "firebase/auth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BookingTracker from "@/components/BookingTracker";
 import ReviewModal from "@/components/ReviewModal";
+import LoadingScreen from "@/components/LoadingScreen";
 import {
   User,
   Calendar,
@@ -41,7 +43,10 @@ import {
   Upload,
   CheckCircle,
   Eye,
-  AlertCircle
+  AlertCircle,
+  ChevronDown,
+  AlertTriangle,
+  CreditCard
 } from "lucide-react";
 import { triggerNotification } from "@/lib/notifications";
 
@@ -56,7 +61,7 @@ type Tab =
 
 export default function CustomerDashboardPage() {
   const router = useRouter();
-  const { user, userData, role, logout, updateProfileImage } = useAuth();
+  const { user, userData, role, logout, updateProfileImage, updateProfileDetails } = useAuth();
 
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [loading, setLoading] = useState(true);
@@ -77,6 +82,7 @@ export default function CustomerDashboardPage() {
   const [profAvatar, setProfAvatar] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const hasInitialized = useRef(false);
 
   // Address Dialog fields
   const [addressModalOpen, setAddressModalOpen] = useState(false);
@@ -86,6 +92,7 @@ export default function CustomerDashboardPage() {
   const [addrCity, setAddrCity] = useState("");
   const [addrState, setAddrState] = useState("");
   const [addrZip, setAddrZip] = useState("");
+  const [detectingLocation, setDetectingLocation] = useState(false);
 
   // Support Dialog fields
   const [supportSubject, setSupportSubject] = useState("");
@@ -100,6 +107,16 @@ export default function CustomerDashboardPage() {
   // Review Dialog
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewWorkerId, setReviewWorkerId] = useState("");
+
+  // Complaint states
+  const [complaintModalOpen, setComplaintModalOpen] = useState(false);
+  const [complaintBooking, setComplaintBooking] = useState<any | null>(null);
+  const [complaintTitle, setComplaintTitle] = useState("");
+  const [complaintDesc, setComplaintDesc] = useState("");
+  const [submittingComplaint, setSubmittingComplaint] = useState(false);
+
+  // Past bookings accordion toggles
+  const [expandedPastBookings, setExpandedPastBookings] = useState<Record<string, boolean>>({});
 
   // Security Mocks
   const [twoFactor, setTwoFactor] = useState(false);
@@ -124,11 +141,14 @@ export default function CustomerDashboardPage() {
       return;
     }
 
-    // Set initial profile states
+    // Set initial profile states only once to prevent overwriting user input in real-time
     if (userData) {
-      setProfName(userData.name || "");
-      setProfPhone(userData.phone || "");
-      setProfBio(userData.bio || "");
+      if (!hasInitialized.current) {
+        setProfName(userData.name || "");
+        setProfPhone(userData.phone || "");
+        setProfBio(userData.bio || "");
+        hasInitialized.current = true;
+      }
       setProfAvatar(userData.avatar || "");
     }
 
@@ -280,7 +300,8 @@ export default function CustomerDashboardPage() {
       showToast("Profile image updated successfully!");
     } catch (err) {
       console.error("Avatar upload error:", err);
-      showToast("Failed to upload image. Check storage permissions.");
+      const errMsg = err instanceof Error ? err.message : String(err);
+      showToast(`Upload failed: ${errMsg}`);
     }
   };
 
@@ -290,11 +311,7 @@ export default function CustomerDashboardPage() {
     if (!user) return;
     setSavingProfile(true);
     try {
-      await updateDoc(doc(db, "users", user.uid), {
-        name: profName,
-        phone: profPhone,
-        bio: profBio
-      });
+      await updateProfileDetails(profName, profPhone, profBio);
       showToast("Profile details saved!");
     } catch (err) {
       showToast("Failed to save changes.");
@@ -333,6 +350,53 @@ export default function CustomerDashboardPage() {
     } catch (err) {
       showToast("Address operation failed.");
     }
+  };
+
+  const handleAutoDetectLocation = () => {
+    if (!navigator.geolocation) {
+      showToast("Geolocation is not supported by your browser.");
+      return;
+    }
+    setDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+          const data = await res.json();
+          if (data && data.address) {
+            const road = data.address.road || data.address.suburb || "Auto-detected Location";
+            const house = data.address.house_number || "";
+            setAddrLine(house ? `${house}, ${road}` : road);
+            setAddrCity(data.address.city || data.address.town || data.address.village || "New Delhi");
+            setAddrState(data.address.state || "Delhi");
+            setAddrZip(data.address.postcode || "110001");
+            showToast("Location detected successfully!");
+          } else {
+            setAddrLine(`Coordinates: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+            setAddrCity("New Delhi");
+            setAddrState("Delhi");
+            setAddrZip("110001");
+            showToast("Location detected.");
+          }
+        } catch (err) {
+          const { latitude, longitude } = position.coords;
+          setAddrLine(`Coordinates: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          setAddrCity("New Delhi");
+          setAddrState("Delhi");
+          setAddrZip("110001");
+          showToast("Location detected.");
+        } finally {
+          setDetectingLocation(false);
+        }
+      },
+      (error) => {
+        console.error("Location error:", error);
+        showToast("Location access denied or timed out.");
+        setDetectingLocation(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
   };
 
   const handleEditAddress = (addr: any) => {
@@ -406,6 +470,50 @@ export default function CustomerDashboardPage() {
     }
   };
 
+  const handleOpenComplaintModal = (booking: any) => {
+    setComplaintBooking(booking);
+    setComplaintTitle("");
+    setComplaintDesc("");
+    setComplaintModalOpen(true);
+  };
+
+  const handleSubmitComplaint = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !complaintBooking) return;
+    setSubmittingComplaint(true);
+    try {
+      await addDoc(collection(db, "complaints"), {
+        bookingId: complaintBooking.id,
+        invoiceNumber: complaintBooking.invoiceNumber || "",
+        customerId: user.uid,
+        customerName: userData?.name || "Client",
+        customerPhone: userData?.phone || "",
+        workerId: complaintBooking.workerId || "",
+        workerName: complaintBooking.workerName || "",
+        workerCategory: complaintBooking.workerCategory || "",
+        title: complaintTitle.trim(),
+        description: complaintDesc.trim(),
+        status: "Open",
+        createdAt: new Date().toISOString(),
+        bookingDetails: {
+          invoiceNumber: complaintBooking.invoiceNumber || "",
+          price: complaintBooking.price || 0,
+          date: complaintBooking.date || "",
+          time: complaintBooking.time || "",
+          paymentMethod: complaintBooking.paymentMethod || "COD",
+          notes: complaintBooking.notes || ""
+        }
+      });
+      showToast("Complaint submitted successfully! Support will review it.");
+      setComplaintModalOpen(false);
+      setComplaintBooking(null);
+    } catch (err) {
+      showToast("Failed to submit complaint.");
+    } finally {
+      setSubmittingComplaint(false);
+    }
+  };
+
   const badgeColors: Record<string, string> = {
     Pending: "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400",
     Accepted: "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400",
@@ -418,12 +526,7 @@ export default function CustomerDashboardPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center font-sans">
-        <i className="fas fa-circle-notch fa-spin text-primary-600 text-4xl mb-4"></i>
-        <p className="font-bold text-slate-500">Syncing Zenzy details...</p>
-      </div>
-    );
+    return <LoadingScreen autoDismiss={false} />;
   }
 
   return (
@@ -552,8 +655,19 @@ export default function CustomerDashboardPage() {
             {activeTab === "overview" && (
               <div className="space-y-8 animate-fade-up">
                 {/* Stats quick panel */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-subtle flex items-center gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {/* Wallet Balance Card */}
+                  <div className="bg-gradient-to-br from-indigo-600 to-primary-600 text-white p-5 rounded-2xl shadow-[0_10px_20px_rgba(99,102,241,0.15)] flex items-center gap-4 hover:scale-[1.03] transition-transform duration-300">
+                    <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                      <CreditCard className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-indigo-150 font-extrabold uppercase tracking-wider block">Wallet Balance</span>
+                      <span className="text-xl font-black">₹{(userData?.walletBalance ?? 500).toLocaleString("en-IN")}</span>
+                    </div>
+                  </div>
+                  {/* Completed Jobs */}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 p-5 rounded-2xl shadow-subtle flex items-center gap-4 hover:scale-[1.03] transition-transform duration-300">
                     <div className="w-12 h-12 rounded-xl bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400 flex items-center justify-center shrink-0">
                       <Calendar className="w-5 h-5" />
                     </div>
@@ -562,7 +676,8 @@ export default function CustomerDashboardPage() {
                       <span className="text-xl font-black">{bookings.filter(b => b.status === "Completed").length} Services</span>
                     </div>
                   </div>
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-subtle flex items-center gap-4">
+                  {/* Favorites */}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 p-5 rounded-2xl shadow-subtle flex items-center gap-4 hover:scale-[1.03] transition-transform duration-300">
                     <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                       <Heart className="w-5 h-5" />
                     </div>
@@ -571,7 +686,8 @@ export default function CustomerDashboardPage() {
                       <span className="text-xl font-black">{favorites.length} Workers</span>
                     </div>
                   </div>
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-subtle flex items-center gap-4">
+                  {/* Reviews */}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 p-5 rounded-2xl shadow-subtle flex items-center gap-4 hover:scale-[1.03] transition-transform duration-300">
                     <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-955 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                       <Star className="w-5 h-5" />
                     </div>
@@ -653,86 +769,198 @@ export default function CustomerDashboardPage() {
                     <p className="text-slate-400 text-sm font-semibold">You have no bookings recorded.</p>
                     <Link href="/services" className="text-primary-600 font-extrabold text-xs hover:underline mt-2 inline-block">Browse Services</Link>
                   </div>
-                ) : (
-                  <div className="space-y-6">
-                    {bookings.map((book) => (
-                      <div key={book.id} className="border border-slate-200 dark:border-slate-800 p-5 rounded-2xl flex flex-col gap-4 bg-slate-50/50 dark:bg-slate-900/50">
-                        {/* Summary Header */}
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                          <div className="flex gap-3">
-                            <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden shrink-0 border">
-                              <img src={book.workerAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=100&h=100&q=80"} className="w-full h-full object-cover" alt="" />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-extrabold text-[15px]">{book.workerName || book.propertyTitle}</span>
-                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${badgeColors[book.status] || "bg-slate-100"}`}>
-                                  {book.status}
-                                </span>
+                ) : (() => {
+                  const activeBookingsList = bookings.filter((b: any) =>
+                    ["Pending", "Accepted", "OnTheWay", "Started", "Job Done"].includes(b.status)
+                  );
+                  const previousBookingsList = bookings.filter((b: any) =>
+                    ["Completed", "Cancelled", "Rejected", "Refunded", "Declined"].includes(b.status)
+                  );
+
+                  return (
+                    <div className="space-y-6">
+                      {/* Active Bookings Section */}
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">Active Bookings</h3>
+                        {activeBookingsList.length === 0 ? (
+                          <p className="text-slate-405 text-xs font-semibold italic py-2">No active bookings at the moment.</p>
+                        ) : (
+                          <div className="space-y-4">
+                            {activeBookingsList.map((book) => (
+                              <div key={book.id} className="border border-slate-200 dark:border-slate-800 p-5 rounded-2xl flex flex-col gap-4 bg-slate-50/50 dark:bg-slate-900/50">
+                                {/* Summary Header */}
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                  <div className="flex gap-3">
+                                    <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden shrink-0 border">
+                                      <img src={book.workerAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=100&h=100&q=80"} className="w-full h-full object-cover" alt="" />
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="font-extrabold text-[15px]">{book.workerName || book.propertyTitle}</span>
+                                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${badgeColors[book.status] || "bg-slate-100"}`}>
+                                          {book.status}
+                                        </span>
+                                      </div>
+                                      <span className="text-[11px] text-slate-400 block mt-0.5">
+                                        {book.workerCategory || "Rental Inquiry"} · {book.date} at {book.time}
+                                      </span>
+                                      {book.invoiceNumber && (
+                                        <span className="text-[10px] text-slate-500 font-mono block mt-1">Invoice: {book.invoiceNumber}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="text-lg font-black text-slate-900 dark:text-white">₹{book.price || 0}</span>
+                                    <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{book.paymentMethod || "COD"}</span>
+                                  </div>
+                                </div>
+
+                                {/* Tracker Visual */}
+                                {book.type !== "Rental Inquire" && (
+                                  <div className="border-t border-b border-slate-100 dark:border-slate-800 py-4 my-1">
+                                    <BookingTracker status={book.status} />
+                                  </div>
+                                )}
+
+                                {/* Job completion verification block */}
+                                {book.status === "Job Done" && (
+                                  <div className="bg-primary-50 dark:bg-primary-950/20 border border-primary-150 dark:border-primary-900/50 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                                    <div>
+                                      <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200">The professional finished the task!</p>
+                                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Confirm job verification to release standard payouts.</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => handleOpenComplaintModal(book)}
+                                        className="bg-red-50 hover:bg-red-100 text-red-500 border border-red-150 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+                                      >
+                                        Raise Complaint
+                                      </button>
+                                      <button
+                                        onClick={() => handleVerifyWork(book.id, book.workerId)}
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow cursor-pointer animate-pulse"
+                                      >
+                                        Verify & Close
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Footer Quick Actions */}
+                                <div className="flex justify-end gap-2 border-t border-slate-205 dark:border-slate-800/80 pt-3">
+                                  {["Accepted", "OnTheWay", "Started", "Job Done"].includes(book.status) && (
+                                    <button
+                                      onClick={() => setActiveChatBooking(book)}
+                                      className="bg-white dark:bg-slate-850 hover:bg-slate-50 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-subtle text-slate-700 dark:text-slate-350"
+                                    >
+                                      <MessageSquare className="w-3.5 h-3.5 text-slate-405" /> Chat with Pro
+                                    </button>
+                                  )}
+                                </div>
                               </div>
-                              <span className="text-[11px] text-slate-400 block mt-0.5">
-                                {book.workerCategory || "Rental Inquiry"} · {book.date} at {book.time}
-                              </span>
-                              {book.invoiceNumber && (
-                                <span className="text-[10px] text-slate-500 font-mono block mt-1">Invoice: {book.invoiceNumber}</span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-lg font-black text-slate-900 dark:text-white">₹{book.price || 0}</span>
-                            <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{book.paymentMethod || "COD"}</span>
-                          </div>
-                        </div>
-
-                        {/* Tracker Visual */}
-                        {book.type !== "Rental Inquire" && (
-                          <div className="border-t border-b border-slate-100 dark:border-slate-800 py-4 my-1">
-                            <BookingTracker status={book.status} />
+                            ))}
                           </div>
                         )}
-
-                        {/* Job completion verification block */}
-                        {book.status === "Job Done" && (
-                          <div className="bg-primary-50 dark:bg-primary-950/20 border border-primary-150 dark:border-primary-900/50 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                            <div>
-                              <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200">The professional finished the task!</p>
-                              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Confirm job verification to release standard payouts.</p>
-                            </div>
-                            <button
-                              onClick={() => handleVerifyWork(book.id, book.workerId)}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow"
-                            >
-                              Verify & Close
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Footer Quick Actions */}
-                        <div className="flex justify-end gap-2 border-t border-slate-205 dark:border-slate-800/80 pt-3">
-                          {["Accepted", "OnTheWay", "Started", "Job Done"].includes(book.status) && (
-                            <button
-                              onClick={() => setActiveChatBooking(book)}
-                              className="bg-white dark:bg-slate-850 hover:bg-slate-50 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-subtle"
-                            >
-                              <MessageSquare className="w-3.5 h-3.5 text-slate-400" /> Chat with Pro
-                            </button>
-                          )}
-                          {book.status === "Completed" && (
-                            <button
-                              onClick={() => {
-                                setReviewWorkerId(book.workerId);
-                                setReviewOpen(true);
-                              }}
-                              className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
-                            >
-                              Rate Service
-                            </button>
-                          )}
-                        </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+
+                      {/* Previous Bookings Section */}
+                      <div className="space-y-4 pt-6 border-t border-slate-200/60 dark:border-slate-800/80">
+                        <h3 className="text-xs font-black uppercase text-slate-400 tracking-wider">Previous Bookings</h3>
+                        {previousBookingsList.length === 0 ? (
+                          <p className="text-slate-400 text-xs font-semibold italic py-2">No past bookings found.</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {previousBookingsList.map((book) => {
+                              const isExpanded = !!expandedPastBookings[book.id];
+                              return (
+                                <div key={book.id} className="border border-slate-250 dark:border-slate-800/65 rounded-2xl bg-white dark:bg-slate-900/10 overflow-hidden transition duration-200 hover:shadow-subtle">
+                                  {/* Summary Header */}
+                                  <div className="p-4 flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden shrink-0 border">
+                                        <img src={book.workerAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=100&h=100&q=80"} className="w-full h-full object-cover" alt="" />
+                                      </div>
+                                      <div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          <span className="font-extrabold text-[13px]">{book.workerName || book.propertyTitle}</span>
+                                          <span className={`text-[8.5px] font-bold px-2 py-0.5 rounded-full ${badgeColors[book.status] || "bg-slate-100"}`}>
+                                            {book.status}
+                                          </span>
+                                        </div>
+                                        <span className="text-[10px] text-slate-400 block mt-0.5">
+                                          {book.workerCategory || "Rental Inquiry"} · {book.date}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-sm font-black text-slate-900 dark:text-white">₹{book.price || 0}</span>
+                                      <button
+                                        onClick={() => setExpandedPastBookings(prev => ({ ...prev, [book.id]: !prev[book.id] }))}
+                                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-400 hover:text-slate-650 dark:hover:text-slate-200 cursor-pointer"
+                                      >
+                                        <ChevronDown className={`w-4.5 h-4.5 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Dropdown details content */}
+                                  {isExpanded && (
+                                    <div className="px-4 pb-4 pt-2.5 border-t border-slate-100 dark:border-slate-800/60 space-y-4 text-xs font-semibold animate-fade-down">
+                                      <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-850/50 p-3 rounded-xl">
+                                        <div>
+                                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Booking Details</span>
+                                          <span className="block text-slate-700 dark:text-slate-350">{book.workerCategory || "Rental Tour"}</span>
+                                          <span className="block text-slate-500 font-mono text-[9px] mt-0.5">{book.id}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Time & Status</span>
+                                          <span className="block text-slate-700 dark:text-slate-350">{book.date} at {book.time}</span>
+                                          <span className="block text-slate-500 mt-0.5">{book.paymentMethod || "COD"} · {book.paymentStatus || "Done"}</span>
+                                        </div>
+                                      </div>
+                                      {book.invoiceNumber && (
+                                        <div className="text-[10px] text-slate-500 font-mono">Invoice Number: {book.invoiceNumber}</div>
+                                      )}
+                                      {book.notes && (
+                                        <div>
+                                          <span className="text-[10px] text-slate-400 block uppercase font-bold">Booking Notes</span>
+                                          <p className="text-slate-600 dark:text-slate-400 italic">"{book.notes}"</p>
+                                        </div>
+                                      )}
+
+                                      {/* Actions */}
+                                      <div className="flex justify-end gap-2 pt-2.5 border-t dark:border-slate-800/60">
+                                        {book.status === "Completed" && (
+                                          <>
+                                            <button
+                                              onClick={() => handleOpenComplaintModal(book)}
+                                              className="bg-red-50 hover:bg-red-100 text-red-500 border border-red-150 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+                                            >
+                                              Raise Complaint
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                setReviewWorkerId(book.workerId);
+                                                setReviewOpen(true);
+                                              }}
+                                              className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+                                            >
+                                              Rate Service
+                                            </button>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
@@ -1124,6 +1352,65 @@ export default function CustomerDashboardPage() {
         </div>
       )}
 
+      {/* COMPLAINT MODAL */}
+      {complaintModalOpen && complaintBooking && (
+        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-[440px] rounded-[2.5rem] overflow-hidden shadow-2xl relative border border-slate-100 dark:border-slate-800 animate-fade-up">
+            <div className="p-6 bg-slate-950 text-white relative">
+              <button
+                type="button"
+                onClick={() => setComplaintModalOpen(false)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <h3 className="font-extrabold text-lg tracking-tight">Raise Service Complaint</h3>
+              <p className="text-[10.5px] text-slate-400 font-semibold mt-0.5">Booking Invoice: {complaintBooking.invoiceNumber}</p>
+            </div>
+            <form onSubmit={handleSubmitComplaint} className="p-6 space-y-4 text-xs font-semibold">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Worker/Pro</label>
+                <input
+                  type="text"
+                  disabled
+                  value={`${complaintBooking.workerName || "Service Partner"} (${complaintBooking.workerCategory || ""})`}
+                  className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl font-bold text-slate-500 cursor-not-allowed border-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase block">Complaint Subject / Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Work left incomplete, extra charges, bad behavior"
+                  value={complaintTitle}
+                  onChange={(e) => setComplaintTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border dark:border-slate-850 rounded-xl outline-none focus:border-primary-500 text-slate-850 dark:text-slate-100"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase block">Detailed Explanation *</label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="Please describe exactly what happened. Our support team will investigate and take actions."
+                  value={complaintDesc}
+                  onChange={(e) => setComplaintDesc(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border dark:border-slate-855 rounded-xl outline-none focus:border-primary-500 text-slate-850 dark:text-slate-100 resize-none font-semibold text-xs leading-relaxed"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={submittingComplaint}
+                className="w-full bg-red-650 hover:bg-red-500 disabled:opacity-50 text-white py-3 rounded-xl font-bold uppercase transition shadow-lg cursor-pointer"
+              >
+                {submittingComplaint ? "Submitting..." : "Submit Official Complaint"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Write review modal trigger */}
       <ReviewModal
         isOpen={reviewOpen}
@@ -1171,6 +1458,18 @@ export default function CustomerDashboardPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+              <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-850 p-2.5 rounded-xl border dark:border-slate-800">
+                <span className="text-[10px] text-slate-500 font-bold uppercase">Detect location automatically?</span>
+                <button
+                  type="button"
+                  onClick={handleAutoDetectLocation}
+                  disabled={detectingLocation}
+                  className="bg-primary-600 hover:bg-primary-500 text-white disabled:bg-slate-350 dark:disabled:bg-slate-800 px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase transition cursor-pointer flex items-center gap-1"
+                >
+                  <MapPin className="w-3 h-3 animate-bounce" />
+                  {detectingLocation ? "Detecting..." : "Auto-Detect"}
+                </button>
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase">Street Address</label>

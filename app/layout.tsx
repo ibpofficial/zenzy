@@ -17,6 +17,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "zenzy · India's Premium Local Service Marketplace",
   description: "Zomato for services, LinkedIn for unorganized workers, and Airbnb for home rentals. Fast, transparent, and verified.",
+  manifest: "/manifest.json",
   icons: {
     icon: "/logo.png",
     shortcut: "/logo.png",
@@ -42,6 +43,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${plusJakartaSans.variable} ${inter.variable}`}>
       <head>
+        <link rel="manifest" href="/manifest.json" />
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"

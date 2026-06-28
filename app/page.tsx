@@ -995,8 +995,8 @@ export default function HomePage() {
         <div className="bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-950/30 rounded-[36px] p-6 sm:p-10 border border-slate-200/60 dark:border-slate-800/80 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-white dark:bg-slate-900 rounded-2xl text-rose-500 shadow-subtle dark:shadow-none border dark:border-slate-800">
-                <i className="fas fa-fire text-lg"></i>
+              <div className="p-2.5 bg-white dark:bg-slate-900 rounded-2xl text-primary-500 shadow-subtle dark:shadow-none border dark:border-slate-800">
+                <i className="fas fa-arrow-trend-up text-lg"></i>
               </div>
               <div>
                 <h2 className="text-2.5xl font-black text-slate-900 dark:text-white tracking-tight">Trending Service Pros</h2>

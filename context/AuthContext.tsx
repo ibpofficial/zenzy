@@ -13,9 +13,9 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail
 } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, deleteDoc, onSnapshot } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { uploadProfileImage } from "@/lib/imageUtils";
+import { uploadProfileImage, compressImageToBase64 } from "@/lib/imageUtils";
 
 interface AuthContextType {
   user: User | null;
@@ -29,6 +29,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateUserWallet: (amount: number) => Promise<void>;
   updateProfileImage: (file: File) => Promise<string>;
+  updateProfileDetails: (name: string, phone: string, bio: string) => Promise<void>;
   refreshUserData: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   isAuthModalOpen: boolean;
@@ -62,9 +63,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthModalOpen(false);
   };
 
-  // Load user details from Firestore when Auth state changes
+  // Register Service Worker for PWA downloadability
   useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js")
+          .then((reg) => console.log("PWA Service Worker registered:", reg.scope))
+          .catch((err) => console.error("PWA Service Worker registration failed:", err));
+      });
+    }
+  }, []);
+
+  // Load user details from Firestore when Auth state changes and listen in real time
+  useEffect(() => {
+    let unsubDoc: (() => void) | null = null;
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (unsubDoc) {
+        unsubDoc();
+        unsubDoc = null;
+      }
+
       setUser(currentUser);
       if (currentUser) {
         const userEmail = currentUser.email?.toLowerCase();
@@ -95,14 +114,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         
+        let collection_name = "users";
         if (isAdminUser) {
+          collection_name = "admins";
           const adminDocRef = doc(db, "admins", currentUser.uid);
           const adminDoc = await getDoc(adminDocRef);
           
-          if (adminDoc.exists()) {
-            setRole("admin");
-            setUserData({ uid: currentUser.uid, ...adminDoc.data() });
-          } else {
+          if (!adminDoc.exists()) {
             // Auto create or migrate admin document if it doesn't exist
             const adminData = {
               uid: currentUser.uid,
@@ -112,8 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               createdAt: dynamicAdminData?.createdAt || new Date().toISOString()
             };
             await setDoc(adminDocRef, adminData);
-            setRole("admin");
-            setUserData(adminData);
             
             // Delete old auto-generated doc if migrating
             if (oldAdminDocId) {
@@ -125,18 +141,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             }
           }
+          setRole("admin");
         } else {
-          // 2. Customer or Worker role based on active selected role stored in localStorage
+          // Check if user exists in workers or users collection first
+          const workerDocRef = doc(db, "workers", currentUser.uid);
+          const userDocRef = doc(db, "users", currentUser.uid);
+          
+          const [workerSnap, userSnap] = await Promise.all([
+            getDoc(workerDocRef),
+            getDoc(userDocRef)
+          ]);
+
           const savedRole = typeof window !== "undefined" ? localStorage.getItem("zenzy_active_role") as "user" | "worker" | null : null;
-          const targetRole = savedRole || "user"; // defaults to customer/user
+          let targetRole: "user" | "worker" = "user";
+
+          if (workerSnap.exists() && !userSnap.exists()) {
+            targetRole = "worker";
+          } else if (userSnap.exists() && !workerSnap.exists()) {
+            targetRole = "user";
+          } else {
+            // Either both exist or neither exists: default to savedRole or "user"
+            targetRole = savedRole || "user";
+          }
+
+          // Save the target role in localStorage so it stays in sync
+          if (typeof window !== "undefined") {
+            localStorage.setItem("zenzy_active_role", targetRole);
+          }
 
           if (targetRole === "worker") {
-            const workerDoc = await getDoc(doc(db, "workers", currentUser.uid));
-            if (workerDoc.exists()) {
-              setRole("worker");
-              setUserData({ uid: currentUser.uid, ...workerDoc.data() });
-            } else {
-              // Create worker profile for this email/UID if it does not exist yet (independent dual role creation)
+            collection_name = "workers";
+            if (!workerSnap.exists()) {
               const workerData = {
                 uid: currentUser.uid,
                 email: currentUser.email || `${currentUser.phoneNumber || currentUser.uid}@zenzy.com`,
@@ -163,47 +198,96 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 coverImage: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80",
                 createdAt: new Date().toISOString()
               };
-              await setDoc(doc(db, "workers", currentUser.uid), workerData);
+              await setDoc(workerDocRef, workerData);
               await setDoc(doc(db, "workers", currentUser.uid, "private", "kyc"), {
                 aadhaar: "",
                 pan: ""
               });
-              setRole("worker");
-              setUserData(workerData);
             }
+            setRole("worker");
           } else {
-            // targetRole === "user"
-            const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-            if (userDoc.exists()) {
-              setRole("user");
-              setUserData({ uid: currentUser.uid, ...userDoc.data() });
-            } else {
-              // Create user profile for this email/UID if it does not exist yet
+            collection_name = "users";
+            if (!userSnap.exists()) {
               const customerData = {
                 uid: currentUser.uid,
                 email: currentUser.email || `${currentUser.phoneNumber || currentUser.uid}@zenzy.com`,
                 name: currentUser.displayName || "Zenzy User",
                 phone: currentUser.phoneNumber || "",
                 role: "user",
-                walletBalance: 500, // starting wallet balance for demo
+                walletBalance: 500,
                 favorites: [],
+                avatar: currentUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
                 createdAt: new Date().toISOString()
               };
-              await setDoc(doc(db, "users", currentUser.uid), customerData);
-              setRole("user");
-              setUserData(customerData);
+              await setDoc(userDocRef, customerData);
             }
+            setRole("user");
           }
         }
+
+        // Real-time listener on user/worker/admin document
+        unsubDoc = onSnapshot(doc(db, collection_name, currentUser.uid), (docSnap) => {
+          if (docSnap.exists()) {
+            setUserData({ uid: currentUser.uid, ...docSnap.data() });
+          }
+          setLoading(false);
+        });
+
       } else {
         setUserData(null);
         setRole(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (unsubDoc) unsubDoc();
+    };
   }, []);
+
+  // Session / Usage Limit Enforcement
+  useEffect(() => {
+    if (!user) return;
+    
+    if (typeof window !== "undefined") {
+      if (!localStorage.getItem("zenzy_session_start")) {
+        localStorage.setItem("zenzy_session_start", Date.now().toString());
+      }
+    }
+
+    const unsubSettings = onSnapshot(doc(db, "settings", "siteConfig"), (snap) => {
+      if (!snap.exists()) return;
+      const d = snap.data();
+      const limitHours = d.sessionLimitHours ?? 24;
+      const checkIntervalHours = d.sessionRefreshIntervalHours ?? 24;
+
+      const checkSession = () => {
+        const sessionStartStr = localStorage.getItem("zenzy_session_start");
+        if (sessionStartStr) {
+          const sessionStart = parseInt(sessionStartStr, 10);
+          const elapsedMs = Date.now() - sessionStart;
+          const limitMs = limitHours * 60 * 60 * 1000;
+          if (elapsedMs > limitMs) {
+            logout().then(() => {
+              if (typeof window !== "undefined") {
+                localStorage.removeItem("zenzy_session_start");
+              }
+              alert(`Your session has expired (limit: ${limitHours} hours). Please sign in again.`);
+            });
+          }
+        }
+      };
+
+      checkSession();
+
+      const intervalMs = Math.min(checkIntervalHours * 60 * 60 * 1000, 5 * 60 * 1000); // at least check every 5 minutes
+      const interval = setInterval(checkSession, intervalMs);
+      return () => clearInterval(interval);
+    });
+
+    return () => unsubSettings();
+  }, [user]);
 
   const loginWithEmail = async (email: string, pass: string) => {
     setLoading(true);
@@ -436,6 +520,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut(auth);
     setUserData(null);
     setRole(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("zenzy_session_start");
+    }
     setLoading(false);
   };
 
@@ -455,15 +542,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateProfileImage = async (file: File): Promise<string> => {
     if (!user) throw new Error("Not authenticated");
     
-    const avatarUrl = await uploadProfileImage(file, user.uid);
+    let avatarUrl = "";
+    try {
+      // 1. Try Firebase Storage upload first
+      avatarUrl = await uploadProfileImage(file, user.uid);
+    } catch (err) {
+      console.warn("Firebase Storage failed, falling back to Base64:", err);
+      // 2. Fall back to compressed Base64 string directly in Firestore
+      try {
+        const base64 = await compressImageToBase64(file, 400, 0.7, 100);
+        avatarUrl = base64;
+      } catch (baseErr) {
+        console.error("Base64 compression failed:", baseErr);
+        throw new Error("Failed to process image file");
+      }
+    }
     
-    // Persist URL to the correct Firestore collection based on role
+    // Persist URL/Base64 to the correct Firestore collection based on role
     const collection_name = role === "worker" ? "workers" : role === "admin" ? "admins" : "users";
     await updateDoc(doc(db, collection_name, user.uid), { avatar: avatarUrl });
     
     // Also update Firebase Auth profile for Google-style avatar
     try {
-      await updateProfile(user, { photoURL: avatarUrl });
+      // Firebase updateProfile might reject base64 strings if too long, so only update auth photoURL if it is a real URL
+      if (avatarUrl.startsWith("http")) {
+        await updateProfile(user, { photoURL: avatarUrl });
+      } else {
+        await updateProfile(user, { photoURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" });
+      }
+      await user.reload();
+      if (auth.currentUser) {
+        setUser(Object.assign(Object.create(Object.getPrototypeOf(auth.currentUser)), auth.currentUser));
+      }
     } catch (e) {
       console.warn("Could not update auth profile photoURL:", e);
     }
@@ -472,6 +582,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserData((prev: any) => ({ ...prev, avatar: avatarUrl }));
     
     return avatarUrl;
+  };
+
+  /**
+   * Update text details (name, phone, bio) for the current user.
+   * Syncs Firestore and Firebase Auth, and forces reload.
+   */
+  const updateProfileDetails = async (name: string, phone: string, bio: string): Promise<void> => {
+    if (!user || !role) throw new Error("Not authenticated");
+    
+    const collection_name = role === "worker" ? "workers" : role === "admin" ? "admins" : "users";
+    await updateDoc(doc(db, collection_name, user.uid), {
+      name,
+      phone,
+      bio
+    });
+
+    try {
+      await updateProfile(user, { displayName: name });
+      await user.reload();
+      if (auth.currentUser) {
+        setUser(Object.assign(Object.create(Object.getPrototypeOf(auth.currentUser)), auth.currentUser));
+      }
+    } catch (e) {
+      console.warn("Could not update auth profile displayName:", e);
+    }
+
+    // Force update in-memory userData
+    setUserData((prev: any) => ({ ...prev, name, phone, bio }));
   };
 
   /**
@@ -507,6 +645,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       updateUserWallet,
       updateProfileImage,
+      updateProfileDetails,
       refreshUserData,
       sendPasswordReset,
       isAuthModalOpen,

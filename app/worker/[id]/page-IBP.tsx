@@ -32,6 +32,54 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "qr">("cod");
   const [transactionId, setTransactionId] = useState("");
   const [siteConfig, setSiteConfig] = useState<any>(null);
+  const [bookingLocation, setBookingLocation] = useState("");
+  const [bookingPhone, setBookingPhone] = useState("");
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [detectingLocation, setDetectingLocation] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    if (userData?.phone) setBookingPhone(userData.phone);
+    const q = query(collection(db, "addresses"), where("userId", "==", user.uid));
+    const unsub = onSnapshot(q, (snap) => {
+      const list: any[] = [];
+      snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+      setSavedAddresses(list);
+    });
+    return () => unsub();
+  }, [user, userData]);
+
+  const handleAutoDetectLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    setDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          if (response.ok) {
+            const data = await response.json();
+            const addr = data.display_name || `${data.address?.road || ""}, ${data.address?.suburb || ""}, ${data.address?.city || ""}`;
+            setBookingLocation(addr);
+          } else {
+            setBookingLocation("Sector 12, Dwarka, New Delhi, Delhi, 110075");
+          }
+        } catch (e) {
+          setBookingLocation("Sector 12, Dwarka, New Delhi, Delhi, 110075");
+        } finally {
+          setDetectingLocation(false);
+        }
+      },
+      () => {
+        setBookingLocation("Sector 12, Dwarka, New Delhi, Delhi, 110075");
+        setDetectingLocation(false);
+      },
+      { timeout: 5000 }
+    );
+  };
 
   // Lightbox
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -126,7 +174,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
       const bookingData = {
         customerId: user.uid,
         customerName: userData?.name || "Zenzy User",
-        customerPhone: userData?.phone || "+91 9999011222",
+        customerPhone: bookingPhone || userData?.phone || "+91 9999011222",
         workerId: id,
         workerName: worker.name,
         workerCategory: worker.category,
@@ -134,6 +182,8 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
         date: bookingDate,
         time: bookingTime,
         notes,
+        address: bookingLocation || "No address provided",
+        location: bookingLocation || "No address provided",
         price: priceVal,
         invoiceNumber: invoiceNum,
         status: "Pending",
@@ -170,6 +220,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
         paymentMethod: paymentMethod === "cod" ? "COD" : "UPI QR",
         transactionId: paymentMethod === "qr" ? transactionId.trim() : "",
         invoiceNumber: invoiceNum,
+        couponCode: null,
         createdAt: new Date().toISOString()
       });
 
@@ -591,6 +642,51 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
                       <input type="time" required value={bookingTime} onChange={(e) => setBookingTime(e.target.value)}
                         className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-primary-500 focus:bg-white rounded-xl text-[14px] font-semibold text-slate-800 outline-none mt-1" />
                     </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Contact Phone Number *</label>
+                    <input 
+                      type="tel" 
+                      required 
+                      value={bookingPhone} 
+                      onChange={(e) => setBookingPhone(e.target.value)} 
+                      placeholder="e.g. +91 9999011222" 
+                      className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-primary-500 focus:bg-white rounded-xl text-[14px] font-semibold text-slate-800 outline-none mt-1" 
+                    />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Service Location / Address *</label>
+                      <button
+                        type="button"
+                        onClick={handleAutoDetectLocation}
+                        disabled={detectingLocation}
+                        className="text-[10px] font-bold text-primary-500 hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <MapPin className="w-3 h-3" /> {detectingLocation ? "Detecting..." : "Auto-detect"}
+                      </button>
+                    </div>
+                    {savedAddresses.length > 0 && (
+                      <select
+                        onChange={(e) => setBookingLocation(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-100 rounded-xl text-[12px] font-semibold mt-1 outline-none text-slate-700 cursor-pointer"
+                      >
+                        <option value="">-- Choose from Saved Addresses --</option>
+                        {savedAddresses.map(addr => (
+                          <option key={addr.id} value={`${addr.addressLine}, ${addr.city}, ${addr.state} - ${addr.zip}`}>
+                            {addr.title}: {addr.addressLine}, {addr.city}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    <textarea 
+                      rows={2} 
+                      required 
+                      value={bookingLocation} 
+                      onChange={(e) => setBookingLocation(e.target.value)} 
+                      placeholder="Enter full address where service is needed..."
+                      className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-primary-500 focus:bg-white rounded-xl text-[14px] font-semibold text-slate-800 placeholder-slate-400 outline-none resize-none mt-1" 
+                    />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Special Instructions</label>

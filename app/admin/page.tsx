@@ -106,7 +106,9 @@ type Tab =
   | "team"
   | "authority"
   | "broadcast"
-  | "auditlogs";
+  | "auditlogs"
+  | "complaints"
+  | "recovery";
 
 const ADMIN_EMAILS = [
   "ishantpbupadhyay@gmail.com",
@@ -334,6 +336,30 @@ export default function AdminPage() {
   
   const [filterPaymentStatus, setFilterPaymentStatus] = useState("All");
   const [filterPaymentMethod, setFilterPaymentMethod] = useState("All");
+
+  // KYC enhanced filter/search states
+  const [kycSearch, setKycSearch] = useState("");
+  const [kycFilterStatus, setKycFilterStatus] = useState("All");
+  const [kycFilterCategory, setKycFilterCategory] = useState("All");
+
+  // Complaints states
+  const [complaints, setComplaints] = useState<any[]>([]);
+  const [selectedComplaint, setSelectedComplaint] = useState<any | null>(null);
+
+  // Recovery / backup states
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [restoreLoading, setRestoreLoading] = useState(false);
+  const [clearDataLoading, setClearDataLoading] = useState(false);
+  const [clearDataMode, setClearDataMode] = useState<"full" | "before" | "range">("full");
+  const [clearDataBefore, setClearDataBefore] = useState("");
+  const [clearDataFrom, setClearDataFrom] = useState("");
+  const [clearDataTo, setClearDataTo] = useState("");
+  const [clearDataPasscode, setClearDataPasscode] = useState("");
+  const restoreFileRef = useRef<HTMLInputElement>(null);
+
+  // Session limit settings
+  const [sessionLimitHours, setSessionLimitHours] = useState(24);
+  const [sessionRefreshIntervalHours, setSessionRefreshIntervalHours] = useState(24);
 
 
   // Chart Refs
@@ -1033,6 +1059,9 @@ export default function AdminPage() {
           return { text: `Overdue by ${absHrs}h ${remainingMin}m`, isOverdue: true };
         }
         const absDays = Math.floor(absHrs / 24);
+        if (absDays > 2) {
+          return { text: "Overdue", isOverdue: false };
+        }
         return { text: `Overdue by ${absDays}d`, isOverdue: true };
       } else {
         if (diffMin < 60) {
@@ -1245,7 +1274,15 @@ export default function AdminPage() {
           if (Array.isArray(d.slideshowImages) && d.slideshowImages.length === 3) {
             setSlideshowImages(d.slideshowImages);
           }
+          setSessionLimitHours(d.sessionLimitHours ?? 24);
+          setSessionRefreshIntervalHours(d.sessionRefreshIntervalHours ?? 24);
         }
+      }),
+      onSnapshot(collection(db, "complaints"), (s) => {
+        const list: any[] = [];
+        s.forEach((d) => list.push({ id: d.id, ...d.data() }));
+        list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        setComplaints(list);
       })
     ];
 
@@ -1875,7 +1912,7 @@ export default function AdminPage() {
         const discountAmount = bData.discountAmount || 0;
         
         await updateDoc(bookingRef, {
-          paymentStatus: "Paid",
+          paymentStatus: "Payment Done",
           status: "Accepted"
         });
 
@@ -1885,7 +1922,7 @@ export default function AdminPage() {
           const snap = await getDocs(q);
           for (const d of snap.docs) {
             await updateDoc(doc(db, "payments", d.id), {
-              status: "Paid"
+              status: "Payment Done"
             });
           }
         }
@@ -1925,7 +1962,7 @@ export default function AdminPage() {
 
         await logActivityAndAudit("Verify Payment", `Approved payment for booking #${invoiceNum}. Amount: ₹${bookingPrice}${couponCode ? ` | Coupon: ${couponCode} (saved ₹${discountAmount})` : ""}`);
       }
-      showToast("Payment status marked as PAID!");
+      showToast("Payment marked as PAID!");
     } catch (err: any) {
       showToast(`Verification failed: ${err?.message}`, "error");
     }
@@ -1940,7 +1977,7 @@ export default function AdminPage() {
         const invoiceNum = bData.invoiceNumber;
 
         await updateDoc(bookingRef, {
-          paymentStatus: "Rejected",
+          paymentStatus: "Payment Rejected/Declined",
           status: "Cancelled"
         });
 
@@ -1949,15 +1986,155 @@ export default function AdminPage() {
           const snap = await getDocs(q);
           for (const d of snap.docs) {
             await updateDoc(doc(db, "payments", d.id), {
-              status: "Rejected"
+              status: "Payment Rejected/Declined"
             });
           }
         }
+
+        // Notify customer
+        if (bData.customerId) {
+          await triggerNotification(
+            bData.customerId,
+            "Payment Declined",
+            `Your payment for booking #${invoiceNum} was rejected. The booking has been cancelled. Please contact support.`,
+            "payment"
+          );
+        }
+        await logActivityAndAudit("Reject Payment", `Rejected payment for booking #${invoiceNum}. Booking cancelled.`);
       }
-      showToast("Payment rejected and booking cancelled.");
+      showToast("Payment rejected — booking cancelled.");
     } catch (err: any) {
       showToast(`Rejection failed: ${err?.message}`, "error");
     }
+  };
+
+  const handleRequestKycResubmission = async (workerId: string) => {
+    if (!verifyPermission(["Super Admin", "Moderator"], "Request KYC Resubmission")) return;
+    try {
+      await updateDoc(doc(db, "workers", workerId), {
+        documentStatus: "resubmission_requested",
+        verified: false,
+      });
+      await logActivityAndAudit("KYC Resubmission Request", `Requested KYC resubmission from worker ID ${workerId}`);
+      showToast("Resubmission requested.");
+    } catch {
+      showToast("Failed to request resubmission.", "error");
+    }
+  };
+
+  const handleResolveComplaint = async (complaintId: string) => {
+    if (!verifyPermission(["Super Admin", "Moderator"], "Resolve Complaint")) return;
+    try {
+      await updateDoc(doc(db, "complaints", complaintId), {
+        status: "Resolved",
+        resolvedAt: new Date().toISOString(),
+        resolvedBy: user?.email || "Admin"
+      });
+      await logActivityAndAudit("Resolve Complaint", `Resolved complaint ID ${complaintId}`);
+      showToast("Complaint marked as resolved.");
+      setSelectedComplaint(null);
+    } catch {
+      showToast("Failed to resolve complaint.", "error");
+    }
+  };
+
+  const handleExportBackup = async () => {
+    if (!verifyPermission(["Super Admin"], "Export Database Backup")) return;
+    setBackupLoading(true);
+    try {
+      const COLLECTIONS = ["admins", "bookings", "workers", "users", "rentals", "categories", "reviews", "propertyReviews", "payments", "coupons", "supportTickets", "promos", "team", "broadcasts", "complaints"];
+      const backup: Record<string, any[]> = {};
+      for (const col of COLLECTIONS) {
+        const snap = await getDocs(collection(db, col));
+        backup[col] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
+      // Include settings
+      const settingsSnap = await getDocs(collection(db, "settings"));
+      backup["settings"] = settingsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const json = JSON.stringify(backup, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `zenzy_backup_${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      await logActivityAndAudit("Export Backup", `Full database backup downloaded by ${user?.email}`);
+      showToast("Backup downloaded successfully!");
+    } catch (err: any) {
+      showToast(`Backup failed: ${err?.message}`, "error");
+    }
+    setBackupLoading(false);
+  };
+
+  const handleRestoreBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!verifyPermission(["Super Admin"], "Restore Database Backup")) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!confirm("WARNING: This will overwrite existing data. Are you sure you want to restore this backup?")) return;
+    setRestoreLoading(true);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      for (const [col, docs] of Object.entries(data)) {
+        if (!Array.isArray(docs)) continue;
+        for (const docData of docs) {
+          const { id, ...rest } = docData as any;
+          if (id) {
+            await setDoc(doc(db, col, id), rest, { merge: true });
+          }
+        }
+      }
+      await logActivityAndAudit("Restore Backup", `Database restored from backup file by ${user?.email}`);
+      showToast("Database restored successfully!");
+    } catch (err: any) {
+      showToast(`Restore failed: ${err?.message}`, "error");
+    }
+    setRestoreLoading(false);
+    if (e.target) e.target.value = "";
+  };
+
+  const handleClearData = async () => {
+    if (!verifyPermission(["Super Admin"], "Clear Database Data")) return;
+    if (clearDataPasscode !== authorityPassword) {
+      showToast("Incorrect admin passcode.", "error");
+      return;
+    }
+    const SAFE_ADMIN_EMAILS = ADMIN_EMAILS.map(e => e.toLowerCase());
+    const CLEARABLE_COLLECTIONS = ["bookings", "payments", "reviews", "propertyReviews", "complaints", "activityLogs", "auditLogs", "broadcasts", "supportTickets"];
+    // Optional: also clear users/workers but never admins
+    const OPTIONAL_CLEAR = ["users", "workers", "rentals", "categories", "promos", "coupons", "team"];
+    setClearDataLoading(true);
+    try {
+      const getDateMs = (dateStr: string) => new Date(dateStr).getTime();
+
+      for (const col of [...CLEARABLE_COLLECTIONS, ...OPTIONAL_CLEAR]) {
+        const snap = await getDocs(collection(db, col));
+        for (const d of snap.docs) {
+          const data = d.data();
+          // Never delete admin emails from admins collection
+          if (col === "admins") continue;
+          if (data.email && SAFE_ADMIN_EMAILS.includes(data.email.toLowerCase())) continue;
+
+          if (clearDataMode === "full") {
+            await deleteDoc(doc(db, col, d.id));
+          } else if (clearDataMode === "before" && clearDataBefore) {
+            const ts = new Date(data.createdAt || data.timestamp || 0).getTime();
+            if (ts < getDateMs(clearDataBefore)) await deleteDoc(doc(db, col, d.id));
+          } else if (clearDataMode === "range" && clearDataFrom && clearDataTo) {
+            const ts = new Date(data.createdAt || data.timestamp || 0).getTime();
+            if (ts >= getDateMs(clearDataFrom) && ts <= getDateMs(clearDataTo)) await deleteDoc(doc(db, col, d.id));
+          }
+        }
+      }
+      await logActivityAndAudit("Clear Data", `Database data cleared (mode: ${clearDataMode}) by ${user?.email}`);
+      showToast("Data cleared successfully!");
+      setClearDataPasscode("");
+    } catch (err: any) {
+      showToast(`Clear failed: ${err?.message}`, "error");
+    }
+    setClearDataLoading(false);
   };
 
   const handleApproveWorkerDoc = async (workerId: string, approve: boolean) => {
@@ -2054,6 +2231,8 @@ export default function AdminPage() {
         minBookingAmount,
         customHexColor,
         seoKeywords,
+        sessionLimitHours,
+        sessionRefreshIntervalHours,
         
         updatedAt: new Date().toISOString()
       }, { merge: true });
@@ -2383,7 +2562,7 @@ export default function AdminPage() {
   const openSupport = messages.filter((m) => m.status === "Open").length;
   // Payments needing approval: bookings with paymentMethod "UPI QR" / "Online" that are not yet verified
   const pendingPayments = bookings.filter((b) => 
-    b.paymentStatus === "Pending" && 
+    b.paymentStatus?.startsWith("Pending") && 
     b.status !== "Cancelled" &&
     (b.paymentMethod === "UPI QR" || b.paymentMethod === "Online" || b.paymentMethod === "Prepaid")
   ).length;
@@ -2410,6 +2589,8 @@ export default function AdminPage() {
     { id: "rentals", label: "Rental Properties", icon: Home },
     { id: "messages", label: "Support Tickets", icon: MessageSquare, badge: openSupport },
     { id: "broadcast", label: "Broadcast Notification", icon: MessageSquare },
+    { id: "complaints", label: "Complaints Log", icon: AlertTriangle, badge: complaints.filter(c => c.status !== "Resolved").length || undefined },
+    { id: "recovery", label: "Recovery & Backup", icon: RefreshCw },
     { id: "auditlogs", label: "Audit Log stream", icon: ShieldAlert },
     { id: "settings", label: "Portal Configuration", icon: Settings }
   ];
@@ -2421,7 +2602,6 @@ export default function AdminPage() {
       <aside className="w-64 bg-slate-950 text-white flex flex-col shadow-xl z-20 h-full shrink-0">
         <div className="p-5 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Zenzy" className="w-8 h-8 object-contain" />
             <h1 className="text-xl font-extrabold">zenzy<span className="text-primary-500 text-2xl">.</span></h1>
           </div>
           <span className="bg-primary-600 text-[8px] font-extrabold px-2 py-0.5 rounded-full">GOD MODE</span>
@@ -2717,7 +2897,53 @@ export default function AdminPage() {
           {/* TAB: VERIFICATION KYC */}
           {activeTab === "verification" && (
             <div className="space-y-4 animate-fade-up">
-              {workers.map((pro) => (
+              {/* KYC Panel Header with Filters */}
+              <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 p-5 rounded-2xl shadow-subtle flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <h3 className="font-extrabold text-sm uppercase tracking-wide">KYC Verification Panel</h3>
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Search by name, category..."
+                      value={kycSearch}
+                      onChange={(e) => setKycSearch(e.target.value)}
+                      className="pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl text-xs font-semibold outline-none w-full sm:w-60"
+                    />
+                  </div>
+                  <select
+                    value={kycFilterStatus}
+                    onChange={(e) => setKycFilterStatus(e.target.value)}
+                    className="px-3 py-2 bg-slate-50 dark:bg-slate-855 border dark:border-slate-800 rounded-xl text-xs font-bold cursor-pointer text-slate-800 dark:text-white"
+                  >
+                    <option value="All">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="resubmission_requested">Resubmission Requested</option>
+                  </select>
+                  <select
+                    value={kycFilterCategory}
+                    onChange={(e) => setKycFilterCategory(e.target.value)}
+                    className="px-3 py-2 bg-slate-50 dark:bg-slate-855 border dark:border-slate-800 rounded-xl text-xs font-bold cursor-pointer text-slate-800 dark:text-white"
+                  >
+                    <option value="All">All Categories</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {workers
+                .filter(pro => {
+                  const q = kycSearch.toLowerCase().trim();
+                  const matchesSearch = !q || pro.name?.toLowerCase().includes(q) || pro.category?.toLowerCase().includes(q) || pro.email?.toLowerCase().includes(q) || pro.aadhaar?.includes(q) || pro.pan?.toLowerCase().includes(q);
+                  const matchesStatus = kycFilterStatus === "All" || pro.documentStatus === kycFilterStatus;
+                  const matchesCategory = kycFilterCategory === "All" || pro.category === kycFilterCategory || pro.categories?.includes(kycFilterCategory);
+                  return matchesSearch && matchesStatus && matchesCategory;
+                })
+                .map((pro) => (
                 <div key={pro.id} className={`bg-white dark:bg-slate-900 border dark:border-slate-800 p-5 rounded-2xl shadow-subtle flex flex-col md:flex-row items-start md:items-center justify-between gap-4`}>
                   <div className="flex items-center gap-4">
                     <img src={pro.avatar} className="w-12 h-12 rounded-xl object-cover" alt="" />
@@ -2730,16 +2956,20 @@ export default function AdminPage() {
                       </h4>
                       <span className="text-[10px] text-slate-400 block">{pro.category} · {pro.experience}</span>
                       <span className="text-[9px] text-slate-400 block font-mono">
-                        Aadhaar: {pro.aadhaar ? (pro.aadhaar.length > 4 ? `XXXX-XXXX-${pro.aadhaar.slice(-4)}` : pro.aadhaar) : "No Aadhaar added"} | 
-                        PAN: {pro.pan ? (pro.pan.length > 4 ? `XXXXXX${pro.pan.slice(-4)}` : pro.pan) : "No PAN added"}
+                        Aadhaar: {pro.aadhaar || "No Aadhaar added"} | 
+                        PAN: {pro.pan || "No PAN added"}
                       </span>
+                      <span className="text-[9px] text-slate-400 block font-semibold mt-0.5">{pro.serviceArea || "Area not set"} · Joined: {pro.createdAt ? new Date(pro.createdAt).toLocaleDateString() : "N/A"}</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
-                      pro.documentStatus === "approved" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                      pro.documentStatus === "approved" ? "bg-emerald-100 text-emerald-800" 
+                      : pro.documentStatus === "rejected" ? "bg-red-100 text-red-700"
+                      : pro.documentStatus === "resubmission_requested" ? "bg-amber-100 text-amber-800"
+                      : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
                     }`}>
-                      {pro.documentStatus}
+                      {pro.documentStatus === "resubmission_requested" ? "Resubmit Req." : pro.documentStatus}
                     </span>
                     {pro.documentStatus !== "approved" && (
                       <button onClick={() => handleApproveWorkerDoc(pro.id, true)} className="bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer">
@@ -2749,6 +2979,11 @@ export default function AdminPage() {
                     {pro.documentStatus !== "rejected" && (
                       <button onClick={() => handleApproveWorkerDoc(pro.id, false)} className="bg-red-50 text-red-500 border border-red-150 px-3.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer">
                         Reject
+                      </button>
+                    )}
+                    {pro.documentStatus !== "resubmission_requested" && (
+                      <button onClick={() => handleRequestKycResubmission(pro.id)} className="bg-amber-50 text-amber-700 border border-amber-200 px-3.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer">
+                        Request Resubmit
                       </button>
                     )}
                     <button
@@ -2770,6 +3005,16 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))}
+              {workers.filter(pro => {
+                const q = kycSearch.toLowerCase().trim();
+                const matchesSearch = !q || pro.name?.toLowerCase().includes(q) || pro.category?.toLowerCase().includes(q);
+                const matchesStatus = kycFilterStatus === "All" || pro.documentStatus === kycFilterStatus;
+                return matchesSearch && matchesStatus;
+              }).length === 0 && (
+                <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 p-10 rounded-2xl text-center text-slate-400 font-bold text-xs uppercase tracking-wider">
+                  No workers match current filter criteria.
+                </div>
+              )}
             </div>
           )}
 
@@ -2932,19 +3177,27 @@ export default function AdminPage() {
           {/* TAB: PAYMENTS LOG */}
           {activeTab === "payments" && (() => {
             const filteredPayments = payments.filter((p: any) => {
-              if (filterPaymentStatus !== "All" && p.status !== filterPaymentStatus) return false;
+              if (filterPaymentStatus !== "All") {
+                if (filterPaymentStatus === "Pending") {
+                  if (!p.status?.toLowerCase().includes("pending")) return false;
+                } else if (filterPaymentStatus === "Paid") {
+                  if (p.status !== "Paid" && p.status !== "COD Paid") return false;
+                } else {
+                  if (p.status !== filterPaymentStatus) return false;
+                }
+              }
               if (filterPaymentMethod !== "All" && p.paymentMethod !== filterPaymentMethod) return false;
               return true;
             });
 
             const pendingApprovalBookings = bookings.filter((b: any) => 
-              b.paymentStatus === "Pending" && 
+              b.paymentStatus?.startsWith("Pending") && 
               b.status !== "Cancelled" &&
               (b.paymentMethod === "UPI QR" || b.paymentMethod === "Online" || b.paymentMethod === "Prepaid")
             );
 
-            const paidTotal = payments.filter((p: any) => p.status === "Paid").reduce((s: number, p: any) => s + (p.amount || 0), 0);
-            const pendingTotal = payments.filter((p: any) => p.status === "Pending").reduce((s: number, p: any) => s + (p.amount || 0), 0);
+            const paidTotal = payments.filter((p: any) => p.status === "Paid" || p.status === "COD Paid").reduce((s: number, p: any) => s + (p.amount || 0), 0);
+            const pendingTotal = payments.filter((p: any) => p.status?.toLowerCase().includes("pending")).reduce((s: number, p: any) => s + (p.amount || 0), 0);
             const refundedTotal = payments.filter((p: any) => p.status === "Refunded").reduce((s: number, p: any) => s + (p.amount || 0), 0);
 
             return (
@@ -3086,9 +3339,13 @@ export default function AdminPage() {
                         ) : filteredPayments.map((p: any) => {
                           const statusColors: Record<string, string> = {
                             Paid: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400",
+                            "Payment Done": "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400",
                             Pending: "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400",
+                            "COD Pending": "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400",
+                            "QR Pending Verification": "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400",
                             Refunded: "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400",
-                            Rejected: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400"
+                            Rejected: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400",
+                            "Payment Rejected/Declined": "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-400"
                           };
                           return (
                             <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
@@ -3107,11 +3364,15 @@ export default function AdminPage() {
                                 <span className="text-[10px] text-slate-400 block font-mono">{p.transactionId || "—"}</span>
                               </td>
                               <td className="p-4">
-                                {p.couponCode ? (
-                                  <span className="bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 px-2 py-0.5 rounded font-black text-[9px] uppercase">
-                                    {p.couponCode}
-                                  </span>
-                                ) : <span className="text-slate-300 dark:text-slate-700">—</span>}
+                                {(() => {
+                                  const booking = bookings.find((b: any) => b.invoiceNumber === p.invoiceNumber);
+                                  const code = p.couponCode || booking?.couponCode;
+                                  return code ? (
+                                    <span className="bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 px-2 py-0.5 rounded font-black text-[9px] uppercase">
+                                      {code}
+                                    </span>
+                                  ) : <span className="text-slate-300 dark:text-slate-700">—</span>;
+                                })()}
                               </td>
                               <td className="p-4 text-slate-500">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "—"}</td>
                               <td className="p-4">
@@ -3120,7 +3381,7 @@ export default function AdminPage() {
                                 </span>
                               </td>
                               <td className="p-4 text-right pr-6 space-x-1">
-                                {(p.status === "Pending" || !p.status) && (
+                                {(!p.status || p.status.toLowerCase().includes("pending") || p.status.toLowerCase().includes("verification")) && (
                                   <>
                                     <button
                                       onClick={() => {
@@ -3249,7 +3510,12 @@ export default function AdminPage() {
                       <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-semibold">
                         {coupons.map((c) => (
                           <tr key={c.id}>
-                            <td className="p-4 pl-6 font-bold">{c.code}</td>
+                            <td className="p-4 pl-6 font-bold">
+                              <div>
+                                <span>{c.code}</span>
+                                <span className="block text-[9.5px] text-slate-400 font-semibold mt-0.5">Coupon {c.code} — ₹{(c.revenueGenerated || 0).toLocaleString()} generated</span>
+                              </div>
+                            </td>
                             <td className="p-4">{c.type === "flat" ? `₹${c.value} OFF` : `${c.value}% OFF`}</td>
                             <td className="p-4 text-slate-400">{c.expiryDate}</td>
                             <td className="p-4 text-center font-bold text-slate-500">{c.uses || 0} uses</td>
@@ -4359,6 +4625,7 @@ export default function AdminPage() {
                             <th className="p-4">Email</th>
                             <th className="p-4">Wallet Balance</th>
                             <th className="p-4">Registered Date</th>
+                            <th className="p-4">Status</th>
                             <th className="p-4 text-right pr-6">Actions</th>
                           </>
                         )}
@@ -4418,6 +4685,34 @@ export default function AdminPage() {
                                 >
                                   Discipline
                                 </button>
+                                {w.status === "Warned" && (
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      if (confirm(`Are you sure you want to remove the warning from ${w.name}?`)) {
+                                        try {
+                                          await updateDoc(doc(db, "workers", w.id), {
+                                            status: "Available",
+                                            suspensionReason: "",
+                                            suspensionDate: ""
+                                          });
+                                          await triggerNotification(
+                                            w.id,
+                                            "Warning Removed",
+                                            "Great news! Your account warning has been reviewed and removed by the administrator.",
+                                            "system"
+                                          );
+                                          showToast("Warning removed successfully.");
+                                        } catch {
+                                          showToast("Failed to remove warning.", "error");
+                                        }
+                                      }
+                                    }}
+                                    className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100 dark:border-emerald-950/30 px-3 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer inline-block"
+                                  >
+                                    Remove Warning
+                                  </button>
+                                )}
                                 <button
                                   type="button"
                                   onClick={() => handleToggleUserSuspension(w.id, true, w.suspended)}
@@ -4474,6 +4769,15 @@ export default function AdminPage() {
                               <td className="p-4 font-extrabold text-emerald-600">₹{(u.walletBalance || 0).toLocaleString()}</td>
                               <td className="p-4 text-slate-400">
                                 {u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
+                              </td>
+                              <td className="p-4">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                                  u.suspended
+                                    ? "bg-red-100 text-red-800 dark:bg-red-950/20 dark:text-red-400"
+                                    : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-400"
+                                }`}>
+                                  {u.suspended ? "Suspended" : "Active"}
+                                </span>
                               </td>
                               <td className="p-4 text-right pr-6 space-x-2">
                                 <button
@@ -4895,6 +5199,35 @@ export default function AdminPage() {
                   </div>
                 </div>
 
+                {/* 7. Session & Usage Limits */}
+                <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-4">
+                  <h4 className="font-extrabold text-sm uppercase tracking-wider text-primary-500">Session & Usage Limits</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-450 uppercase">Session Time Limit (Hours)</label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={sessionLimitHours}
+                        onChange={(e) => setSessionLimitHours(Number(e.target.value))}
+                        className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-850 border dark:border-slate-850 rounded-xl font-bold"
+                      />
+                      <p className="text-[9px] text-slate-400 font-semibold">Users will be logged out after this many hours (default: 24h)</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-450 uppercase">Check Interval (Hours)</label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={sessionRefreshIntervalHours}
+                        onChange={(e) => setSessionRefreshIntervalHours(Number(e.target.value))}
+                        className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-850 border dark:border-slate-850 rounded-xl font-bold"
+                      />
+                      <p className="text-[9px] text-slate-400 font-semibold">How often to check for session expiry (minimum 5 minutes)</p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Submit button */}
                 <button onClick={handleSaveSettings} disabled={settingsSaving} className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-3.5 rounded-xl font-bold text-xs uppercase transition cursor-pointer hover:opacity-90 shadow-md">
                   {settingsSaving ? "Saving Config..." : "Save Config Live"}
@@ -5110,6 +5443,173 @@ export default function AdminPage() {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {/* ── TAB: COMPLAINTS LOG ── */}
+          {activeTab === "complaints" && (
+            <div className="space-y-4 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-3xl overflow-hidden shadow-subtle">
+                <div className="p-5 border-b dark:border-slate-800 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-extrabold text-sm uppercase">Complaint Reports</h3>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{complaints.filter(c => c.status !== "Resolved").length} open · {complaints.length} total</p>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 dark:bg-slate-850 border-b dark:border-slate-800 font-bold text-[10px] uppercase text-slate-400">
+                        <th className="p-4 pl-6">Customer</th>
+                        <th className="p-4">Worker</th>
+                        <th className="p-4">Booking</th>
+                        <th className="p-4">Complaint</th>
+                        <th className="p-4">Filed</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 text-right pr-6">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-semibold">
+                      {complaints.length === 0 ? (
+                        <tr><td colSpan={7} className="p-8 text-center text-slate-400 font-bold uppercase text-[10px] tracking-wider">No complaints filed yet.</td></tr>
+                      ) : (
+                        complaints.map((c) => (
+                          <tr key={c.id} className="hover:bg-slate-50/50">
+                            <td className="p-4 pl-6">
+                              <span className="font-extrabold text-slate-900 dark:text-white block">{c.customerName || "—"}</span>
+                              <span className="text-[9px] text-slate-400 block">{c.customerPhone || c.customerId?.slice(0, 10)}</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="font-bold block">{c.workerName || "—"}</span>
+                              <span className="text-[9px] text-slate-400 block">{c.workerCategory || ""}</span>
+                            </td>
+                            <td className="p-4 font-mono text-[10px] text-slate-500">{c.bookingId?.slice(0, 10) || "—"}</td>
+                            <td className="p-4 max-w-[200px]">
+                              <span className="font-bold block truncate">{c.title || "Complaint"}</span>
+                              <span className="text-[9px] text-slate-400 block line-clamp-2">{c.description}</span>
+                            </td>
+                            <td className="p-4 text-slate-400">{c.createdAt ? new Date(c.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "—"}</td>
+                            <td className="p-4">
+                              <span className={`px-2 py-0.5 rounded font-black text-[9px] uppercase ${
+                                c.status === "Resolved" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-700"
+                              }`}>{c.status || "Open"}</span>
+                            </td>
+                            <td className="p-4 text-right pr-6">
+                              <div className="flex justify-end gap-2">
+                                <button onClick={() => setSelectedComplaint(c)} className="bg-primary-50 text-primary-700 border border-primary-200 dark:bg-primary-950/20 dark:text-primary-400 dark:border-primary-900/40 px-3 py-1 rounded-lg text-[10px] font-bold cursor-pointer">View</button>
+                                {c.status !== "Resolved" && (
+                                  <button onClick={() => handleResolveComplaint(c.id)} className="bg-emerald-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold cursor-pointer">Resolve</button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── TAB: RECOVERY & BACKUP ── */}
+          {activeTab === "recovery" && (
+            <div className="space-y-6 animate-fade-up max-w-3xl">
+              {/* Backup & Restore Card */}
+              <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 p-6 rounded-3xl shadow-subtle space-y-5">
+                <h4 className="font-extrabold text-sm uppercase tracking-wider text-primary-500">Backup & Restore</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
+                  <div className="border dark:border-slate-800 p-5 rounded-2xl space-y-3 bg-slate-50 dark:bg-slate-850/50">
+                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle className="w-5 h-5" />
+                      <span className="font-extrabold text-sm">Export Backup</span>
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400">Download a full JSON snapshot of all Firestore collections. Admin credentials are always included for safety.</p>
+                    <button
+                      onClick={handleExportBackup}
+                      disabled={backupLoading}
+                      className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white py-2.5 rounded-xl font-bold uppercase cursor-pointer transition"
+                    >
+                      {backupLoading ? "Exporting..." : "Download Backup JSON"}
+                    </button>
+                  </div>
+                  <div className="border dark:border-slate-800 p-5 rounded-2xl space-y-3 bg-slate-50 dark:bg-slate-850/50">
+                    <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400">
+                      <RefreshCw className="w-5 h-5" />
+                      <span className="font-extrabold text-sm">Restore from Backup</span>
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400">Upload a previously exported JSON file. Documents will be merged into Firestore. Use with caution — this may overwrite live data.</p>
+                    <button
+                      onClick={() => restoreFileRef.current?.click()}
+                      disabled={restoreLoading}
+                      className="w-full bg-primary-600 hover:bg-primary-500 disabled:opacity-50 text-white py-2.5 rounded-xl font-bold uppercase cursor-pointer transition"
+                    >
+                      {restoreLoading ? "Restoring..." : "Upload & Restore JSON"}
+                    </button>
+                    <input ref={restoreFileRef} type="file" accept=".json,application/json" className="hidden" onChange={handleRestoreBackup} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Clear Data Card */}
+              <div className="bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/40 p-6 rounded-3xl shadow-subtle space-y-5">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-extrabold text-sm uppercase tracking-wider text-red-500">Clear / Wipe Database Data</h4>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Admin credentials and settings are always preserved. This action cannot be undone.</p>
+                  </div>
+                </div>
+                <div className="space-y-3.5 text-xs font-semibold">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">Clear Mode</label>
+                    <select
+                      value={clearDataMode}
+                      onChange={(e: any) => setClearDataMode(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold cursor-pointer"
+                    >
+                      <option value="full">Full Wipe (All Data)</option>
+                      <option value="before">Clear Before Date</option>
+                      <option value="range">Clear Within Date Range</option>
+                    </select>
+                  </div>
+                  {clearDataMode === "before" && (
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">Clear All Data Before</label>
+                      <input type="date" value={clearDataBefore} onChange={(e) => setClearDataBefore(e.target.value)} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl" />
+                    </div>
+                  )}
+                  {clearDataMode === "range" && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">From Date</label>
+                        <input type="date" value={clearDataFrom} onChange={(e) => setClearDataFrom(e.target.value)} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">To Date</label>
+                        <input type="date" value={clearDataTo} onChange={(e) => setClearDataTo(e.target.value)} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">Admin Passcode (Required)</label>
+                    <input
+                      type="password"
+                      placeholder="Enter authority passcode to authorize"
+                      value={clearDataPasscode}
+                      onChange={(e) => setClearDataPasscode(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-mono font-bold"
+                    />
+                  </div>
+                  <button
+                    onClick={handleClearData}
+                    disabled={clearDataLoading || !clearDataPasscode}
+                    className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white py-3 rounded-xl font-bold uppercase cursor-pointer transition"
+                  >
+                    {clearDataLoading ? "Clearing..." : "⚠️ Execute Data Clear"}
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -5437,6 +5937,35 @@ export default function AdminPage() {
                       >
                         {activeUserDetail.workerProfile.suspended ? "Unsuspend Provider" : "Suspend Provider"}
                       </button>
+                      {activeUserDetail.workerProfile.status === "Warned" && (
+                        <button
+                          onClick={async () => {
+                            if (confirm(`Are you sure you want to remove the warning from ${activeUserDetail.workerProfile.name}?`)) {
+                              try {
+                                await updateDoc(doc(db, "workers", activeUserDetail.workerProfile.id), {
+                                  status: "Available",
+                                  suspensionReason: "",
+                                  suspensionDate: ""
+                                });
+                                await triggerNotification(
+                                  activeUserDetail.workerProfile.id,
+                                  "Warning Removed",
+                                  "Great news! Your account warning has been reviewed and removed by the administrator.",
+                                  "system"
+                                );
+                                setSelectedUserId(null);
+                                setSelectedUserFallback(null);
+                                showToast("Warning removed successfully.");
+                              } catch {
+                                showToast("Failed to remove warning.", "error");
+                              }
+                            }
+                          }}
+                          className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-100 px-3.5 py-1.5 rounded-xl font-bold transition text-[10px] cursor-pointer"
+                        >
+                          Remove Warning
+                        </button>
+                      )}
                       <button 
                         onClick={() => handleDeleteUserAccount(activeUserDetail.workerProfile.id, true)}
                         className="bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-xl font-bold transition text-[10px] cursor-pointer flex items-center gap-1"
@@ -5951,6 +6480,96 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* COMPLAINT DETAILS MODAL */}
+      {selectedComplaint && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-[550px] rounded-[2.5rem] overflow-hidden shadow-2xl relative border dark:border-slate-800 animate-fade-up flex flex-col max-h-[85vh]">
+            <div className="p-6 bg-slate-950 text-white relative flex justify-between items-center shrink-0">
+              <div>
+                <h3 className="font-extrabold text-lg tracking-tight">Complaint Investigation</h3>
+                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">ID: {selectedComplaint.id}</p>
+              </div>
+              <button 
+                onClick={() => setSelectedComplaint(null)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+              <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 p-4 rounded-2xl space-y-2">
+                <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider block">Complaint Topic / Issue</span>
+                <h4 className="text-sm font-black text-slate-900 dark:text-white">{selectedComplaint.title || "Labor Dispute/Issues"}</h4>
+                <p className="text-slate-650 dark:text-slate-300 font-semibold leading-relaxed">"{selectedComplaint.description}"</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="border dark:border-slate-800 p-4 rounded-xl">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Customer Details</span>
+                  <p className="font-bold text-slate-900 dark:text-white">{selectedComplaint.customerName || "—"}</p>
+                  <p className="text-slate-500 font-semibold">{selectedComplaint.customerPhone || "—"}</p>
+                  <p className="text-[9px] text-slate-400 font-mono mt-0.5 truncate">{selectedComplaint.customerId}</p>
+                </div>
+                <div className="border dark:border-slate-800 p-4 rounded-xl">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Worker Details</span>
+                  <p className="font-bold text-slate-900 dark:text-white">{selectedComplaint.workerName || "—"}</p>
+                  <p className="text-slate-500 font-semibold">{selectedComplaint.workerCategory || "—"}</p>
+                  <p className="text-[9px] text-slate-400 font-mono mt-0.5 truncate">{selectedComplaint.workerId}</p>
+                </div>
+              </div>
+
+              {selectedComplaint.bookingDetails && (
+                <div className="bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 p-4 rounded-2xl space-y-3">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block border-b dark:border-slate-800 pb-1.5">Booking Details Context</span>
+                  <div className="grid grid-cols-2 gap-2 font-semibold text-slate-600 dark:text-slate-350">
+                    <div>
+                      <span className="text-[9px] text-slate-400 block">Invoice Number</span>
+                      <span className="text-slate-900 dark:text-white font-bold">{selectedComplaint.bookingDetails.invoiceNumber || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 block">Service Price</span>
+                      <span className="text-slate-900 dark:text-white font-bold">₹{selectedComplaint.bookingDetails.price || "0"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 block">Scheduled Date</span>
+                      <span>{selectedComplaint.bookingDetails.date || "—"} at {selectedComplaint.bookingDetails.time || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 block">Payment Method</span>
+                      <span>{selectedComplaint.bookingDetails.paymentMethod || "COD"}</span>
+                    </div>
+                  </div>
+                  {selectedComplaint.bookingDetails.notes && (
+                    <div className="pt-2 border-t dark:border-slate-800">
+                      <span className="text-[9px] text-slate-400 block">Client Instructions</span>
+                      <p className="text-slate-600 dark:text-slate-400 italic">"{selectedComplaint.bookingDetails.notes}"</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t dark:border-slate-800 flex justify-end gap-2 shrink-0 bg-slate-50 dark:bg-slate-900/40">
+              <button 
+                onClick={() => setSelectedComplaint(null)} 
+                className="px-4 py-2 border dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-bold transition"
+              >
+                Close
+              </button>
+              {selectedComplaint.status !== "Resolved" && (
+                <button 
+                  onClick={() => handleResolveComplaint(selectedComplaint.id)} 
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2 rounded-xl font-bold transition shadow-md"
+                >
+                  Mark as Resolved
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Toast notifications */}
       {toast && (
         <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-4 rounded-full font-bold text-[13px] shadow-float flex items-center gap-2.5 animate-fade-up ${
