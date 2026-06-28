@@ -266,21 +266,20 @@ export default function RentPage() {
           </p>
         </div>
 
-        {/* Global Search Bar */}
-        <div className="relative max-w-3xl mx-auto mb-8 animate-fade-up">
-          <div className="flex items-center bg-white dark:bg-slate-900 rounded-full p-2 shadow-float border border-slate-200/80 dark:border-slate-800 group focus-within:border-primary-100 focus-within:ring-4 focus-within:ring-primary-50 transition-all duration-300">
-            <div className="pl-4 text-slate-400">
-              <Search className="w-5 h-5" />
+        <form onSubmit={(e) => e.preventDefault()} className="relative max-w-3xl mx-auto mb-8 animate-fade-up">
+          <div className="flex items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl p-2.5 border border-slate-200/80 dark:border-slate-800 focus-within:border-blue-500 dark:focus-within:border-blue-400 focus-within:scale-[1.01] hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] focus-within:shadow-[0_20px_45px_rgba(37,99,235,0.15)] dark:focus-within:shadow-[0_20px_45px_rgba(0,0,0,0.5)] transition-all duration-300 group">
+            <div className="pl-4 text-slate-400 shrink-0">
+              <Search className="w-5 h-5 group-focus-within:rotate-12 transition-transform duration-300" />
             </div>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent border-none outline-none px-4 py-3.5 text-slate-800 dark:text-white font-bold placeholder-slate-450 text-[15px]"
+              className="w-full bg-transparent border-none outline-none px-4 py-3.5 text-slate-850 dark:text-white font-extrabold placeholder-slate-450 text-[14.5px]"
               placeholder="Search by keywords, localities, BHK type..."
             />
           </div>
-        </div>
+        </form>
 
         {/* Location Search Grid Panel */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white dark:bg-slate-900 p-5 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-subtle mb-8 animate-fade-up">

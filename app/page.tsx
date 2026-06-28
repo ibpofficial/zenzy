@@ -132,6 +132,28 @@ export default function HomePage() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [spellingSuggestion, setSpellingSuggestion] = useState<any | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("zenzy_recent_searches");
+      if (saved) {
+        try {
+          setRecentSearches(JSON.parse(saved));
+        } catch (e) {}
+      }
+    }
+  }, []);
+
+  const saveSearchTerm = (term: string) => {
+    if (!term || !term.trim()) return;
+    const clean = term.trim();
+    const updated = [clean, ...recentSearches.filter((s) => s !== clean)].slice(0, 5);
+    setRecentSearches(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("zenzy_recent_searches", JSON.stringify(updated));
+    }
+  };
 
   // Suggestions and spelling correction logic
   useEffect(() => {
@@ -193,6 +215,7 @@ export default function HomePage() {
   }, [searchQuery]);
 
   const handleSuggestionClick = (item: any) => {
+    saveSearchTerm(item.name);
     setSearchQuery(item.name);
     setShowSuggestions(false);
     if (item.type === "rent") {
@@ -610,6 +633,7 @@ export default function HomePage() {
     }
 
     setShowSuggestions(false);
+    saveSearchTerm(finalQuery);
 
     if (targetItem) {
       if (targetItem.type === "rent") {
@@ -762,7 +786,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════ UNIVERSAL SEARCH BAR ═══════════════════════════════════ */}
       <section className="max-w-4xl mx-auto w-full px-5 sm:px-8 py-6 animate-fade-up">
         <form onSubmit={handleSearchSubmit} className="relative z-20">
-          <div className="flex items-center bg-white dark:bg-slate-900 rounded-2xl p-2.5 shadow-float border border-slate-200/80 dark:border-slate-800/80 focus-within:border-primary-500 dark:focus-within:border-primary-400 focus-within:ring-4 focus-within:ring-primary-500/10 dark:focus-within:ring-primary-400/10 transition-all duration-300">
+          <div className="flex items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl p-2.5 border border-slate-200/80 dark:border-slate-800/80 focus-within:border-blue-500 dark:focus-within:border-blue-400 focus-within:scale-[1.01] hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] focus-within:shadow-[0_20px_45px_rgba(37,99,235,0.15)] dark:focus-within:shadow-[0_20px_45px_rgba(0,0,0,0.5)] transition-all duration-300">
             <div className="pl-4 text-slate-400 shrink-0">
               <Search className="w-5 h-5" />
             </div>
@@ -782,11 +806,11 @@ export default function HomePage() {
                 onBlur={() => {
                   setTimeout(() => {
                     setShowSuggestions(false);
-                  }, 200);
+                  }, 255);
                   if (searchQuery.length === 0) setIsUserTyping(false);
                 }}
                 placeholder=""
-                className="w-full bg-transparent border-none outline-none pl-4 pr-10 py-3.5 text-slate-800 dark:text-white font-bold text-[14.5px] relative z-10"
+                className="w-full bg-transparent border-none outline-none pl-4 pr-10 py-3.5 text-slate-850 dark:text-white font-extrabold text-[14.5px] relative z-10"
               />
               {!searchQuery && (
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-[14.5px] font-bold text-slate-400 z-0">
@@ -808,9 +832,16 @@ export default function HomePage() {
                 </button>
               )}
             </div>
+
+            {/* Location Indicator Pill */}
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-850 text-slate-500 dark:text-slate-400 border border-slate-200/40 dark:border-slate-800/50 shadow-inner mr-2.5 select-none">
+              <MapPin className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-wider">Delhi NCR</span>
+            </div>
+
             <button
               type="submit"
-              className="search-btn-premium group flex items-center gap-2 text-white px-7 py-3.5 rounded-xl font-extrabold text-[13.5px] shadow-md hover:shadow-xl transition-all active:scale-95 duration-150 whitespace-nowrap cursor-pointer"
+              className="search-btn-premium group flex items-center gap-2 text-white px-7 py-3.5 rounded-xl font-extrabold text-[13.5px] shadow-md hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-150 whitespace-nowrap cursor-pointer"
             >
               <Search className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
               Search
@@ -819,8 +850,59 @@ export default function HomePage() {
           </div>
 
           {/* Suggestions Dropdown */}
-          {showSuggestions && (suggestions.length > 0 || spellingSuggestion) && (
+          {showSuggestions && (suggestions.length > 0 || spellingSuggestion || (recentSearches.length > 0 && !searchQuery)) && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.45)] overflow-hidden z-50 animate-fade-in duration-200">
+              {/* Recent Searches */}
+              {!searchQuery && recentSearches.length > 0 && (
+                <div className="py-2.5 max-h-[300px] overflow-y-auto">
+                  <div className="px-4 py-1.5 flex justify-between items-center text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    <span>Recent Searches</span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRecentSearches([]);
+                        if (typeof window !== "undefined") {
+                          localStorage.removeItem("zenzy_recent_searches");
+                        }
+                      }}
+                      className="text-[9px] text-blue-500 hover:underline font-extrabold cursor-pointer"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                  {recentSearches.map((term, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery(term);
+                        setTimeout(() => {
+                          const directMatch = SEARCHABLE_ITEMS.find(
+                            (item) => item.name.toLowerCase() === term.toLowerCase()
+                          );
+                          if (directMatch) {
+                            handleSuggestionClick(directMatch);
+                          } else {
+                            const queryClean = term.toLowerCase();
+                            if (queryClean.includes("rent") || queryClean.includes("flat") || queryClean.includes("pg") || queryClean.includes("room") || queryClean.includes("house")) {
+                              router.push(`/rent?q=${encodeURIComponent(term)}`);
+                            } else {
+                              router.push(`/services?q=${encodeURIComponent(term)}`);
+                            }
+                          }
+                        }, 50);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-850/60 text-left transition-colors cursor-pointer group"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-slate-400 group-hover:scale-110 transition-transform shrink-0" />
+                      <span className="text-[13px] font-extrabold text-slate-700 dark:text-slate-300 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors truncate">
+                        {term}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
               {spellingSuggestion && (
                 <div className="bg-primary-50 dark:bg-primary-950/20 px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">

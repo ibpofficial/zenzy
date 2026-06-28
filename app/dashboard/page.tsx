@@ -655,17 +655,7 @@ export default function CustomerDashboardPage() {
             {activeTab === "overview" && (
               <div className="space-y-8 animate-fade-up">
                 {/* Stats quick panel */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {/* Wallet Balance Card */}
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] transition-all duration-300 flex items-center gap-4 group">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 border border-blue-100/50 dark:border-blue-900/30">
-                      <CreditCard className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-455 dark:text-slate-500 font-extrabold uppercase tracking-wider block">Wallet Balance</span>
-                      <span className="text-xl font-black text-slate-900 dark:text-white">₹{(userData?.walletBalance ?? 500).toLocaleString("en-IN")}</span>
-                    </div>
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                   {/* Completed Jobs */}
                   <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] transition-all duration-300 flex items-center gap-4 group">
                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 border border-indigo-100/50 dark:border-indigo-900/30">

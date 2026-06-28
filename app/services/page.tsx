@@ -129,26 +129,26 @@ function ServicesContent() {
             </p>
           </div>
           
-          <form className="relative z-10 mt-6 flex flex-col md:flex-row gap-3">
-            <div className="flex-1 flex items-center bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 focus-within:border-white transition-all text-white">
-              <Search className="w-4 h-4 text-slate-400 mr-2 shrink-0" />
+          <form onSubmit={(e) => e.preventDefault()} className="relative z-10 mt-6 flex flex-col md:flex-row gap-3">
+            <div className="flex-1 flex items-center bg-white/10 border border-white/15 rounded-2xl px-5 py-3 focus-within:bg-white/20 focus-within:border-white/45 focus-within:scale-[1.01] hover:shadow-[0_12px_24px_rgba(255,255,255,0.02)] transition-all duration-300 text-white group">
+              <Search className="w-4.5 h-4.5 text-slate-400 group-focus-within:rotate-12 transition-transform duration-300 mr-3 shrink-0" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by name, category, dwarka sector, location..."
-                className="w-full bg-transparent border-none outline-none text-[14px] font-semibold placeholder-slate-500 text-white"
+                className="w-full bg-transparent border-none outline-none text-[14px] font-extrabold placeholder-slate-450 text-white"
               />
             </div>
             
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-white/10 border border-white/20 text-white font-extrabold text-[13px] px-4 py-3 rounded-xl cursor-pointer outline-none focus:border-white"
+              className="bg-white/10 border border-white/15 text-white font-extrabold text-[13.5px] px-5 py-3 rounded-2xl cursor-pointer outline-none hover:bg-white/20 hover:border-white/45 focus:border-white transition-all duration-300"
             >
-              <option value="" className="text-slate-900">All Categories</option>
+              <option value="" className="text-slate-900 bg-white dark:bg-slate-905">All Categories</option>
               {uniqueCategories.map((cat, i) => (
-                <option key={i} value={cat} className="text-slate-900">{cat}</option>
+                <option key={i} value={cat} className="text-slate-900 bg-white dark:bg-slate-905">{cat}</option>
               ))}
             </select>
           </form>
