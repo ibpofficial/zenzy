@@ -1,11 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Mail, Phone, MessageSquare, MapPin, Send, CheckCircle } from "lucide-react";
+import { Mail, Phone, MessageSquare, MapPin, Send, CheckCircle, ExternalLink } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// Fix for default Leaflet marker icons in Next.js
+const icon = L.icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+// Dynamic imports for Map components to prevent SSR errors
+const MapContainer = typeof window !== "undefined" ? require("react-leaflet").MapContainer : null;
+const TileLayer = typeof window !== "undefined" ? require("react-leaflet").TileLayer : null;
+const Marker = typeof window !== "undefined" ? require("react-leaflet").Marker : null;
+const Popup = typeof window !== "undefined" ? require("react-leaflet").Popup : null;
 
 export default function ContactPage() {
   // Form State
@@ -13,9 +29,16 @@ export default function ContactPage() {
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
-  
+
   const [submitting, setSubmitting] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const vguPosition: [number, number] = [26.7865, 75.8361]; // Coordinates for VGU Jaipur
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -56,7 +79,7 @@ export default function ContactPage() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto w-full px-5 sm:px-8 pt-28 pb-12 flex-grow space-y-12 animate-fade-up">
-        
+
         {/* Title */}
         <div className="text-center max-w-xl mx-auto space-y-3">
           <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">Get in touch with Zenzy</h1>
@@ -67,7 +90,7 @@ export default function ContactPage() {
 
         {/* Main contact form + info grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Info cards (Column 1) */}
           <div className="space-y-6">
             <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle flex items-start gap-4 hover:-translate-y-0.5 transition">
@@ -77,7 +100,7 @@ export default function ContactPage() {
               <div>
                 <h4 className="font-extrabold text-[15px] text-slate-900 dark:text-white">Call Support</h4>
                 <p className="text-slate-500 dark:text-slate-450 text-xs font-semibold mt-1">Direct support hotline (24/7)</p>
-                <a href="tel:+919999011222" className="text-primary-600 dark:text-primary-400 font-bold text-sm block mt-1.5">+91 99990 11222</a>
+                <a href="tel:+9511528193" className="text-primary-600 dark:text-primary-400 font-bold text-sm block mt-1.5">+91 9511528193</a>
               </div>
             </div>
 
@@ -88,7 +111,7 @@ export default function ContactPage() {
               <div>
                 <h4 className="font-extrabold text-[15px] text-slate-900 dark:text-white">WhatsApp Chat</h4>
                 <p className="text-slate-500 dark:text-slate-450 text-xs font-semibold mt-1">Quick text assistance</p>
-                <a href="https://wa.me/919999011222" target="_blank" rel="noreferrer" className="text-emerald dark:text-emerald-400 font-bold text-sm block mt-1.5">Chat on WhatsApp</a>
+                <a href="https://wa.me/9511528193" target="_blank" rel="noreferrer" className="text-emerald dark:text-emerald-400 font-bold text-sm block mt-1.5">Chat on WhatsApp</a>
               </div>
             </div>
 
@@ -172,22 +195,51 @@ export default function ContactPage() {
 
         </div>
 
-        {/* Localized Map Hub Section */}
-        <section className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <MapPin className="w-5 h-5 text-red-500 animate-bounce" />
-            <h4 className="font-extrabold text-[15px] text-slate-900 dark:text-white uppercase tracking-wide">Our Localized dwarka block Hub</h4>
+        {/* Map and Address Section - Combined */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Map Container */}
+          <div className="w-full">
+            {isMounted && MapContainer && (
+              <MapContainer
+                center={vguPosition}
+                zoom={15}
+                style={{ height: "400px", width: "100%", borderRadius: "12px", zIndex: 0 }}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <Marker position={vguPosition} icon={icon}>
+                  <Popup>
+                    <div className="text-sm">
+                      <strong>Zenzy Headquarters</strong><br />
+                      Vivekananda Global University (VGU)<br />
+                      Jagatpura, Jaipur, Rajasthan, India
+                    </div>
+                  </Popup>
+                </Marker>
+              </MapContainer>
+            )}
           </div>
-          
-          <div className="h-64 bg-slate-100 dark:bg-slate-950 rounded-2xl overflow-hidden relative">
-            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1200&q=80')" }}></div>
-            <div className="absolute inset-0 bg-slate-900/10"></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-4 py-2.5 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold flex items-center gap-2">
-              <div className="w-2.5 h-2.5 bg-primary-600 rounded-full animate-ping"></div>
-              <span>Dwarka Hub Sector 4, New Delhi</span>
+
+          {/* Address Card */}
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle flex flex-col justify-center">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
+              <MapPin className="text-red-500" /> Our Location
+            </h2>
+            <div className="text-slate-600 dark:text-slate-400 mb-6 space-y-1">
+              <p className="font-medium text-slate-900 dark:text-white">Zenzy Headquarters</p>
+              <p>Vivekananda Global University (VGU)</p>
+              <p>Jagatpura, Jaipur, Rajasthan</p>
+              <p>India</p>
             </div>
+            <a
+              href="https://www.google.com/maps/dir/?api=1&destination=Vivekananda+Global+University+Jaipur"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition font-bold text-xs uppercase tracking-wider"
+            >
+              Get Directions <ExternalLink size={16} />
+            </a>
           </div>
-        </section>
+        </div>
 
       </main>
 
