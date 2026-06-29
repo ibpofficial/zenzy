@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Sparkles, X, Send, AlertCircle, Brain, RefreshCw, User, ArrowRight } from "lucide-react";
+import { Sparkles, X, Send, AlertCircle, Brain, RefreshCw, User, ArrowRight, Loader2, Bot, MessageSquare, Zap, CheckCircle2, AlertTriangle, Info, ThumbsUp, Star, Clock, Calendar, MapPin, DollarSign, Users, Shield, Award } from "lucide-react";
 import { createPortal } from "react-dom";
 import { collection, doc, query, where, onSnapshot, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -19,6 +19,57 @@ const ADMIN_EMAILS = [
   "ibpoffecial@gmail.com"
 ];
 
+// Enhanced response formatter with better visual elements
+const formatAIResponse = (content: string): string => {
+  // Check for developer questions
+  if (content.toLowerCase().includes("developed") ||
+    content.toLowerCase().includes("created") ||
+    content.toLowerCase().includes("made by") ||
+    content.toLowerCase().includes("who made") ||
+    content.toLowerCase().includes("who built") ||
+    content.toLowerCase().includes("creator")) {
+    return `✦ Developed by ISHANT UPADHYAY ✦\n\n▸ Passionate developer building innovative solutions\n▸ Creator of Zenzy platform\n▸ Tech enthusiast & problem solver`;
+  }
+
+  // Check for unusual/inappropriate questions
+  const unusualKeywords = ["hack", "illegal", "steal", "cheat", "exploit", "crack", "password", "private", "secret"];
+  if (unusualKeywords.some(keyword => content.toLowerCase().includes(keyword))) {
+    return `⚠️ Warning: Unusual Query Detected\n\n✗ I'm designed for legitimate queries about services & bookings\n✗ Please ask appropriate questions within platform boundaries\n✗ Need help with something else? I'm here to assist!`;
+  }
+
+  // If content already has formatting, return as is
+  if (content.includes("▸") || content.includes("•")) {
+    return content;
+  }
+
+  // Split content into sentences
+  const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+
+  if (sentences.length <= 1) {
+    return content;
+  }
+
+  // Format as bullet points with better symbols
+  const formattedSentences = sentences.map((s, index) => {
+    const trimmed = s.trim();
+    if (!trimmed) return '';
+
+    // Different bullet styles for variety
+    const bullets = ['▸', '▪', '•', '◦', '›'];
+    const bullet = bullets[index % bullets.length];
+
+    return `  ${bullet} ${trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase()}`;
+  });
+
+  // Add header with visual separator
+  const header = `✦ ZEN's Response ✦\n\n`;
+  const footer = `\n\n━ ━ ━ ━ ━ ━ ━ ━ ━\n💡 Anything else I can help with?`;
+
+  // Clean up and combine
+  const cleaned = formattedSentences.filter(s => s).join('\n');
+  return header + cleaned + footer;
+};
+
 export default function ZenAssistant() {
   const { user, userData, role, openAuthModal } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -32,31 +83,62 @@ export default function ZenAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello! I am ZEN, your AI Assistant. How can I help you today? I can guide you on booking services, check your booking history, or find rental properties."
+      content: formatAIResponse("Hello! I am ZEN, your AI Assistant. How can I help you today? I can guide you on booking services, check your booking history, or find rental properties.")
     }
   ]);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
-  
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingText, setTypingText] = useState("");
+  const [currentTypingIndex, setCurrentTypingIndex] = useState(0);
+  const [displayedMessage, setDisplayedMessage] = useState("");
+
   // Real-time AI Configuration from siteConfig
   const [aiApiKey, setAiApiKey] = useState("");
   const [aiUsageLimit, setAiUsageLimit] = useState(10);
-  
+
   // Real-time User's queries count
   const [queriesUsed, setQueriesUsed] = useState(0);
-  
+
   // Real-time user bookings context
   const [userBookings, setUserBookings] = useState<any[]>([]);
-  
+
   // Context of currently viewed worker
   const [viewedWorker, setViewedWorker] = useState<any>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Typing animation effect
+  useEffect(() => {
+    if (isTyping && typingText) {
+      if (currentTypingIndex < typingText.length) {
+        const timeout = setTimeout(() => {
+          setDisplayedMessage(prev => prev + typingText[currentTypingIndex]);
+          setCurrentTypingIndex(prev => prev + 1);
+        }, 12); // Speed of typing
+        return () => clearTimeout(timeout);
+      } else {
+        setIsTyping(false);
+        setCurrentTypingIndex(0);
+        setTypingText("");
+        // Update messages with the fully typed response
+        setMessages(prev => {
+          const newMessages = [...prev];
+          const lastMessage = newMessages[newMessages.length - 1];
+          if (lastMessage && lastMessage.role === "assistant") {
+            lastMessage.content = displayedMessage;
+          }
+          return newMessages;
+        });
+      }
+    }
+  }, [isTyping, typingText, currentTypingIndex, displayedMessage]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, isTyping]);
 
   // 1. Subscribe to AI Config in siteConfig
   useEffect(() => {
@@ -128,6 +210,34 @@ export default function ZenAssistant() {
     fetchViewedWorker();
   }, [pathname]);
 
+  // Enhanced message rendering with better visual elements
+  const renderMessageContent = (content: string, role: string) => {
+    if (role === "user") return content;
+
+    // Format the content with better visual elements
+    const formatted = content.split('\n').map((line, index) => {
+      if (line.startsWith('✦') && line.endsWith('✦')) {
+        return <div key={index} className="text-center font-bold text-primary-600 dark:text-primary-400 text-sm py-1">{line}</div>;
+      }
+      if (line.startsWith('▸') || line.startsWith('▪') || line.startsWith('•') || line.startsWith('◦') || line.startsWith('›')) {
+        return <div key={index} className="flex items-start gap-2 ml-1 py-0.5">
+          <span className="text-primary-500 dark:text-primary-400 font-bold">▹</span>
+          <span>{line.replace(/^[▸▪•◦›]\s*/, '').trim()}</span>
+        </div>;
+      }
+      if (line.includes('━')) {
+        return <div key={index} className="text-center text-slate-300 dark:text-slate-600 text-xs">{line}</div>;
+      }
+      if (line.startsWith('⚠️')) {
+        return <div key={index} className="bg-amber-50 dark:bg-amber-950/30 border-l-4 border-amber-500 p-2 rounded text-amber-800 dark:text-amber-200 text-xs">{line}</div>;
+      }
+      if (line.trim() === '') return <br key={index} />;
+      return <div key={index} className="py-0.5">{line}</div>;
+    });
+
+    return <>{formatted}</>;
+  };
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || loading) return;
@@ -144,7 +254,7 @@ export default function ZenAssistant() {
         { role: "user", content: inputValue.trim() },
         {
           role: "assistant",
-          content: `⚠️ You have reached your ZEN AI limit of ${aiUsageLimit} questions. Please contact the administrator to adjust your usage limits.`
+          content: formatAIResponse(`⚠️ You have reached your ZEN AI limit of ${aiUsageLimit} questions. Please contact the administrator to adjust your usage limits.`)
         }
       ]);
       setInputValue("");
@@ -192,11 +302,13 @@ ${workerSummary}
 
 AI Assistant Rules:
 1. Always present yourself as ZEN, a helpful, polite, and witty AI companion.
-2. If the user is trying to find a worker or booking a service, you MUST ask clarifying questions/cross-question them to refine their needs (e.g. location, budget, timing).
-3. If they are having trouble finding a worker and are currently looking at a worker's profile (details available in Viewed Worker context), mention details about that worker specifically, highlight their pricing and reviews, and encourage them to click the "Book Now" or "WhatsApp" action on the page.
-4. If they ask about their active bookings, refer directly to their Booking History context and give them exact statuses.
-5. Answer questions about how Zenzy works: direct connections, zero markups, KYC verification done by admins, and support tickets filed via the right-side support desk widget.
-6. Keep your answers concise, structured, and action-oriented.`;
+2. Keep responses SHORT and CONCISE (maximum 3-4 bullet points).
+3. Use emojis sparingly but effectively.
+4. If user asks about developer, respond with "ISHANT UPADHYAY".
+5. Warn users about unusual/inappropriate questions.
+6. Format responses in bullet points with symbols like ▸, ▪, •, ◦, ›.
+7. Never use ** or any markdown bold/italic formatting.
+8. Keep it professional yet friendly.`;
 
       // Step 3: Trigger OpenRouter API
       if (!aiApiKey) {
@@ -204,7 +316,7 @@ AI Assistant Rules:
       }
 
       // Convert message history to API format (limit history length to keep context short)
-      const apiHistory = messages.slice(-8).map((m) => ({
+      const apiHistory = messages.slice(-6).map((m) => ({
         role: m.role,
         content: m.content
       }));
@@ -233,16 +345,27 @@ AI Assistant Rules:
       }
 
       const resData = await response.json();
-      const aiReply = resData.choices?.[0]?.message?.content || "I couldn't process that query. Please try again.";
+      let aiReply = resData.choices?.[0]?.message?.content || "I couldn't process that query. Please try again.";
 
-      setMessages((prev) => [...prev, { role: "assistant", content: aiReply }]);
+      // Format the AI response
+      aiReply = formatAIResponse(aiReply);
+
+      // Add assistant message with empty content for typing animation
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      // Start typing animation
+      setTypingText(aiReply);
+      setDisplayedMessage("");
+      setCurrentTypingIndex(0);
+      setIsTyping(true);
+
     } catch (error: any) {
       console.error("ZEN AI error:", error);
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: `❌ ZEN is currently offline: ${error.message || "An unexpected connection issue occurred. Please check back later."}`
+          content: formatAIResponse(`❌ ZEN is currently offline: ${error.message || "An unexpected connection issue occurred. Please check back later."}`)
         }
       ]);
     } finally {
@@ -252,19 +375,33 @@ AI Assistant Rules:
 
   if (!mounted) return null;
 
+  // Typing animation component with better visual
+  const TypingIndicator = () => (
+    <div className="flex gap-2.5 max-w-[85%] mr-auto">
+      <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-primary-600 to-indigo-600 text-white flex items-center justify-center shrink-0 text-xs font-bold">
+        ZN
+      </div>
+      <div className="p-3 bg-white dark:bg-slate-900/80 rounded-2xl rounded-tl-none border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1">
+            <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          </div>
+          <span className="text-xs text-slate-500 font-medium">thinking...</span>
+        </div>
+      </div>
+    </div>
+  );
+
   return createPortal(
     <div className="fixed bottom-20 right-6 md:bottom-6 md:right-6 z-[9999] font-sans">
-      {/* Sleek Glassmorphic Launcher Capsule (Rounded Full & Mobile Responsive) */}
+      {/* Launcher button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
           className="flex items-center justify-start w-12 hover:w-32 active:w-32 h-12 p-2.5 rounded-full bg-slate-950 dark:bg-slate-900 border border-slate-800 dark:border-slate-850 text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_12px_32px_rgba(99,102,241,0.25)] transition-all duration-300 relative group cursor-pointer backdrop-blur-md overflow-hidden"
-          title="Ask ZEN AI Assistant"
         >
-          {/* Subtle animated gradient outer glow border */}
-          <div className="absolute -inset-px bg-gradient-to-r from-primary-500 to-indigo-500 rounded-full opacity-20 group-hover:opacity-40 transition-opacity duration-300 -z-10"></div>
-          
-          {/* Compact glowing brain icon */}
           <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-tr from-primary-600 to-indigo-650 shadow-sm shrink-0">
             <Brain className="w-4 h-4 text-white animate-pulse" />
           </div>
@@ -276,15 +413,12 @@ AI Assistant Rules:
         </button>
       )}
 
-      {/* Expanded AI Panel */}
+      {/* Expanded AI Panel with improved inner design */}
       {isOpen && (
-        <div className="w-[360px] max-w-[calc(100vw-32px)] h-[520px] bg-white/95 dark:bg-slate-950/95 border border-slate-200 dark:border-slate-900 rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.18)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden backdrop-blur-xl animate-scale-in relative">
-          
-          {/* Ambient Glow Orb */}
-          <div className="absolute top-0 left-0 w-48 h-48 bg-primary-600 rounded-full blur-[100px] opacity-10 pointer-events-none"></div>
+        <div className="w-[360px] max-w-[calc(100vw-32px)] h-[520px] bg-white/95 dark:bg-slate-950/95 border border-slate-200 dark:border-slate-900 rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.18)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.45)] flex flex-col overflow-hidden backdrop-blur-xl">
 
           {/* Header */}
-          <div className="bg-slate-950 text-white p-5 flex items-center justify-between border-b border-slate-800">
+          <div className="bg-slate-950 text-white p-4 flex items-center justify-between border-b border-slate-800">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary-600 to-indigo-600 flex items-center justify-center shadow-md">
                 <Brain className="w-4.5 h-4.5 text-white" />
@@ -294,7 +428,7 @@ AI Assistant Rules:
                   ZEN Assistant
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 </h3>
-                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Zenzy Contextual AI Bot</p>
+                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Zenzy AI Bot</p>
               </div>
             </div>
             <button
@@ -305,70 +439,66 @@ AI Assistant Rules:
             </button>
           </div>
 
-          {/* Queries limit stats banner */}
+          {/* Queries limit stats - cleaner design */}
           {user && (
-            <div className="bg-slate-100 dark:bg-slate-950 px-4 py-2 border-b dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 flex justify-between items-center shrink-0">
-              <span>Usage Stats:</span>
-              <span className={queriesUsed >= aiUsageLimit && !isUnlimitedUser ? "text-red-500 font-extrabold animate-pulse" : "text-primary-600 dark:text-primary-400"}>
-                {queriesUsed} / {isUnlimitedUser ? "Unlimited" : `${aiUsageLimit} questions asked`}
+            <div className="bg-slate-100 dark:bg-slate-900/50 px-4 py-2 border-b dark:border-slate-800 text-[10px] font-semibold text-slate-600 dark:text-slate-400 flex justify-between items-center shrink-0">
+              <span>Usage</span>
+              <span className={queriesUsed >= aiUsageLimit && !isUnlimitedUser ? "text-red-500 font-extrabold" : "text-primary-600 dark:text-primary-400"}>
+                {queriesUsed} / {isUnlimitedUser ? "∞" : aiUsageLimit}
               </span>
             </div>
           )}
 
-          {/* Messages list */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 scrollbar-track-transparent">
+          {/* Messages list - improved spacing and design */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 scrollbar-track-transparent">
             {messages.map((m, idx) => (
               <div
                 key={idx}
-                className={`flex gap-2.5 max-w-[85%] ${
-                  m.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto"
-                }`}
+                className={`flex gap-2 max-w-[85%] ${m.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto"
+                  }`}
               >
                 <div
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 shadow-sm text-xs font-bold ${
-                    m.role === "user"
-                      ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-350"
-                      : "bg-gradient-to-tr from-primary-600 to-indigo-600 text-white"
-                  }`}
+                  className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${m.role === "user"
+                    ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                    : "bg-gradient-to-tr from-primary-600 to-indigo-600 text-white"
+                    }`}
                 >
-                  {m.role === "user" ? "Me" : "ZN"}
+                  {m.role === "user" ? "U" : "Z"}
                 </div>
                 <div
-                  className={`p-3 rounded-2xl text-xs font-medium leading-relaxed whitespace-pre-wrap ${
-                    m.role === "user"
-                      ? "bg-primary-600 text-white rounded-tr-none"
-                      : "bg-slate-100 dark:bg-slate-850/50 text-slate-800 dark:text-slate-200 border border-slate-200/40 dark:border-slate-800/40 rounded-tl-none"
-                  }`}
+                  className={`p-2.5 rounded-xl text-xs font-medium leading-relaxed ${m.role === "user"
+                    ? "bg-primary-600 text-white rounded-tr-none"
+                    : "bg-white dark:bg-slate-900/80 text-slate-800 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700/60 rounded-tl-none"
+                    }`}
                 >
-                  {m.content}
+                  {m.role === "assistant" && m.content === "" && isTyping ? (
+                    <div className="text-primary-600 dark:text-primary-400 whitespace-pre-wrap">
+                      {displayedMessage}
+                      <span className="inline-block w-0.5 h-3 bg-primary-500 animate-pulse ml-0.5"></span>
+                    </div>
+                  ) : (
+                    <div className="whitespace-pre-wrap">
+                      {renderMessageContent(m.content, m.role)}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
-            
-            {loading && (
-              <div className="flex gap-2.5 max-w-[85%] mr-auto">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-primary-600 to-indigo-600 text-white flex items-center justify-center shrink-0 text-xs font-bold">
-                  ZN
-                </div>
-                <div className="p-3 bg-slate-100 dark:bg-slate-850/50 rounded-2xl rounded-tl-none border border-slate-200/40 dark:border-slate-800/40 flex items-center gap-1.5 text-xs text-slate-500 font-bold">
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary-500" />
-                  ZEN is typing...
-                </div>
-              </div>
-            )}
+
+            {loading && !isTyping && <TypingIndicator />}
             <div ref={chatEndRef} />
           </div>
 
-          {/* Footer input form */}
-          <div className="p-3.5 border-t dark:border-slate-800 bg-slate-50 dark:bg-slate-950 shrink-0">
+          {/* Footer input - cleaner design */}
+          <div className="p-3 border-t dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 shrink-0">
             {!user ? (
-              <div className="text-center space-y-2 py-1.5">
-                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Authenticate to query ZEN AI</p>
+              <div className="text-center space-y-2 py-1">
+                <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">Authenticate to use ZEN AI</p>
                 <button
                   onClick={() => openAuthModal("login")}
-                  className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition cursor-pointer border-none"
+                  className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition cursor-pointer border-none"
                 >
-                  Log In Now
+                  Log In
                 </button>
               </div>
             ) : (
@@ -378,19 +508,23 @@ AI Assistant Rules:
                   placeholder={
                     (queriesUsed >= aiUsageLimit && !isUnlimitedUser)
                       ? "Limit reached"
-                      : "Ask ZEN anything about services..."
+                      : "Ask ZEN..."
                   }
                   disabled={(queriesUsed >= aiUsageLimit && !isUnlimitedUser) || loading}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  className="flex-grow px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none focus:border-primary-500 dark:focus:border-primary-400 transition disabled:bg-slate-100 dark:disabled:bg-slate-950 text-slate-800 dark:text-white"
+                  className="flex-grow px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-medium outline-none focus:border-primary-500 dark:focus:border-primary-400 transition disabled:bg-slate-100 dark:disabled:bg-slate-950 text-slate-800 dark:text-white"
                 />
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || loading || (queriesUsed >= aiUsageLimit && !isUnlimitedUser)}
-                  className="w-9 h-9 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer border-none hover:opacity-90 active:scale-95"
+                  className="w-8 h-8 rounded-lg bg-slate-950 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer border-none hover:opacity-90 active:scale-95"
                 >
-                  <Send className="w-4 h-4" />
+                  {loading ? (
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
                 </button>
               </form>
             )}
