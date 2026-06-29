@@ -282,7 +282,7 @@ export default function RentPage() {
         </form>
 
         {/* Location Search Grid Panel */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white dark:bg-slate-900 p-5 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-subtle mb-8 animate-fade-up">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle mb-8 animate-fade-up">
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">City</label>
             <input
@@ -354,7 +354,7 @@ export default function RentPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           
           {/* Filters Sidebar */}
-          <aside className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 h-fit lg:sticky lg:top-24">
+          <aside className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 h-fit lg:sticky lg:top-24">
             <div className="flex items-center gap-2 pb-4 border-b dark:border-slate-800">
               <SlidersHorizontal className="w-4 h-4 text-slate-900 dark:text-white" />
               <h3 className="font-extrabold text-[14px] uppercase tracking-wider">Refine Listings</h3>
@@ -483,7 +483,7 @@ export default function RentPage() {
                 ))}
               </div>
             ) : filteredProperties.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-16 text-center shadow-subtle">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-16 text-center shadow-subtle">
                 <Building className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                 <h3 className="text-lg font-black text-slate-900 dark:text-white">No properties match your filter criteria.</h3>
                 <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-1">Try widening your price filters or locality text.</p>
@@ -494,7 +494,7 @@ export default function RentPage() {
                   <article
                     key={p.id}
                     onClick={() => router.push(`/rent/${p.id}`)}
-                    className="bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-slate-200/80 dark:border-slate-800/80 hover:-translate-y-1.5 transition-all duration-300 group cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.015)] hover:shadow-[0_20px_40px_rgba(37,99,235,0.06)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:border-blue-500 dark:hover:border-blue-400 flex flex-col"
+                    className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800/80 hover:-translate-y-1.5 transition-all duration-300 group cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.015)] hover:shadow-[0_20px_40px_rgba(37,99,235,0.06)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:border-blue-500 dark:hover:border-blue-400 flex flex-col"
                   >
                     <div className="relative h-52 bg-slate-100 dark:bg-slate-850 overflow-hidden shrink-0">
                       <img src={p.images?.[0]} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="" />

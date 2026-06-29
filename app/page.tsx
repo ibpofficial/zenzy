@@ -690,7 +690,7 @@ export default function HomePage() {
 
       {/* ═══════════════════════════════════ HERO SLIDESHOW ═══════════════════════════════════ */}
       <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 pt-28 pb-4">
-        <div className="relative h-[480px] sm:h-[520px] rounded-[36px] overflow-hidden shadow-[0_24px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_24px_50px_rgba(0,0,0,0.3)]">
+        <div className="relative h-[480px] sm:h-[520px] rounded-2xl overflow-hidden shadow-[0_24px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_24px_50px_rgba(0,0,0,0.3)]">
           {heroSlides.map((slide: any, idx: number) => (
             <div
               key={idx}
@@ -983,13 +983,13 @@ export default function HomePage() {
         <div className="flex gap-6 overflow-x-auto hide-scrollbar pb-6 -mx-5 px-5 sm:mx-0 sm:px-0">
           {promos.length === 0 ? (
             [1, 2, 3].map((n) => (
-              <div key={n} className="min-w-[310px] h-56 rounded-3xl skeleton shrink-0"></div>
+              <div key={n} className="min-w-[310px] h-56 rounded-2xl skeleton shrink-0"></div>
             ))
           ) : (
             promos.map((promo) => (
               <div
                 key={promo.id}
-                className="min-w-[310px] md:min-w-[350px] h-58 rounded-3xl relative overflow-hidden shrink-0 group border border-slate-200/50 dark:border-slate-800/40 cursor-pointer shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-none hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] transition-all duration-300 transform hover:-translate-y-1.5"
+                className="min-w-[310px] md:min-w-[350px] h-58 rounded-2xl relative overflow-hidden shrink-0 group border border-slate-200/50 dark:border-slate-800/40 cursor-pointer shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-none hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] transition-all duration-300 transform hover:-translate-y-1.5"
               >
                 <div
                   className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
@@ -1059,7 +1059,7 @@ export default function HomePage() {
               <Link
                 key={cat.id}
                 href={cat.link || `/services?category=${encodeURIComponent(cat.name || "")}`}
-                className="relative bg-white dark:bg-slate-900 p-6 rounded-[24px] border border-slate-200/80 dark:border-slate-800/80 text-center flex flex-col items-center justify-center hover:-translate-y-1.5 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 ease-out cursor-pointer group animate-fade-up w-[148px] shrink-0 sm:w-auto shadow-[0_4px_16px_rgba(0,0,0,0.02)] dark:shadow-none hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)]"
+                className="relative bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 text-center flex flex-col items-center justify-center hover:-translate-y-1.5 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 ease-out cursor-pointer group animate-fade-up w-[148px] shrink-0 sm:w-auto shadow-[0_4px_16px_rgba(0,0,0,0.02)] dark:shadow-none hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)]"
                 style={{ animationDelay: `${idx * 0.04}s` }}
               >
                 <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4 bg-slate-50 dark:bg-slate-850/60 border border-slate-100 dark:border-slate-800/60 text-slate-600 dark:text-slate-400 group-hover:scale-110 group-hover:border-blue-200 dark:group-hover:border-blue-900/40 group-hover:bg-blue-50/50 dark:group-hover:bg-blue-950/20 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all duration-300 shadow-sm">
@@ -1075,7 +1075,7 @@ export default function HomePage() {
 
       {/* ═══════════════════════════════════ TRENDING PROS ═══════════════════════════════════ */}
       <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-8 animate-fade-up">
-        <div className="bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-950/30 rounded-[36px] p-6 sm:p-10 border border-slate-200/60 dark:border-slate-800/80 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
+        <div className="bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-950/30 rounded-2xl p-6 sm:p-10 border border-slate-200/60 dark:border-slate-800/80 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-white dark:bg-slate-900 rounded-2xl text-primary-500 shadow-subtle dark:shadow-none border dark:border-slate-800">
@@ -1095,7 +1095,7 @@ export default function HomePage() {
             {workers.filter(w => w.documentStatus === "approved").slice(0, 3).map((pro, idx) => (
               <article
                 key={pro.id}
-                className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-300 ease-out shadow-[0_4px_16px_rgba(0,0,0,0.02)] dark:shadow-none hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] hover:border-blue-500 dark:hover:border-blue-400 group animate-scale-in"
+                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-300 ease-out shadow-[0_4px_16px_rgba(0,0,0,0.02)] dark:shadow-none hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] hover:border-blue-500 dark:hover:border-blue-400 group animate-scale-in"
                 style={{ animationDelay: `${idx * 0.1}s` }}
               >
                 <div className="relative h-48 bg-slate-100 dark:bg-slate-950 overflow-hidden">
@@ -1186,7 +1186,7 @@ export default function HomePage() {
 
       {/* ═══════════════════════════════════ PREMIUM BOOKING TRUST BANNER ═══════════════════════════════════ */}
       <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-8 animate-fade-up">
-        <div className="relative bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 rounded-[40px] p-8 md:p-12 border border-slate-800/80 shadow-[0_24px_50px_rgba(0,0,0,0.2)] overflow-hidden">
+        <div className="relative bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 rounded-2xl p-8 md:p-12 border border-slate-800/80 shadow-[0_24px_50px_rgba(0,0,0,0.2)] overflow-hidden">
           {/* Glowing neon bg lines or orbs */}
           <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary-600 rounded-full blur-[140px] opacity-25 pointer-events-none"></div>
           <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-500 rounded-full blur-[140px] opacity-20 pointer-events-none"></div>
@@ -1280,7 +1280,7 @@ export default function HomePage() {
 
       {/* ═══════════════════════════════════ ANIMATED STATS ═══════════════════════════════════ */}
       <section ref={statsRef} className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-8 animate-fade-up">
-        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-[40px] p-8 md:p-14 relative overflow-hidden border border-slate-800/80 shadow-[0_24px_60px_rgba(0,0,0,0.15)]">
+        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-2xl p-8 md:p-14 relative overflow-hidden border border-slate-800/80 shadow-[0_24px_60px_rgba(0,0,0,0.15)]">
           {/* Background glow orbs */}
           <div className="absolute top-0 left-1/4 w-72 h-72 bg-primary-600 rounded-full blur-[130px] opacity-25"></div>
           <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-indigo-600 rounded-full blur-[130px] opacity-20"></div>
@@ -1334,7 +1334,7 @@ export default function HomePage() {
           </div>
         </div>
         
-        <div className="relative bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950 rounded-[40px] overflow-hidden border border-emerald-900/40 shadow-[0_24px_50px_rgba(0,0,0,0.1)]">
+        <div className="relative bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950 rounded-2xl overflow-hidden border border-emerald-900/40 shadow-[0_24px_50px_rgba(0,0,0,0.1)]">
           <div
             className="absolute inset-0 bg-cover bg-center opacity-15"
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1600&q=80')" }}

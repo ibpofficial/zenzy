@@ -331,7 +331,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
       <main className="max-w-7xl mx-auto w-full px-5 sm:px-8 pt-24 pb-16 flex-grow">
 
         {/* Cover Photo */}
-        <div className="h-56 sm:h-72 rounded-[32px] overflow-hidden relative shadow-float mb-6 bg-slate-200">
+        <div className="h-56 sm:h-72 rounded-2xl overflow-hidden relative shadow-float mb-6 bg-slate-200">
           <img
             src={worker?.coverImage || "https://images.unsplash.com/photo-1558979158-65a1eaa14271?auto=format&fit=crop&w=1200&q=80"}
             className="w-full h-full object-cover"
@@ -351,7 +351,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
           <div className="lg:col-span-2 space-y-6">
 
             {/* Profile Summary Card */}
-            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-subtle relative">
+            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-subtle relative">
               <div className="flex flex-col sm:flex-row items-start gap-6">
                 {/* Avatar */}
                 <div className="w-24 h-24 rounded-2xl border-4 border-white dark:border-slate-900 shadow-md overflow-hidden shrink-0 -mt-16 sm:-mt-20 relative bg-slate-100 dark:bg-slate-800">
@@ -424,7 +424,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* About */}
-            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-subtle space-y-4">
+            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-subtle space-y-4">
               <h3 className="font-extrabold text-[16px] text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 pb-3">About this Professional</h3>
               <p className="text-slate-600 dark:text-slate-300 font-medium text-[15px] leading-relaxed">
                 {worker?.description || worker?.bio}
@@ -444,7 +444,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Portfolio Gallery with Lightbox */}
-            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-subtle space-y-4">
+            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-subtle space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <h3 className="font-extrabold text-[16px] text-slate-900 dark:text-white uppercase tracking-wider">Portfolio & Work Gallery</h3>
                 {portfolio.length > 0 && (
@@ -480,7 +480,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Reviews */}
-            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-subtle space-y-4">
+            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-subtle space-y-4">
               <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
                   <h3 className="font-extrabold text-[16px] text-slate-900 dark:text-white uppercase tracking-wider">Client Reviews</h3>
@@ -546,7 +546,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
 
           <aside className="space-y-5">
             {/* Booking card */}
-            <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-subtle text-center space-y-5 sticky top-24">
+            <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-subtle text-center space-y-5 sticky top-24">
               <div className="space-y-1">
                 <span className="text-[11px] font-bold text-slate-400 dark:text-slate-505 uppercase tracking-wider block">Starting Price</span>
                 <div className="text-3xl font-black text-slate-900 dark:text-white">{worker?.pricing}</div>
@@ -590,7 +590,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
             </div>
 
             {/* Stats card */}
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-subtle grid grid-cols-3 gap-4 text-center">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-subtle grid grid-cols-3 gap-4 text-center">
               <div>
                 <p className="text-xl font-black text-slate-900 dark:text-white">{avgRating}</p>
                 <p className="text-[10px] text-slate-400 dark:text-slate-505 font-bold uppercase tracking-wide mt-0.5">Rating</p>
@@ -667,7 +667,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
       {/* ═══════ BOOKING MODAL ═══════ */}
       {bookingOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 animate-fade-in">
-          <div className={`bg-white dark:bg-slate-900 w-full rounded-[2.5rem] overflow-hidden shadow-float relative border border-slate-100 dark:border-slate-800 transition-all duration-300 animate-fade-up ${
+          <div className={`bg-white dark:bg-slate-900 w-full rounded-2xl overflow-hidden shadow-float relative border border-slate-100 dark:border-slate-800 transition-all duration-300 animate-fade-up ${
             bookingStep === "payment" && paymentMethod === "qr" ? "max-w-[700px]" : "max-w-[460px]"
           }`}>
 
@@ -894,7 +894,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
 
                   {/* QR details & Transaction ID field */}
                   {paymentMethod === "qr" && (
-                    <div className="flex flex-col md:flex-row gap-6 p-5 bg-slate-55/50 dark:bg-slate-950/50 border border-slate-200/60 dark:border-slate-800 rounded-3xl animate-fade-up">
+                    <div className="flex flex-col md:flex-row gap-6 p-5 bg-slate-55/50 dark:bg-slate-950/50 border border-slate-200/60 dark:border-slate-800 rounded-2xl animate-fade-up">
                       
                       {/* Left: High-Contrast QR Code & Copy UPI ID */}
                       <div className="md:w-1/2 flex flex-col items-center space-y-4">

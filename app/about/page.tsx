@@ -83,7 +83,7 @@ export default function AboutPage() {
 
         {/* Section 2: Stat Bubbles */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-up">
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle text-center space-y-2 hover:-translate-y-1 transition duration-300">
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle text-center space-y-2 hover:-translate-y-1 transition duration-300">
             <div className="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 flex items-center justify-center mx-auto mb-4">
               <Award className="w-6 h-6" />
             </div>
@@ -93,7 +93,7 @@ export default function AboutPage() {
               Every electrician, painter, and mason undergoes strict trade and identity verification.
             </p>
           </div>
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle text-center space-y-2 hover:-translate-y-1 transition duration-300">
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle text-center space-y-2 hover:-translate-y-1 transition duration-300">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4">
               <ShieldCheck className="w-6 h-6" />
             </div>
@@ -103,7 +103,7 @@ export default function AboutPage() {
               Users negotiate and pay professionals directly. Zenzy takes 0% cut from workers.
             </p>
           </div>
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle text-center space-y-2 hover:-translate-y-1 transition duration-300">
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle text-center space-y-2 hover:-translate-y-1 transition duration-300">
             <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-4">
               <Heart className="w-6 h-6" />
             </div>
@@ -116,7 +116,7 @@ export default function AboutPage() {
         </section>
 
         {/* Section 3: Founder Message */}
-        <section className="bg-slate-900 dark:bg-slate-900/60 text-white rounded-[40px] p-8 md:p-12 relative overflow-hidden border border-slate-800 dark:border-slate-800/80 animate-fade-up">
+        <section className="bg-slate-900 dark:bg-slate-900/60 text-white rounded-2xl p-8 md:p-12 relative overflow-hidden border border-slate-800 dark:border-slate-800/80 animate-fade-up">
           <div className="absolute top-0 right-0 w-80 h-80 bg-primary-600 rounded-full blur-[120px] opacity-20"></div>
 
           <div className="relative z-10 max-w-3xl space-y-6">
@@ -145,16 +145,16 @@ export default function AboutPage() {
                 return (
                   <div
                     key={member.id}
-                    className="animate-founder-card relative p-[2.5px] rounded-[32px] overflow-hidden shadow-2xl hover:shadow-[0_24px_60px_rgba(244,63,94,0.3)] hover:scale-[1.02] transition-all duration-500"
+                    className="animate-founder-card relative p-[2.5px] rounded-2xl overflow-hidden shadow-2xl hover:shadow-[0_24px_60px_rgba(244,63,94,0.3)] hover:scale-[1.02] transition-all duration-500"
                   >
                     {/* Glowing animated background rotating outline */}
                     <div className="absolute inset-0 animate-founder-glow"></div>
 
                     {/* Inner content with futuristic particles pattern backdrop */}
-                    <div className="relative bg-slate-950 dark:bg-slate-950 bg-grid-particles text-white p-7 rounded-[30px] space-y-5 flex flex-col h-full z-10">
+                    <div className="relative bg-slate-950 dark:bg-slate-950 bg-grid-particles text-white p-7 rounded-2xl space-y-5 flex flex-col h-full z-10">
 
                       {/* Avatar container with special pulsing neon ring outline */}
-                      <div className="relative w-full aspect-square rounded-[24px] overflow-hidden border-2 animate-neon-ring group">
+                      <div className="relative w-full aspect-square rounded-2xl overflow-hidden border-2 animate-neon-ring group">
                         <img
                           src={member.image}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 grayscale-[20%] group-hover:grayscale-0 filter"
@@ -205,7 +205,7 @@ export default function AboutPage() {
               return (
                 <div
                   key={member.id}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-[32px] shadow-subtle flex flex-col justify-between hover:-translate-y-1.5 transition duration-300 hover:border-slate-300 dark:hover:border-slate-700"
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-subtle flex flex-col justify-between hover:-translate-y-1.5 transition duration-300 hover:border-slate-300 dark:hover:border-slate-700"
                 >
                   <div className="space-y-4">
                     <div className="relative w-full aspect-square rounded-2xl overflow-hidden border dark:border-slate-800">

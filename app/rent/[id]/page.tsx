@@ -223,7 +223,7 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
       <main className="max-w-7xl mx-auto w-full px-5 sm:px-8 pt-24 pb-20 flex-grow">
         
         {/* Cover / Image Slideshow */}
-        <div className="relative h-[320px] md:h-[460px] rounded-[32px] overflow-hidden shadow-float mb-8 bg-slate-200 dark:bg-slate-900 border dark:border-slate-800">
+        <div className="relative h-[320px] md:h-[460px] rounded-2xl overflow-hidden shadow-float mb-8 bg-slate-200 dark:bg-slate-900 border dark:border-slate-800">
           {property.images && property.images.length > 0 ? (
             <>
               <img
@@ -284,7 +284,7 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
           <div className="lg:col-span-2 space-y-8">
             
             {/* Title Block */}
-            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
+            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{property.title}</h1>
@@ -322,7 +322,7 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
             </div>
 
             {/* Description */}
-            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
+            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
               <h3 className="font-black text-slate-900 dark:text-white border-b dark:border-slate-800 pb-2.5">
                 About this Property
               </h3>
@@ -333,7 +333,7 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
 
             {/* Video Preview */}
             {property.videoUrl && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
                 <h3 className="font-black text-slate-900 dark:text-white border-b dark:border-slate-800 pb-2.5 flex items-center gap-2">
                   <Play className="w-5 h-5 text-primary-500 fill-primary-50" /> Video Walkthrough
                 </h3>
@@ -350,7 +350,7 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
 
             {/* Amenities List */}
             {property.amenities && property.amenities.length > 0 && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
                 <h3 className="font-black text-slate-900 dark:text-white border-b dark:border-slate-800 pb-2.5">
                   Amenities Checklist
                 </h3>
@@ -372,7 +372,7 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
 
             {/* Nearby Places / Landmarks */}
             {property.nearby && property.nearby.length > 0 && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-4">
                 <h3 className="font-black text-slate-900 dark:text-white border-b dark:border-slate-800 pb-2.5">
                   Nearby Landmarks & Places
                 </h3>
@@ -388,7 +388,7 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
             )}
 
             {/* Reviews and Ratings */}
-            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6">
+            <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6">
               <div className="border-b dark:border-slate-800 pb-3 flex justify-between items-center flex-wrap gap-3">
                 <div>
                   <h3 className="font-black text-slate-900 dark:text-white">Property Reviews</h3>
@@ -474,7 +474,7 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
 
           {/* Booking tour sidebar */}
           <aside className="lg:col-span-1">
-            <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle text-center space-y-5 sticky top-24">
+            <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle text-center space-y-5 sticky top-24">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Monthly Rental</span>
                 <div className="text-3xl font-black text-slate-900 dark:text-white">₹{property.price?.toLocaleString()}</div>
@@ -526,7 +526,7 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
       {/* Booking Tour Modal */}
       {tourOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-[420px] rounded-[2.5rem] overflow-hidden shadow-2xl relative border border-slate-100 dark:border-slate-800 animate-fade-up">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-[420px] rounded-2xl overflow-hidden shadow-2xl relative border border-slate-100 dark:border-slate-800 animate-fade-up">
             
             <div className="h-28 w-full bg-gradient-to-br from-primary-50 to-slate-50 dark:from-slate-850 dark:to-slate-900 relative overflow-hidden flex items-end px-8 pb-4">
               <button

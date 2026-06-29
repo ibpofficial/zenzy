@@ -536,7 +536,7 @@ export default function CustomerDashboardPage() {
       <main className="max-w-7xl mx-auto w-full px-5 sm:px-8 pt-28 pb-16 flex-grow">
         
         {/* Welcome Section */}
-        <div className="relative bg-slate-900 dark:bg-slate-925 border border-slate-800 rounded-[32px] p-6 sm:p-8 text-white overflow-hidden mb-8 shadow-[0_24px_50px_rgba(0,0,0,0.18)]">
+        <div className="relative bg-slate-900 dark:bg-slate-925 border border-slate-800 rounded-2xl p-6 sm:p-8 text-white overflow-hidden mb-8 shadow-[0_24px_50px_rgba(0,0,0,0.18)]">
           <div className="absolute -top-20 -right-20 w-64 h-64 bg-blue-500/20 rounded-full blur-[120px] pointer-events-none" />
           <div className="absolute -bottom-16 -left-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -592,7 +592,7 @@ export default function CustomerDashboardPage() {
           {/* Sidebar Menu */}
           <aside className="lg:col-span-1 space-y-3">
             {/* Profile mini card in sidebar */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4 rounded-3xl shadow-sm mb-1">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4 rounded-2xl shadow-sm mb-1">
               <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
                 <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 shadow-sm">
                   <img
@@ -657,7 +657,7 @@ export default function CustomerDashboardPage() {
                 {/* Stats quick panel */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                   {/* Completed Jobs */}
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] transition-all duration-300 flex items-center gap-4 group">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] transition-all duration-300 flex items-center gap-4 group">
                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 border border-indigo-100/50 dark:border-indigo-900/30">
                       <Calendar className="w-5 h-5" />
                     </div>
@@ -667,7 +667,7 @@ export default function CustomerDashboardPage() {
                     </div>
                   </div>
                   {/* Favorites */}
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] transition-all duration-300 flex items-center gap-4 group">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] transition-all duration-300 flex items-center gap-4 group">
                     <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 border border-rose-100/50 dark:border-rose-900/30">
                       <Heart className="w-5 h-5" />
                     </div>
@@ -677,7 +677,7 @@ export default function CustomerDashboardPage() {
                     </div>
                   </div>
                   {/* Reviews */}
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] transition-all duration-300 flex items-center gap-4 group">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] transition-all duration-300 flex items-center gap-4 group">
                     <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 border border-amber-100/50 dark:border-amber-900/30">
                       <Star className="w-5 h-5" />
                     </div>
@@ -692,7 +692,7 @@ export default function CustomerDashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
                   {/* Workers */}
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-subtle space-y-4">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-subtle space-y-4">
                     <h3 className="font-extrabold text-sm uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 pb-2.5">
                       Recently Viewed Services
                     </h3>
@@ -717,7 +717,7 @@ export default function CustomerDashboardPage() {
                   </div>
 
                   {/* Rentals */}
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-subtle space-y-4">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-subtle space-y-4">
                     <h3 className="font-extrabold text-sm uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 pb-2.5">
                       Recently Viewed Rentals
                     </h3>
@@ -747,7 +747,7 @@ export default function CustomerDashboardPage() {
 
             {/* TAB: MY BOOKINGS & TRACKER */}
             {activeTab === "bookings" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
                 <div>
                   <h2 className="text-lg font-extrabold tracking-tight">Active Bookings & Rental Tours</h2>
                   <p className="text-slate-400 text-xs font-semibold mt-1">Real-time job execution tracking, messaging, and review creation.</p>
@@ -777,7 +777,7 @@ export default function CustomerDashboardPage() {
                         ) : (
                           <div className="space-y-4">
                             {activeBookingsList.map((book) => (
-                              <div key={book.id} className="bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-900/50 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-[2rem] flex flex-col gap-5 shadow-[0_4px_20px_rgba(0,0,0,0.015)] hover:shadow-[0_20px_40px_rgba(37,99,235,0.06)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 group">
+                              <div key={book.id} className="bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-900/50 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-2xl flex flex-col gap-5 shadow-[0_4px_20px_rgba(0,0,0,0.015)] hover:shadow-[0_20px_40px_rgba(37,99,235,0.06)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 group">
                                 {/* Summary Header */}
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                   <div className="flex gap-4">
@@ -968,7 +968,7 @@ export default function CustomerDashboardPage() {
 
             {/* TAB: SAVED ADDRESSES */}
             {activeTab === "addresses" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="text-lg font-extrabold tracking-tight">Saved Addresses</h2>
@@ -1029,7 +1029,7 @@ export default function CustomerDashboardPage() {
 
             {/* TAB: FAVOURITE PROVIDERS */}
             {activeTab === "favorites" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
                 <div>
                   <h2 className="text-lg font-extrabold tracking-tight">Favourite Providers</h2>
                   <p className="text-slate-400 text-xs font-semibold mt-1">Quick access to workers you trusted and saved.</p>
@@ -1077,14 +1077,14 @@ export default function CustomerDashboardPage() {
 
             {/* TAB: PROFILE SETTINGS */}
             {activeTab === "profile" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
                 <div>
                   <h2 className="text-lg font-extrabold tracking-tight">Profile Settings</h2>
                   <p className="text-slate-400 text-xs font-semibold mt-1">Modify your contact details and display image.</p>
                 </div>
 
                 {/* Avatar Upload Section — prominent */}
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 bg-slate-50 dark:bg-slate-850/30 rounded-3xl border border-slate-200/80 dark:border-slate-800/85">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 bg-slate-55/35 dark:bg-slate-850/30 rounded-2xl border border-slate-200/80 dark:border-slate-800/85">
                   <div className="relative group shrink-0">
                     <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-md">
                       <img
@@ -1160,7 +1160,7 @@ export default function CustomerDashboardPage() {
 
             {/* TAB: REVIEWS WRITTEN */}
             {activeTab === "reviews" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
                 <div>
                   <h2 className="text-lg font-extrabold tracking-tight">Your Feedback & Reviews</h2>
                   <p className="text-slate-400 text-xs font-semibold mt-1">Review ratings and comments you shared on workers.</p>
@@ -1191,7 +1191,7 @@ export default function CustomerDashboardPage() {
 
             {/* TAB: SUPPORT & HELP */}
             {activeTab === "support" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-8 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-8 animate-fade-up">
                 <div>
                   <h2 className="text-lg font-extrabold tracking-tight">Support Desk</h2>
                   <p className="text-slate-400 text-xs font-semibold mt-1">Submit inquiries or requests directly to Zenzy Admins.</p>

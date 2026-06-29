@@ -120,7 +120,7 @@ function ServicesContent() {
       <main className="max-w-7xl mx-auto w-full px-5 sm:px-8 pt-28 pb-12 flex-grow">
         
         {/* Search header banner */}
-        <div className="bg-slate-900 border border-slate-805/30 dark:border-slate-800 rounded-[32px] p-8 text-white relative overflow-hidden mb-8 shadow-float">
+        <div className="bg-slate-900 border border-slate-805/30 dark:border-slate-800 rounded-2xl p-8 text-white relative overflow-hidden mb-8 shadow-float">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary-600 rounded-full blur-[120px] opacity-30"></div>
           <div className="relative z-10 max-w-xl">
             <h1 className="text-3xl font-extrabold tracking-tight mb-2">Find Vetted Professionals</h1>
@@ -158,7 +158,7 @@ function ServicesContent() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           
           {/* Filters Sidebar */}
-          <aside className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 h-fit lg:sticky lg:top-24 text-slate-900 dark:text-slate-200">
+          <aside className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 h-fit lg:sticky lg:top-24 text-slate-900 dark:text-slate-200">
             <div className="flex items-center gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
               <SlidersHorizontal className="w-4 h-4 text-slate-900 dark:text-white" />
               <h3 className="font-extrabold text-[15px] text-slate-900 dark:text-white uppercase tracking-wider">Filters</h3>
@@ -247,7 +247,7 @@ function ServicesContent() {
 
             {/* Grid List */}
             {filteredWorkers.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] p-16 text-center shadow-subtle animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-16 text-center shadow-subtle animate-fade-up">
                 <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
                   <SlidersHorizontal className="w-8 h-8 text-slate-300 dark:text-slate-655" />
                 </div>
@@ -275,7 +275,7 @@ function ServicesContent() {
                 {filteredWorkers.map((pro, index) => (
                   <article
                     key={pro.id}
-                    className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-300 ease-out shadow-[0_4px_16px_rgba(0,0,0,0.02)] dark:shadow-none hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] hover:border-blue-500 dark:hover:border-blue-400 group animate-fade-up"
+                    className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-300 ease-out shadow-[0_4px_16px_rgba(0,0,0,0.02)] dark:shadow-none hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.3)] hover:border-blue-500 dark:hover:border-blue-400 group animate-fade-up"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     {/* Header Image */}

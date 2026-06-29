@@ -5,11 +5,8 @@ import { Mail, Phone, MessageSquare, MapPin, Send, CheckCircle } from "lucide-re
 import Navbar from "@/components/Navbar"; // Replace with your actual Navbar path
 import Footer from "@/components/Footer"; // Replace with your actual Footer path
 
-// Keep the mock Firebase objects
-const db = {}; // Mock Firestore DB object
-const addDoc = async () => ({ id: "123" });
-const collection = () => ({});
-const serverTimestamp = () => ({});
+import { db } from "@/lib/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -30,15 +27,35 @@ export default function ContactPage() {
     if (!name || !email || !message) return;
 
     setSubmitting(true);
-    // Simulated async operation
-    setTimeout(() => {
+    try {
+      await addDoc(collection(db, "supportTickets"), {
+        customerName: name,
+        customerEmail: email,
+        subject: subject || "No Subject",
+        message: message,
+        timestamp: serverTimestamp(),
+        status: "Open",
+        priority: "Medium",
+        messages: [
+          {
+            sender: "customer",
+            text: message,
+            timestamp: new Date().toISOString()
+          }
+        ]
+      });
+
       setName("");
       setEmail("");
       setSubject("");
       setMessage("");
       showToast("Message sent! Our support team will contact you shortly.");
+    } catch (error) {
+      console.error("Error submitting support ticket:", error);
+      showToast("Failed to send message. Please check your connection.");
+    } finally {
       setSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -90,7 +107,7 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6">
             <div>
               <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Send an Incident Message</h3>
               <p className="text-slate-400 dark:text-slate-500 text-xs font-semibold mt-1">We respond to support tickets in under 15 minutes.</p>
@@ -156,7 +173,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        <section className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6">
+        <section className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
             <div className="flex items-center gap-2">
               <MapPin className="w-5 h-5 text-red-500" />

@@ -192,9 +192,9 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Floating Pill Navbar */}
-      <header className={`fixed left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl glass-nav z-55 border border-slate-200/80 dark:border-slate-800/80 transition-all duration-300 ease-in-out shadow-[0_12px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)] ${
-        mobileMenuOpen ? "rounded-3xl" : "rounded-full"
+      {/* Floating Rectangle Navbar */}
+      <header className={`fixed left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl glass-nav z-55 border border-slate-200/50 dark:border-slate-800/40 transition-all duration-300 ease-in-out shadow-[0_15px_35px_rgba(0,0,0,0.05),0_5px_15px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] ${
+        mobileMenuOpen ? "rounded-3xl" : "rounded-2xl"
       } ${
         siteConfig?.showAnnouncement && siteConfig?.announcementBar ? "top-14" : "top-4"
       } ${
@@ -218,14 +218,14 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation Link Pills */}
-          <nav className="hidden md:flex gap-1 bg-white dark:bg-slate-900 p-1 rounded-full border border-slate-200 dark:border-slate-800 shadow-subtle">
+          <nav className="hidden md:flex gap-1 bg-slate-50/50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-subtle">
             {links.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-full text-[13px] font-extrabold tracking-wide transition-all duration-300 hover:scale-105 active:scale-95 ${
+                  className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[13px] font-extrabold tracking-wide transition-all duration-300 hover:scale-105 active:scale-95 ${
                     isActive
                       ? "bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-450 shadow-[0_8px_20px_rgba(37,99,235,0.12)] border border-slate-100/80 dark:border-slate-700/50"
                       : "text-slate-500 dark:text-slate-400 hover:text-primary-650 dark:hover:text-primary-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-[0_8px_20px_rgba(37,99,235,0.08)] hover:border hover:border-slate-100/60 dark:hover:border-slate-800/80"
@@ -238,7 +238,7 @@ export default function Navbar() {
             })}
             <Link
               href="/services"
-              className="special-badge-border rounded-full py-2 px-5 text-[13px] font-extrabold text-white transition-all duration-200 hover:scale-105 active:scale-95 overflow-hidden flex items-center gap-1.5"
+              className="special-badge-border rounded-xl py-2 px-5 text-[13px] font-extrabold text-white transition-all duration-200 hover:scale-105 active:scale-95 overflow-hidden flex items-center gap-1.5"
             >
               <div className="special-badge-content flex items-center gap-1.5">
                 <i className="fas fa-crown text-gold"></i>
@@ -253,7 +253,7 @@ export default function Navbar() {
             {!user && (
               <button
                 onClick={toggleDarkMode}
-                className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-subtle hover:scale-110 active:scale-90 transition-all duration-200 cursor-pointer"
+                className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-subtle hover:scale-110 active:scale-90 transition-all duration-200 cursor-pointer"
                 title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
               >
                 {isDarkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4" />}
@@ -263,7 +263,7 @@ export default function Navbar() {
             {/* Notifications Trigger */}
             <button
               onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-subtle hover:text-primary-600 dark:hover:text-primary-400 hover:scale-110 active:scale-90 transition-all duration-200 relative cursor-pointer"
+              className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-855 hover:shadow-subtle hover:text-primary-600 dark:hover:text-primary-400 hover:scale-110 active:scale-90 transition-all duration-200 relative cursor-pointer"
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
@@ -361,7 +361,7 @@ export default function Navbar() {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-800 hover:border-primary-500 dark:hover:border-primary-400 hover:scale-110 active:scale-90 transition-all duration-200 flex items-center justify-center overflow-hidden cursor-pointer focus:outline-none"
+                  className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary-500 dark:hover:border-primary-400 hover:scale-110 active:scale-90 transition-all duration-200 flex items-center justify-center overflow-hidden cursor-pointer focus:outline-none"
                   title="Profile Menu"
                 >
                   <img
@@ -375,7 +375,7 @@ export default function Navbar() {
                   <div className="absolute right-0 top-[70px] w-64 bg-white dark:bg-slate-900 rounded-2xl border border-slate-150 dark:border-slate-800 shadow-float p-4 z-[999] animate-dropdown">
                     {/* User Info Header */}
                     <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800 mb-2">
-                      <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border dark:border-slate-850">
+                      <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border dark:border-slate-850">
                         <img
                           src={userData?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80"}
                           className="w-full h-full object-cover"
@@ -453,7 +453,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/auth"
-                className="px-5 py-2.5 rounded-full bg-slate-950 dark:bg-white text-white dark:text-slate-950 hover:bg-slate-800 dark:hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all duration-200 shadow-md font-extrabold text-[12px] tracking-wide flex items-center gap-2 cursor-pointer border border-transparent dark:border-slate-800 hover:shadow-lg"
+                className="px-5 py-2.5 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 hover:bg-slate-800 dark:hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all duration-200 shadow-md font-extrabold text-[12px] tracking-wide flex items-center gap-2 cursor-pointer border border-transparent dark:border-slate-800 hover:shadow-lg"
               >
                 <UserIcon className="w-4 h-4" />
                 <span>Sign In</span>
@@ -464,7 +464,7 @@ export default function Navbar() {
             {role === "admin" && (
               <Link
                 href="/admin"
-                className="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-200"
+                className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-955/30 border border-amber-200 dark:border-amber-900/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-200"
                 title="God Mode Portal"
               >
                 <ShieldAlert className="w-4 h-4 animate-bounce" />

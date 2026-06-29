@@ -456,7 +456,7 @@ export default function ProviderDashboardPage() {
         
         {/* WARNING NOTIFICATION BANNER */}
         {userData?.status === "Warned" && (
-          <div className="bg-amber-500/10 border-2 border-amber-500/30 p-5 rounded-[24px] flex items-start gap-4 mb-6 shadow-md animate-fade-up">
+          <div className="bg-amber-500/10 border-2 border-amber-500/30 p-5 rounded-2xl flex items-start gap-4 mb-6 shadow-md animate-fade-up">
             <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
               <AlertTriangle className="w-5 h-5" />
             </div>
@@ -473,7 +473,7 @@ export default function ProviderDashboardPage() {
             </div>
           </div>
         )}        {/* Welcome Section */}
-        <div className="relative bg-slate-900 dark:bg-slate-925 border border-slate-800 rounded-[32px] p-6 sm:p-8 text-white overflow-hidden mb-8 shadow-[0_24px_50px_rgba(0,0,0,0.18)]">
+        <div className="relative bg-slate-900 dark:bg-slate-925 border border-slate-800 rounded-2xl p-6 sm:p-8 text-white overflow-hidden mb-8 shadow-[0_24px_50px_rgba(0,0,0,0.18)]">
           <div className="absolute -top-20 -right-20 w-64 h-64 bg-blue-500/20 rounded-full blur-[120px] pointer-events-none" />
           <div className="absolute -bottom-16 -left-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -528,7 +528,7 @@ export default function ProviderDashboardPage() {
           
           {/* Sidebar */}
           <aside className="lg:col-span-1 space-y-3">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4 rounded-3xl shadow-sm flex flex-col gap-1">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-4 rounded-2xl shadow-sm flex flex-col gap-1">
               {[
                 { id: "analytics", label: "Analytics & Charts", icon: TrendingUp },
                 { id: "requests", label: "Booking Requests", icon: Clock, badge: jobs.filter(j => j.status === "Pending").length },
@@ -581,7 +581,7 @@ export default function ProviderDashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
                   {/* Earnings Line Chart */}
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] transition-all duration-300 space-y-4 group">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] transition-all duration-300 space-y-4 group">
                     <h3 className="font-extrabold text-[13px] text-slate-850 dark:text-slate-200 uppercase tracking-wider border-b pb-3.5 dark:border-slate-800/80">
                       Weekly Earnings Profile
                     </h3>
@@ -649,7 +649,7 @@ export default function ProviderDashboardPage() {
 
             {/* TAB: REQUESTS */}
             {activeTab === "requests" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
                 <div>
                   <h2 className="text-lg font-extrabold tracking-tight">Client Booking Requests</h2>
                   <p className="text-slate-400 text-xs font-semibold mt-1">Accept or decline client requests within the 30-minute timeout.</p>
@@ -660,7 +660,7 @@ export default function ProviderDashboardPage() {
                 ) : (
                   <div className="space-y-4">
                     {jobs.filter((j) => j.status === "Pending").map((book) => (
-                      <div key={book.id} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-3xl flex flex-col gap-4 shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:shadow-[0_16px_36px_rgba(59,130,246,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] hover:border-blue-500 dark:hover:border-blue-450 transition-all duration-300 group">
+                      <div key={book.id} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-2xl flex flex-col gap-4 shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:shadow-[0_16px_36px_rgba(59,130,246,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] hover:border-blue-500 dark:hover:border-blue-450 transition-all duration-300 group">
                         <div className="flex justify-between items-start flex-wrap gap-3">
                           <div>
                             <span className="font-extrabold text-[15px] text-slate-850 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors block">{book.customerName}</span>
@@ -700,7 +700,7 @@ export default function ProviderDashboardPage() {
 
             {/* TAB: ACTIVE JOBS */}
             {activeTab === "jobs" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
                 <div>
                   <h2 className="text-lg font-extrabold tracking-tight">Active Jobs & Schedule</h2>
                   <p className="text-slate-400 text-xs font-semibold mt-1">Update task execution phases and chat with your clients.</p>
@@ -711,7 +711,7 @@ export default function ProviderDashboardPage() {
                 ) : (
                   <div className="space-y-4">
                     {jobs.filter((j) => ["Accepted", "OnTheWay", "Started", "Job Done"].includes(j.status)).map((book) => (
-                      <div key={book.id} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-3xl flex flex-col gap-4 shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:shadow-[0_16px_36px_rgba(59,130,246,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] hover:border-blue-500 dark:hover:border-blue-450 transition-all duration-300 group">
+                      <div key={book.id} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-2xl flex flex-col gap-4 shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:shadow-[0_16px_36px_rgba(59,130,246,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] hover:border-blue-500 dark:hover:border-blue-450 transition-all duration-300 group">
                         <div className="flex justify-between items-start flex-wrap gap-3">
                           <div>
                             <div className="flex items-center gap-2">
@@ -785,7 +785,7 @@ export default function ProviderDashboardPage() {
 
             {/* TAB: AVAILABILITY MANAGEMENT */}
             {activeTab === "availability" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
                 <div>
                   <h2 className="text-lg font-extrabold tracking-tight">Availability Management</h2>
                   <p className="text-slate-400 text-xs font-semibold mt-1">Set your dispatch availability so clients can find you.</p>
@@ -821,7 +821,7 @@ export default function ProviderDashboardPage() {
 
             {/* TAB: PROFILE MANAGEMENT */}
             {activeTab === "profile" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="text-lg font-extrabold tracking-tight">Edit Partner Profile</h2>
@@ -990,7 +990,7 @@ export default function ProviderDashboardPage() {
 
             {/* TAB: PORTFOLIO GALLERY */}
             {activeTab === "portfolio" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="text-lg font-extrabold tracking-tight">Portfolio & Work Gallery</h2>
@@ -1036,7 +1036,7 @@ export default function ProviderDashboardPage() {
 
             {/* TAB: REVIEWS RECEIVED */}
             {activeTab === "reviews" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
                 <div>
                   <h2 className="text-lg font-extrabold tracking-tight">Client Reviews & Comments</h2>
                   <p className="text-slate-400 text-xs font-semibold mt-1">Read feedback from clients you serviced.</p>
@@ -1067,7 +1067,7 @@ export default function ProviderDashboardPage() {
 
             {/* TAB: SUPPORT */}
             {activeTab === "support" && (
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-8 animate-fade-up">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-8 animate-fade-up">
                 <div>
                   <h2 className="text-lg font-extrabold tracking-tight">Partner Support Desk</h2>
                   <p className="text-slate-400 text-xs font-semibold mt-1">Get fast resolutions for dispatch billing or booking issues.</p>
