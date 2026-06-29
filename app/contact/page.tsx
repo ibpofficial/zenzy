@@ -2,12 +2,10 @@
 
 import React, { useState } from "react";
 import { Mail, Phone, MessageSquare, MapPin, Send, CheckCircle } from "lucide-react";
+import Navbar from "@/components/Navbar"; // Replace with your actual Navbar path
+import Footer from "@/components/Footer"; // Replace with your actual Footer path
 
-/** * Mock components and firebase objects to ensure the file is self-contained 
- * and compiles correctly in the absence of external project files.
- */
-const Navbar = () => <nav className="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md z-50 border-b border-slate-200 dark:border-slate-800" />;
-const Footer = () => <footer className="bg-slate-100 dark:bg-slate-900 py-8 text-center text-xs text-slate-500">© 2026 Zenzy</footer>;
+// Keep the mock Firebase objects
 const db = {}; // Mock Firestore DB object
 const addDoc = async () => ({ id: "123" });
 const collection = () => ({});
@@ -171,7 +169,7 @@ export default function ContactPage() {
 
           <div className="h-80 w-full bg-slate-100 dark:bg-slate-950 rounded-2xl overflow-hidden relative border border-slate-200 dark:border-slate-800">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3557.574637775966!2d75.8797455759714!3d26.892015262796195!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db7b5c8983935%3A0x6b83f3e28405d4f!2sVivekananda%20Global%20University!5e0!3m2!1sen!2sin!4v1716380695000!5m2!1sen!2sin"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3557.574637775966!2d75.8797455759714!3d26.892015262796195!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db7b5c8983935%3A0x6b83f3e28405d4f!2sVivekananda%20Global%20University!5e0!3m2!1sen!2sin!4v1716380695000!5m2!1sen!2sin&zoom=15&maptype=roadmap&markers=color:red%7C26.892015,75.879745"
               width="100%"
               height="100%"
               style={{ border: 0 }}
