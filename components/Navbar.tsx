@@ -21,7 +21,8 @@ import {
   MessageSquare,
   Calendar,
   CreditCard,
-  Check
+  Check,
+  ShoppingBag
 } from "lucide-react";
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -540,6 +541,16 @@ export default function Navbar() {
         >
           <Building className="w-5 h-5" />
           <span className="text-[10px]">Rent</span>
+        </Link>
+
+        <Link
+          href="/shop"
+          className={`flex flex-col items-center gap-0.5 justify-center flex-1 py-1.5 transition ${
+            pathname === "/shop" ? "text-emerald-600 dark:text-emerald-400 font-extrabold" : "text-slate-400 dark:text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <ShoppingBag className="w-5 h-5" />
+          <span className="text-[10px]">Shop</span>
         </Link>
 
         <Link
