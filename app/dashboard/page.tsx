@@ -47,13 +47,15 @@ import {
   AlertCircle,
   ChevronDown,
   AlertTriangle,
-  CreditCard
+  CreditCard,
+  ShoppingBag
 } from "lucide-react";
 import { triggerNotification } from "@/lib/notifications";
 
 type Tab =
   | "overview"
   | "bookings"
+  | "shop_orders"
   | "addresses"
   | "favorites"
   | "profile"
@@ -69,6 +71,7 @@ export default function CustomerDashboardPage() {
 
   // Data States
   const [bookings, setBookings] = useState<any[]>([]);
+  const [shopOrders, setShopOrders] = useState<any[]>([]);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [recentWorkers, setRecentWorkers] = useState<any[]>([]);
@@ -82,7 +85,6 @@ export default function CustomerDashboardPage() {
   const [profBio, setProfBio] = useState("");
   const [profAvatar, setProfAvatar] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
-  const avatarInputRef = useRef<HTMLInputElement>(null);
   const hasInitialized = useRef(false);
 
   // Address Dialog fields
@@ -127,6 +129,15 @@ export default function CustomerDashboardPage() {
     setToast(msg);
     setTimeout(() => setToast(""), 3500);
   };
+
+  // Consume active tab override if set (e.g. from Shop redirect)
+  useEffect(() => {
+    const saved = localStorage.getItem("zenzy_active_tab");
+    if (saved) {
+      setActiveTab(saved as Tab);
+      localStorage.removeItem("zenzy_active_tab");
+    }
+  }, []);
 
   // Redirect worker to worker dashboard
   useEffect(() => {
@@ -206,6 +217,15 @@ export default function CustomerDashboardPage() {
       setLoading(false);
     });
 
+    // 5b. Sync Customer Shop Orders
+    const qShopOrders = query(collection(db, "shopOrders"), where("customerId", "==", user.uid));
+    const unsubShopOrders = onSnapshot(qShopOrders, (snap) => {
+      const list: any[] = [];
+      snap.forEach((docSnap) => list.push({ id: docSnap.id, ...docSnap.data() }));
+      list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+      setShopOrders(list);
+    });
+
     // 6. Fetch Recently Viewed from localStorage
     const loadRecentlyViewed = async () => {
       try {
@@ -236,6 +256,7 @@ export default function CustomerDashboardPage() {
       unsubFavorites();
       unsubTickets();
       unsubReviews();
+      unsubShopOrders();
     };
   }, [user, userData]);
 
@@ -448,6 +469,7 @@ export default function CustomerDashboardPage() {
   const handleVerifyWork = async (id: string, workerId: string) => {
     try {
       await updateDoc(doc(db, "bookings", id), { status: "Completed" });
+      await updateDoc(doc(db, "workers", workerId), { status: "Available" });
       showToast("Service marked as completed!");
       await triggerNotification(
         workerId,
@@ -540,14 +562,21 @@ export default function CustomerDashboardPage() {
                     alt="Customer Profile"
                   />
                 </div>
-                <button
-                  onClick={() => avatarInputRef.current?.click()}
-                  className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer shadow-inner"
+                <label
+                  htmlFor="avatarUploadHeader"
+                  className="absolute inset-0 bg-black/40 group-hover:bg-black/60 rounded-full flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-300 shadow-inner"
                   title="Upload profile photo"
                 >
                   <Upload className="w-4 h-4 text-white" />
                   <span className="text-[8px] font-bold text-white/90">Upload</span>
-                </button>
+                </label>
+                <input
+                  id="avatarUploadHeader"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                />
                 <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-900 shadow-md" />
               </div>
               <div>
@@ -600,6 +629,7 @@ export default function CustomerDashboardPage() {
               {[
                 { id: "overview", label: "Overview", icon: User },
                 { id: "bookings", label: "My Bookings", icon: Calendar, badge: bookings.filter(b=>["Pending","Accepted","OnTheWay","Started","Job Done"].includes(b.status)).length },
+                { id: "shop_orders", label: "My Shop Orders", icon: ShoppingBag, badge: shopOrders.filter(o=>o.status === "Pending" || o.status === "Shipped").length },
                 { id: "addresses", label: "Saved Addresses", icon: MapPin },
                 { id: "favorites", label: "Favourite Providers", icon: Heart },
                 { id: "profile", label: "Profile Settings", icon: Settings },
@@ -1083,25 +1113,32 @@ export default function CustomerDashboardPage() {
                         alt="Your Profile Photo"
                       />
                     </div>
-                    <button
-                      onClick={() => avatarInputRef.current?.click()}
-                      className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer shadow-inner"
+                    <label
+                      htmlFor="avatarUploadSettings"
+                      className="absolute inset-0 bg-black/40 group-hover:bg-black/60 rounded-full flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-300 shadow-inner text-white"
                     >
                       <Upload className="w-5 h-5 text-white" />
                       <span className="text-[9px] text-white font-bold">Upload</span>
-                    </button>
+                    </label>
+                    <input
+                      id="avatarUploadSettings"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarUpload}
+                    />
                   </div>
                   <div className="text-center sm:text-left space-y-2.5">
                     <p className="font-extrabold text-[15px] text-slate-900 dark:text-white">Profile Photo</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold leading-relaxed max-w-[280px]">
                       Upload a high-quality picture. Supports PNG, JPG, and WebP formats. Your photo helps service partners recognize you.
                     </p>
-                    <button
-                      onClick={() => avatarInputRef.current?.click()}
+                    <label
+                      htmlFor="avatarUploadSettings"
                       className="inline-flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90 transition duration-200 shadow-sm cursor-pointer"
                     >
                       <Upload className="w-3.5 h-3.5" /> Change Photo
-                    </button>
+                    </label>
                   </div>
                 </div>
 
@@ -1262,6 +1299,108 @@ export default function CustomerDashboardPage() {
               </div>
             )}
 
+            {/* TAB: SHOP ORDERS TRACKER */}
+            {activeTab === "shop_orders" && (
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle space-y-6 animate-fade-up">
+                <div>
+                  <h2 className="text-lg font-extrabold tracking-tight">Your E-Store Orders</h2>
+                  <p className="text-slate-400 text-xs font-semibold mt-1">Track shipping, verify delivery, and check transaction statuses.</p>
+                </div>
+
+                {shopOrders.length === 0 ? (
+                  <div className="text-center py-16 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl">
+                    <ShoppingBag className="w-8 h-8 text-slate-350 mx-auto mb-2" />
+                    <p className="text-slate-400 text-sm font-semibold">You haven't ordered any supplies yet.</p>
+                    <Link href="/shop" className="text-primary-600 font-extrabold text-xs hover:underline mt-2 inline-block">Browse E-Store</Link>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {shopOrders.map((order) => (
+                      <div
+                        key={order.id}
+                        className="border border-slate-200 dark:border-slate-800 rounded-2xl p-6 bg-slate-50/50 dark:bg-slate-900/50 space-y-4 shadow-xs animate-fade-up"
+                      >
+                        {/* Order Header */}
+                        <div className="flex justify-between items-start flex-wrap gap-4 border-b dark:border-slate-800 pb-3">
+                          <div>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase block">Order Date</span>
+                            <span className="font-bold text-xs text-slate-700 dark:text-slate-300">
+                              {order.createdAt ? new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "N/A"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase block">Payment Status</span>
+                            <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-black uppercase ${
+                              order.paymentStatus?.includes("Paid") || order.paymentStatus?.includes("Verified")
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}>
+                              {order.paymentStatus || "Pending"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase block">Order Total</span>
+                            <span className="font-black text-slate-900 dark:text-white">₹{order.totalAmount?.toLocaleString()}</span>
+                          </div>
+                        </div>
+
+                        {/* Items list */}
+                        <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 p-4 rounded-xl space-y-2">
+                          <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide block border-b dark:border-slate-800 pb-1.5">Items Purchased</span>
+                          <div className="divide-y dark:divide-slate-800">
+                            {order.items?.map((item: any, idx: number) => (
+                              <div key={idx} className="py-2 first:pt-0 last:pb-0 flex justify-between text-xs font-semibold text-slate-750 dark:text-slate-300">
+                                <span>{item.name} <strong className="text-slate-950 dark:text-white font-black">x{item.quantity}</strong></span>
+                                <span>₹{(item.price * item.quantity).toLocaleString()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Visual Shipping/Tracking Bar */}
+                        <div className="pt-2">
+                          <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide block mb-3">Order Status Tracking</span>
+                          <div className="flex items-center justify-between relative max-w-md mx-auto">
+                            {/* Track bar background */}
+                            <div className="absolute top-3.5 left-0 right-0 h-1 bg-slate-200 dark:bg-slate-800 -z-0" />
+                            
+                            {/* Filled tracker depending on status */}
+                            <div className="absolute top-3.5 left-0 h-1 bg-slate-950 dark:bg-white transition-all duration-300 -z-0" style={{
+                              width: order.status === "Pending" ? "0%" : order.status === "Shipped" ? "50%" : "100%"
+                            }} />
+
+                            {[
+                              { label: "Placed", status: "Pending" },
+                              { label: "Shipped", status: "Shipped" },
+                              { label: "Delivered", status: "Delivered" }
+                            ].map((step, idx) => {
+                              const statuses = ["Pending", "Shipped", "Delivered"];
+                              const currentIdx = statuses.indexOf(order.status || "Pending");
+                              const stepIdx = statuses.indexOf(step.status);
+                              const isCompleted = stepIdx <= currentIdx;
+                              return (
+                                <div key={step.status} className="flex flex-col items-center z-10 relative">
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${
+                                    isCompleted 
+                                      ? "bg-slate-955 dark:bg-white text-white dark:text-slate-950 shadow-sm" 
+                                      : "bg-slate-200 dark:bg-slate-800 text-slate-400"
+                                  }`}>
+                                    {isCompleted ? "✓" : idx + 1}
+                                  </div>
+                                  <span className="text-[9.5px] font-bold mt-1.5 uppercase text-slate-500">{step.label}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          }
+
 
 
           </div>
@@ -1414,7 +1553,6 @@ export default function CustomerDashboardPage() {
       />
 
       {/* Hidden Profile inputs */}
-      <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
 
       {/* Address Dialog Form */}
       {addressModalOpen && (

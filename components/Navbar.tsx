@@ -237,12 +237,12 @@ export default function Navbar() {
               );
             })}
             <Link
-              href="/services"
+              href="/shop"
               className="special-badge-border rounded-xl py-2 px-5 text-[13px] font-extrabold text-white transition-all duration-200 hover:scale-105 active:scale-95 overflow-hidden flex items-center gap-1.5"
             >
               <div className="special-badge-content flex items-center gap-1.5">
-                <i className="fas fa-crown text-gold"></i>
-                <span>Subscriptions</span>
+                <i className="fas fa-store text-emerald-400"></i>
+                <span>Shop</span>
               </div>
             </Link>
           </nav>
@@ -499,12 +499,12 @@ export default function Navbar() {
             </button>
 
             <Link
-              href="/services"
+              href="/shop"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center justify-center gap-2 w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-3.5 rounded-xl font-bold text-[15px] hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] transition shadow-md"
             >
-              <i className="fas fa-crown text-gold"></i>
-              <span>Subscriptions</span>
+              <i className="fas fa-store text-emerald-400"></i>
+              <span>Shop</span>
             </Link>
           </div>
         )}

@@ -150,7 +150,6 @@ export default function ProviderDashboardPage() {
     setTimeout(() => setToast(""), 3500);
   };
 
-  const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const portfolioInputRef = useRef<HTMLInputElement>(null);
 
@@ -292,6 +291,16 @@ export default function ProviderDashboardPage() {
     try {
       await updateDoc(doc(db, "bookings", bookingId), { status });
       showToast(`Job status updated to: ${status}`);
+
+      if (user) {
+        if (status === "Accepted") {
+          await updateDoc(doc(db, "workers", user.uid), { status: "Busy" });
+          setPStatus("Busy");
+        } else if (status === "Job Done" || status === "Cancelled") {
+          await updateDoc(doc(db, "workers", user.uid), { status: "Available" });
+          setPStatus("Available");
+        }
+      }
 
       let alertText = "";
       if (status === "Accepted") alertText = "Your job booking request was accepted.";
@@ -487,14 +496,21 @@ export default function ProviderDashboardPage() {
                     alt="Provider Profile"
                   />
                 </div>
-                <button
-                  onClick={() => avatarInputRef.current?.click()}
-                  className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer shadow-inner"
+                <label
+                  htmlFor="avatarUploadWorkerHeader"
+                  className="absolute inset-0 bg-black/40 group-hover:bg-black/60 rounded-full flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-300 shadow-inner"
                   title="Upload profile photo"
                 >
                   <Camera className="w-5 h-5 text-white" />
                   <span className="text-[8px] font-bold text-white/90">Upload</span>
-                </button>
+                </label>
+                <input
+                  id="avatarUploadWorkerHeader"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                />
                 <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-900 shadow-md" />
               </div>
               <div>
@@ -843,6 +859,45 @@ export default function ProviderDashboardPage() {
                       {coverUploading ? <i className="fas fa-circle-notch fa-spin"></i> : <Camera className="w-3.5 h-3.5" />}
                       Change Cover
                     </button>
+                  </div>
+                </div>
+
+                {/* Profile Photo edit section */}
+                <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-slate-100 dark:border-slate-800/80 pt-4">
+                  <div className="relative group shrink-0">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-slate-100 dark:border-slate-800 shadow-lg bg-slate-150">
+                      <img
+                        src={pAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=150&h=150&q=80"}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                        alt="Your Profile Photo"
+                      />
+                    </div>
+                    <label
+                      htmlFor="avatarUploadWorkerSettings"
+                      className="absolute inset-0 bg-black/40 group-hover:bg-black/60 rounded-full flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-300 shadow-inner text-white"
+                    >
+                      <Camera className="w-5 h-5" />
+                      <span className="text-[9px] font-bold">Upload</span>
+                    </label>
+                    <input
+                      id="avatarUploadWorkerSettings"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarUpload}
+                    />
+                  </div>
+                  <div className="text-center sm:text-left space-y-2.5">
+                    <p className="font-extrabold text-[15px] text-slate-900 dark:text-white">Profile Photo</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold leading-relaxed max-w-[280px]">
+                      Upload a high-quality picture. Supports PNG, JPG, and WebP formats. Your photo helps clients recognize you and builds trust.
+                    </p>
+                    <label
+                      htmlFor="avatarUploadWorkerSettings"
+                      className="inline-flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90 transition duration-205 shadow-sm cursor-pointer"
+                    >
+                      <Camera className="w-3.5 h-3.5" /> Change Photo
+                    </label>
                   </div>
                 </div>
 
@@ -1225,7 +1280,6 @@ export default function ProviderDashboardPage() {
       )}
 
       {/* Hidden Profile Inputs */}
-      <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
       <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
       <input ref={portfolioInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePortfolioUpload} />
 

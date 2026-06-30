@@ -52,7 +52,9 @@ import {
   Play,
   Sparkles,
   Lock,
-  ArrowRight
+  ArrowRight,
+  ShoppingBag,
+  Package
 } from "lucide-react";
 import { compressImageToBase64 } from "@/lib/imageUtils";
 import { triggerNotification } from "@/lib/notifications";
@@ -132,7 +134,31 @@ function parseStyleString(styleStr: string): React.CSSProperties {
 export default function AdminPage() {
   const router = useRouter();
   const { user, role, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const [activeTab, setActiveTab] = useState<any>("dashboard");
+
+  // Admin Mode Switch state
+  const [adminMode, setAdminMode] = useState<"normal" | "shop">("normal");
+  const [shopProducts, setShopProducts] = useState<any[]>([]);
+  const [shopOrders, setShopOrders] = useState<any[]>([]);
+  
+  // Shop Product Form States
+  const [prodName, setProdName] = useState("");
+  const [prodPrice, setProdPrice] = useState(0);
+  const [prodStock, setProdStock] = useState(10);
+  const [prodDesc, setProdDesc] = useState("");
+  const [prodCategory, setProdCategory] = useState("Tools");
+  const [prodImage, setProdImage] = useState("");
+  const [prodSubmitting, setProdSubmitting] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+
+  const productImagesInputRef = useRef<HTMLInputElement>(null);
+
+  // Shop Settings States
+  const [shopTaxRate, setShopTaxRate] = useState(18);
+  const [shopDeliveryFee, setShopDeliveryFee] = useState(99);
+  const [shopCurrency, setShopCurrency] = useState("INR");
+  const [shopVideoUrl, setShopVideoUrl] = useState("");
+  const [savingShopSettings, setSavingShopSettings] = useState(false);
 
   // Dynamic Admins states
   const [dynamicAdmins, setDynamicAdmins] = useState<any[]>([]);
@@ -1155,6 +1181,26 @@ export default function AdminPage() {
     if (!isAuthorized) return;
 
     const subs = [
+      onSnapshot(collection(db, "shopProducts"), (s) => {
+        const list: any[] = [];
+        s.forEach((d) => list.push({ ...d.data(), id: d.id }));
+        setShopProducts(list);
+      }),
+      onSnapshot(collection(db, "shopOrders"), (s) => {
+        const list: any[] = [];
+        s.forEach((d) => list.push({ ...d.data(), id: d.id }));
+        list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        setShopOrders(list);
+      }),
+      onSnapshot(doc(db, "settings", "shopConfig"), (snap) => {
+        if (snap.exists()) {
+          const d = snap.data();
+          setShopTaxRate(d.taxRate ?? 18);
+          setShopDeliveryFee(d.deliveryFee ?? 99);
+          setShopCurrency(d.currency || "INR");
+          setShopVideoUrl(d.videoUrl || "");
+        }
+      }),
       onSnapshot(collection(db, "admins"), (s) => {
         const list: any[] = [];
         s.forEach((d) => list.push({ ...d.data(), id: d.id }));
@@ -1330,6 +1376,14 @@ export default function AdminPage() {
         workerName: newWorker.name,
         workerAvatar: newWorker.avatar || ""
       });
+
+      // Update worker status for reassignment
+      if (["Accepted", "OnTheWay", "Started"].includes(reassignBooking.status)) {
+        if (reassignBooking.workerId) {
+          await updateDoc(doc(db, "workers", reassignBooking.workerId), { status: "Available" });
+        }
+        await updateDoc(doc(db, "workers", newWorker.id), { status: "Busy" });
+      }
       // Notify client
       await triggerNotification(
         reassignBooking.customerId,
@@ -1357,6 +1411,18 @@ export default function AdminPage() {
     if (!verifyPermission(["Super Admin", "Moderator"], "Modify Booking Status")) return;
     try {
       await updateDoc(doc(db, "bookings", id), { status });
+      
+      // Sync worker status
+      const bookingData = bookings.find(b => b.id === id);
+      const workerId = bookingData?.workerId;
+      if (workerId) {
+        if (status === "Accepted") {
+          await updateDoc(doc(db, "workers", workerId), { status: "Busy" });
+        } else if (["Completed", "Job Done", "Cancelled", "Rejected"].includes(status)) {
+          await updateDoc(doc(db, "workers", workerId), { status: "Available" });
+        }
+      }
+
       await logActivityAndAudit("Modify Booking Status", `Marked booking ID ${id} status as ${status}`);
       showToast(`Booking status marked as ${status}.`);
       await triggerNotification(customerId, `Booking Update`, `Your booking status was marked as: ${status}`, "booking");
@@ -1373,6 +1439,9 @@ export default function AdminPage() {
         status: "Cancelled",
         paymentStatus: "Refunded"
       });
+      if (booking.workerId) {
+        await updateDoc(doc(db, "workers", booking.workerId), { status: "Available" });
+      }
       // Find matching payment doc
       const q = query(collection(db, "payments"), where("invoiceNumber", "==", booking.invoiceNumber));
       const snap = await getDocs(q);
@@ -1412,6 +1481,117 @@ export default function AdminPage() {
       showToast("Coupon creation failed.", "error");
     } finally {
       setCouponSubmitting(false);
+    }
+  };
+
+  // Shop Management Handlers
+  const handleProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const b64 = await compressImageToBase64(file, 500, 0.75);
+      setProdImage(b64);
+      showToast("Product image processed!");
+    } catch {
+      showToast("Failed to process image.", "error");
+    }
+  };
+
+  const handleCreateProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!prodName.trim()) return;
+    setProdSubmitting(true);
+    try {
+      const payload = {
+        name: prodName.trim(),
+        price: prodPrice,
+        stock: prodStock,
+        description: prodDesc.trim(),
+        category: prodCategory,
+        image: prodImage || "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=400&q=80"
+      };
+
+      if (editingProduct) {
+        await updateDoc(doc(db, "shopProducts", editingProduct.id), payload);
+        showToast("Product updated successfully!");
+        setEditingProduct(null);
+      } else {
+        await addDoc(collection(db, "shopProducts"), {
+          ...payload,
+          createdAt: new Date().toISOString()
+        });
+        showToast("Product created successfully!");
+      }
+      setProdName("");
+      setProdPrice(0);
+      setProdStock(10);
+      setProdDesc("");
+      setProdImage("");
+      if (productImagesInputRef.current) productImagesInputRef.current.value = "";
+    } catch (err) {
+      showToast("Operation failed.", "error");
+    } finally {
+      setProdSubmitting(false);
+    }
+  };
+
+  const handleTriggerEditProduct = (prod: any) => {
+    setEditingProduct(prod);
+    setProdName(prod.name || "");
+    setProdPrice(prod.price || 0);
+    setProdStock(prod.stock || 0);
+    setProdDesc(prod.description || "");
+    setProdCategory(prod.category || "Tools");
+    setProdImage(prod.image || "");
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+    try {
+      await deleteDoc(doc(db, "shopProducts", id));
+      showToast("Product deleted successfully!");
+    } catch {
+      showToast("Deletion failed.", "error");
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      await updateDoc(doc(db, "shopOrders", orderId), { status: newStatus });
+      showToast(`Order status updated to ${newStatus}`);
+    } catch {
+      showToast("Failed to update status.", "error");
+    }
+  };
+
+  const handleVerifyShopPayment = async (orderId: string) => {
+    try {
+      await updateDoc(doc(db, "shopOrders", orderId), {
+        paymentStatus: "Paid (UPI QR Verified)",
+        status: "Shipped"
+      });
+      showToast("Order payment verified! Status changed to Shipped.");
+    } catch {
+      showToast("Failed to verify payment.", "error");
+    }
+  };
+
+  const handleSaveShopSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingShopSettings(true);
+    try {
+      await setDoc(doc(db, "settings", "shopConfig"), {
+        taxRate: shopTaxRate,
+        deliveryFee: shopDeliveryFee,
+        currency: shopCurrency,
+        videoUrl: shopVideoUrl.trim(),
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      showToast("Shop settings saved live!");
+    } catch {
+      showToast("Failed to save shop settings.", "error");
+    } finally {
+      setSavingShopSettings(false);
     }
   };
 
@@ -2573,7 +2753,12 @@ export default function AdminPage() {
   const inactiveUsers = allUsers.filter((u: any) => u.suspended).length;
   const activeWorkers = workers.filter((w: any) => !w.suspended && w.documentStatus === "approved").length;
 
-  const tabs: { id: Tab; label: string; icon: any; badge?: number }[] = [
+  const tabs: { id: any; label: string; icon: any; badge?: number }[] = adminMode === "shop" ? [
+    { id: "shop_dashboard", label: "Shop Dashboard", icon: Layers },
+    { id: "shop_inventory", label: "Inventory Manager", icon: ImageIcon, badge: shopProducts.filter(p => (p.stock || 0) <= 5).length || undefined },
+    { id: "shop_orders", label: "Orders Log", icon: CreditCard, badge: shopOrders.filter(o => o.status === "Pending").length || undefined },
+    { id: "shop_settings", label: "Shop Settings", icon: Settings }
+  ] : [
     { id: "dashboard", label: "Dashboard", icon: Layers },
     { id: "analytics", label: "Analytics Charts", icon: TrendingUp },
     { id: "verification", label: "Verification KYC", icon: Users, badge: pendingV },
@@ -2600,11 +2785,34 @@ export default function AdminPage() {
       
       {/* SIDEBAR PANEL */}
       <aside className="w-64 bg-slate-950 text-white flex flex-col shadow-xl z-20 h-full shrink-0">
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-extrabold">zenzy<span className="text-primary-500 text-2xl">.</span></h1>
+        <div className="p-5 border-b border-slate-800 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-extrabold">zenzy<span className="text-primary-500 text-2xl">.</span></h1>
+            </div>
+            <span className="bg-primary-600 text-[8px] font-extrabold px-2 py-0.5 rounded-full">GOD MODE</span>
           </div>
-          <span className="bg-primary-600 text-[8px] font-extrabold px-2 py-0.5 rounded-full">GOD MODE</span>
+          
+          {/* Toggle Switch between Normal and Shop Modes */}
+          <div className="flex items-center justify-between bg-slate-900 p-2 rounded-xl border border-slate-850">
+            <span className="text-[9px] font-extrabold text-slate-405 uppercase tracking-wider">
+              {adminMode === "shop" ? "🛒 Shop Admin" : "💼 Normal Admin"}
+            </span>
+            <button
+              onClick={() => {
+                const newMode = adminMode === "normal" ? "shop" : "normal";
+                setAdminMode(newMode);
+                setActiveTab(newMode === "shop" ? "shop_dashboard" : "dashboard");
+              }}
+              className="w-8 h-4.5 rounded-full p-0.5 transition-colors duration-200 flex items-center bg-slate-700 relative cursor-pointer border-none"
+            >
+              <div
+                className={`w-3.5 h-3.5 rounded-full bg-white transition-transform duration-200 transform ${
+                  adminMode === "shop" ? "translate-x-3.5 bg-emerald-450" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           {tabs.map((tab) => {
@@ -2668,6 +2876,310 @@ export default function AdminPage() {
         )}
 
         <div className="flex-1 overflow-y-auto p-8 relative">
+          {/* ==================== SHOP MODE TABS ==================== */}
+          {adminMode === "shop" && activeTab === "shop_dashboard" && (
+            <div className="space-y-8 animate-fade-up">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { label: "Total Shop Sales", val: `₹${shopOrders.filter(o => o.status !== "Cancelled").reduce((sum, o) => sum + (o.totalAmount || 0), 0).toLocaleString()}`, color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400", icon: TrendingUp },
+                  { label: "Total Orders Placed", val: shopOrders.length, color: "bg-primary-50 text-primary-600 dark:bg-primary-950/20 dark:text-primary-400", icon: ShoppingBag },
+                  { label: "Pending Shipments", val: shopOrders.filter(o => o.status === "Pending").length, color: "bg-rose-50 text-rose-600 dark:bg-rose-955/20 dark:text-rose-400", icon: Clock },
+                  { label: "Total Shop Products", val: shopProducts.length, color: "bg-amber-50 text-amber-600 dark:bg-amber-955/20 dark:text-amber-400", icon: Package }
+                ].map((card, i) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={i} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border dark:border-slate-800 shadow-subtle flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">{card.label}</span>
+                        <span className="text-2xl font-black">{card.val}</span>
+                      </div>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${card.color}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Low Stock Alerts & Recent Orders */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 bg-white dark:bg-slate-900 border dark:border-slate-800 p-6 rounded-3xl shadow-subtle space-y-4">
+                  <h3 className="font-extrabold text-sm uppercase tracking-wider border-b pb-3 dark:border-slate-800">
+                    Recent Shop Orders
+                  </h3>
+                  <div className="divide-y dark:divide-slate-800 overflow-y-auto max-h-[380px] space-y-2">
+                    {shopOrders.length === 0 ? (
+                      <p className="text-slate-400 text-xs font-semibold py-8 text-center">No orders placed yet.</p>
+                    ) : (
+                      shopOrders.slice(0, 10).map((o) => (
+                        <div key={o.id} className="py-3.5 flex justify-between items-start text-xs font-semibold hover:bg-slate-55/50 dark:hover:bg-slate-850/50 rounded-xl px-3.5 transition">
+                          <div>
+                            <span className="text-slate-900 dark:text-white font-bold block">{o.customerName} ({o.customerPhone})</span>
+                            <p className="text-slate-450 dark:text-slate-400 text-[10.5px] mt-1 font-medium">
+                              {o.items?.map((item: any) => `${item.name} x${item.quantity}`).join(", ")}
+                            </p>
+                            <span className="text-[9px] text-slate-400 block mt-1">Address: {o.customerAddress}</span>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <span className="text-[13px] font-black text-slate-850 dark:text-white block">₹{o.totalAmount.toLocaleString()}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase mt-1 inline-block ${
+                              o.status === "Pending" ? "bg-amber-100 text-amber-800" :
+                              o.status === "Shipped" ? "bg-blue-100 text-blue-800" :
+                              o.status === "Delivered" ? "bg-emerald-100 text-emerald-800" :
+                              "bg-red-100 text-red-800"
+                            }`}>{o.status}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 p-6 rounded-3xl shadow-subtle space-y-4">
+                  <h3 className="font-extrabold text-sm uppercase tracking-wider border-b pb-3 dark:border-slate-800">
+                    Low Stock Warnings
+                  </h3>
+                  <div className="divide-y dark:divide-slate-800 overflow-y-auto max-h-[380px] space-y-2">
+                    {shopProducts.filter(p => (p.stock || 0) <= 5).length === 0 ? (
+                      <p className="text-slate-400 text-xs font-semibold py-8 text-center text-emerald-500 font-bold">All product stocks healthy!</p>
+                    ) : (
+                      shopProducts.filter(p => (p.stock || 0) <= 5).map((p) => (
+                        <div key={p.id} className="py-2.5 flex justify-between items-center text-xs font-semibold">
+                          <span className="text-slate-905 dark:text-white font-bold truncate max-w-[140px]">{p.name}</span>
+                          <span className="bg-rose-100 text-rose-800 font-black text-[9px] px-2 py-0.5 rounded-md uppercase">
+                            {p.stock === 0 ? "OUT OF STOCK" : `${p.stock} LEFT`}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {adminMode === "shop" && activeTab === "shop_inventory" && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-up">
+              {/* Product Form */}
+              <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-subtle h-fit space-y-4">
+                <h3 className="font-extrabold text-sm uppercase tracking-wide border-b dark:border-slate-800 pb-2.5">
+                  {editingProduct ? "Edit Product" : "Add Product"}
+                </h3>
+                <form onSubmit={handleCreateProduct} className="space-y-3.5 text-xs font-semibold">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-405 uppercase">Product Name *</label>
+                    <input type="text" required value={prodName} onChange={(e) => setProdName(e.target.value)} placeholder="e.g. Zenzy Cleaning Kit" className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl outline-none" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-405 uppercase">Price (₹) *</label>
+                      <input type="number" required value={prodPrice} onChange={(e) => setProdPrice(Number(e.target.value))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl outline-none" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-405 uppercase">Initial Stock *</label>
+                      <input type="number" required value={prodStock} onChange={(e) => setProdStock(Number(e.target.value))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl outline-none" />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-405 uppercase">Category *</label>
+                    <select
+                      value={prodCategory}
+                      onChange={(e) => setProdCategory(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl text-xs font-bold outline-none cursor-pointer"
+                    >
+                      <option value="Tools">Tools</option>
+                      <option value="Cleaning">Cleaning</option>
+                      <option value="Smart Home">Smart Home</option>
+                      <option value="Safety">Safety</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-405 uppercase block">Product Description *</label>
+                    <textarea rows={3} required value={prodDesc} onChange={(e) => setProdDesc(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl resize-none font-semibold text-xs leading-relaxed outline-none" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-405 uppercase block">Product Photo</label>
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => productImagesInputRef.current?.click()} className="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer">
+                        Upload Image
+                      </button>
+                      <input ref={productImagesInputRef} type="file" accept="image/*" className="hidden" onChange={handleProductImageUpload} />
+                    </div>
+                    {prodImage && (
+                      <img src={prodImage} className="w-16 h-16 rounded-xl object-cover border mt-1" alt="" />
+                    )}
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    {editingProduct && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingProduct(null);
+                          setProdName("");
+                          setProdPrice(0);
+                          setProdStock(10);
+                          setProdDesc("");
+                          setProdImage("");
+                        }}
+                        className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-bold uppercase transition"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                    <button type="submit" disabled={prodSubmitting} className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-3 rounded-xl font-bold uppercase transition">
+                      {prodSubmitting ? "Processing..." : editingProduct ? "Save Product" : "Create Product"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Products List Grid */}
+              <div className="lg:col-span-2 space-y-4">
+                {shopProducts.map((p) => (
+                  <div key={p.id} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border dark:border-slate-800 shadow-subtle flex justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <img src={p.image} className="w-14 h-14 rounded-xl object-cover shrink-0 border" alt="" />
+                      <div>
+                        <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">{p.name}</h4>
+                        <span className="text-[10.5px] text-slate-400 block">{p.category} · ₹{p.price} · {p.stock} units left</span>
+                        <span className={`text-[9px] font-black uppercase mt-1 inline-block ${
+                          p.stock > 0 ? "text-emerald-600" : "text-red-500"
+                        }`}>
+                          {p.stock > 0 ? "In Stock" : "Out of Stock"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 shrink-0">
+                      <button onClick={() => handleTriggerEditProduct(p)} className="bg-slate-50 text-slate-655 border dark:border-slate-800 hover:bg-primary-50 hover:text-primary-600 px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
+                        <Edit2 className="w-3.5 h-3.5" /> Edit
+                      </button>
+                      <button onClick={() => handleDeleteProduct(p.id)} className="bg-red-50 text-red-555 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1">
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {adminMode === "shop" && activeTab === "shop_orders" && (
+            <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 p-6 rounded-3xl shadow-subtle animate-fade-up">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider border-b pb-3.5 dark:border-slate-800">
+                Shop Orders Database
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-55 dark:bg-slate-850 border-b border-slate-100 dark:border-slate-800 font-bold text-[10px] uppercase text-slate-400">
+                      <th className="p-4 pl-6">Client Details</th>
+                      <th className="p-4">Delivery Address</th>
+                      <th className="p-4">Products Ordered</th>
+                      <th className="p-4">Total Amount</th>
+                      <th className="p-4">Payment</th>
+                      <th className="p-4">Order Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-semibold">
+                    {shopOrders.map((o) => (
+                      <tr key={o.id}>
+                        <td className="p-4 pl-6">
+                          <div>
+                            <span className="font-bold text-slate-900 dark:text-white block">{o.customerName}</span>
+                            <span className="text-[10px] text-slate-400 block mt-0.5">📞 {o.customerPhone}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-slate-500 dark:text-slate-400 max-w-[150px] truncate" title={o.customerAddress}>{o.customerAddress}</td>
+                        <td className="p-4">
+                          <div className="max-w-[200px] space-y-0.5">
+                            {o.items?.map((item: any, idx: number) => (
+                              <span key={idx} className="block text-[10.5px] text-slate-600 dark:text-slate-350 truncate">
+                                • {item.name} <strong className="text-slate-850 dark:text-white">x{item.quantity}</strong>
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="p-4 font-extrabold text-slate-900 dark:text-white">₹{o.totalAmount.toLocaleString()}</td>
+                        <td className="p-4">
+                          <div className="space-y-1">
+                            <span className="font-bold block text-slate-800 dark:text-slate-200">{o.paymentMethod || "COD"}</span>
+                            {o.paymentMethod === "UPI QR" && (
+                              <div className="space-y-0.5 text-[10px]">
+                                <span className="font-mono text-slate-500 block">TxID: {o.transactionId || "N/A"}</span>
+                                <span className={`inline-block px-1.5 py-0.5 rounded-[4px] font-black uppercase text-[8px] ${
+                                  o.paymentStatus?.includes("Verified") || o.paymentStatus?.includes("Paid")
+                                    ? "bg-emerald-500/10 text-emerald-600"
+                                    : "bg-rose-500/10 text-rose-500"
+                                }`}>
+                                  {o.paymentStatus || "Pending"}
+                                </span>
+                                {(o.paymentStatus?.includes("Pending") || o.paymentStatus?.includes("Verification")) && (
+                                  <button
+                                    onClick={() => handleVerifyShopPayment(o.id)}
+                                    className="mt-1 block w-full bg-emerald-600 hover:bg-emerald-700 text-white text-[8.5px] font-black uppercase py-1 px-2 rounded-lg text-center cursor-pointer transition shadow-xs"
+                                  >
+                                    Verify Payment
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <select
+                            value={o.status}
+                            onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value)}
+                            className={`px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider outline-none cursor-pointer ${
+                              o.status === "Pending" ? "bg-amber-500/10 border-amber-500/20 text-amber-600" :
+                              o.status === "Shipped" ? "bg-blue-500/10 border-blue-500/20 text-blue-650" :
+                              o.status === "Delivered" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" :
+                              "bg-red-500/10 border-red-500/20 text-red-500"
+                            }`}
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Shipped">Shipped</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {adminMode === "shop" && activeTab === "shop_settings" && (
+            <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 p-6 sm:p-8 rounded-3xl shadow-subtle max-w-xl animate-fade-up">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider border-b pb-3.5 dark:border-slate-800">
+                Zenzy Shop Configuration
+              </h3>
+              <form onSubmit={handleSaveShopSettings} className="space-y-4 pt-4 text-xs font-semibold">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">GST Tax Rate (%)</label>
+                  <input type="number" required value={shopTaxRate} onChange={(e) => setShopTaxRate(Number(e.target.value))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Flat Delivery Fee (₹)</label>
+                  <input type="number" required value={shopDeliveryFee} onChange={(e) => setShopDeliveryFee(Number(e.target.value))} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-855 border dark:border-slate-800 rounded-xl" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Store Currency</label>
+                  <input type="text" required value={shopCurrency} onChange={(e) => setShopCurrency(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-855 border dark:border-slate-800 rounded-xl" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Store Hero Background Video URL (Direct MP4)</label>
+                  <input type="url" value={shopVideoUrl} onChange={(e) => setShopVideoUrl(e.target.value)} placeholder="https://raw.githubusercontent.com/.../video.mp4" className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-855 border dark:border-slate-800 rounded-xl" />
+                </div>
+                <button type="submit" disabled={savingShopSettings} className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-3 rounded-xl font-bold uppercase transition">
+                  {savingShopSettings ? "Saving Settings..." : "Save Shop Configurations"}
+                </button>
+              </form>
+            </div>
+          )}
+
           {/* TAB: DASHBOARD */}
           {activeTab === "dashboard" && (
             <div className="space-y-8 animate-fade-up">

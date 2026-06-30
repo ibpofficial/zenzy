@@ -1371,6 +1371,12 @@ export default function HomePage() {
               >
                 Book a Service Now
               </Link>
+              <Link
+                href="/services?tab=subscriptions"
+                className="w-full lg:w-auto text-center bg-white/10 hover:bg-white border border-white/20 text-white hover:text-slate-950 px-10 py-3.5 rounded-[20px] font-black text-[13px] uppercase tracking-wider transition-all duration-300 active:scale-97 hover:scale-[1.02]"
+              >
+                ⭐ Premium Subscriptions
+              </Link>
               <div className="flex items-center gap-4 text-slate-500 text-[11px] font-bold">
                 <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-500" /> SSL Secured Booking</span>
                 <span>•</span>
