@@ -438,7 +438,8 @@ export default function HomePage() {
       }
 
       const workerRef = collection(db, "workers");
-      if (true) {
+      const workerSnap = await getDocs(query(workerRef, limit(1)));
+      if (workerSnap.empty) {
         const defaultPros = [
           {
             uid: "ramesh-ac",

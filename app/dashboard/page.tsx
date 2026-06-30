@@ -642,16 +642,16 @@ export default function CustomerDashboardPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as Tab)}
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 cursor-pointer ${
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 font-bold text-xs transition-all duration-250 cursor-pointer border-none ${
                       isActive
-                        ? "bg-blue-50/70 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500"
-                        : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white border-l-4 border-transparent"
+                        ? "bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-xl shadow-sm scale-[1.01]"
+                        : "bg-transparent text-slate-505 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white rounded-md hover:rounded-xl"
                     }`}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
                     <span className="flex-1 text-left">{tab.label}</span>
                     {tab.badge && tab.badge > 0 ? (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-blue-600 text-white" : "bg-red-500 text-white"}`}>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-white dark:bg-slate-950 text-slate-950 dark:text-white" : "bg-red-500 text-white"}`}>
                         {tab.badge}
                       </span>
                     ) : null}
@@ -662,7 +662,7 @@ export default function CustomerDashboardPage() {
             </div>
             <button
               onClick={logout}
-              className="w-full flex items-center justify-center gap-2 bg-red-50 dark:bg-red-950/20 text-red-500 hover:bg-red-500 hover:text-white py-3.5 rounded-2xl font-bold text-xs transition duration-200 cursor-pointer border border-red-100 dark:border-red-900/40"
+              className="w-full flex items-center justify-center gap-2 bg-red-50 dark:bg-red-950/20 text-red-500 hover:bg-red-500 hover:text-white py-3.5 rounded-md hover:rounded-xl font-bold text-xs transition-all duration-200 cursor-pointer border border-red-100 dark:border-red-900/40"
             >
               Logout Session
             </button>
@@ -801,7 +801,7 @@ export default function CustomerDashboardPage() {
                                 {/* Summary Header */}
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                   <div className="flex gap-4">
-                                    <div className="relative w-14 h-14 rounded-2xl overflow-hidden shrink-0 border border-slate-200/80 dark:border-slate-850 shadow-md bg-slate-100 dark:bg-slate-955 flex items-center justify-center group-hover:border-blue-500 dark:group-hover:border-blue-400 transition-colors duration-300">
+                                    <div className="relative w-14 h-14 rounded-2xl overflow-hidden shrink-0 border border-slate-200/80 dark:border-slate-850 shadow-md bg-slate-100 dark:bg-slate-900 flex items-center justify-center group-hover:border-blue-500 dark:group-hover:border-blue-400 transition-colors duration-300">
                                       <img src={book.workerAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=100&h=100&q=80"} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="" />
                                     </div>
                                     <div className="space-y-1">
@@ -846,7 +846,7 @@ export default function CustomerDashboardPage() {
 
                                 {/* Job completion verification block */}
                                 {book.status === "Job Done" && (
-                                  <div className="bg-emerald-50/30 dark:bg-emerald-955/10 border border-emerald-200/40 dark:border-emerald-900/30 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                                  <div className="bg-emerald-50/30 dark:bg-emerald-950/10 border border-emerald-200/40 dark:border-emerald-900/30 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                                     <div>
                                       <p className="text-xs font-extrabold text-slate-855 dark:text-slate-200">The professional finished the task!</p>
                                       <p className="text-[10.5px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">Confirm job verification to release standard payouts.</p>
@@ -1314,83 +1314,143 @@ export default function CustomerDashboardPage() {
                     <Link href="/shop" className="text-primary-600 font-extrabold text-xs hover:underline mt-2 inline-block">Browse E-Store</Link>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="divide-y divide-slate-200/80 dark:divide-slate-800/80">
                     {shopOrders.map((order) => (
                       <div
                         key={order.id}
-                        className="border border-slate-200 dark:border-slate-800 rounded-2xl p-6 bg-slate-50/50 dark:bg-slate-900/50 space-y-4 shadow-xs animate-fade-up"
+                        className="py-8 first:pt-0 last:pb-0 space-y-6 animate-fade-up animate-once"
                       >
-                        {/* Order Header */}
-                        <div className="flex justify-between items-start flex-wrap gap-4 border-b dark:border-slate-800 pb-3">
-                          <div>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase block">Order Date</span>
-                            <span className="font-bold text-xs text-slate-700 dark:text-slate-300">
-                              {order.createdAt ? new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "N/A"}
+                        {/* Order Header Summary */}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                              <h3 className="font-extrabold text-[15px] text-slate-900 dark:text-white">Order Reference</h3>
+                              <span className="text-[10px] text-slate-400 font-mono font-bold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                                #{order.id.slice(-8).toUpperCase()}
+                              </span>
+                              <span className={`inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+                                order.status === "Pending" ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400" :
+                                order.status === "Shipped" ? "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400" :
+                                "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                              }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                  order.status === "Pending" ? "bg-amber-500 animate-pulse" :
+                                  order.status === "Shipped" ? "bg-blue-500 animate-pulse" :
+                                  "bg-emerald-500"
+                                }`}></span>
+                                {order.status}
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-slate-405 dark:text-slate-500 font-bold block">
+                              Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "N/A"}
                             </span>
                           </div>
-                          <div>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase block">Payment Status</span>
-                            <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-black uppercase ${
-                              order.paymentStatus?.includes("Paid") || order.paymentStatus?.includes("Verified")
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-amber-100 text-amber-800"
-                            }`}>
-                              {order.paymentStatus || "Pending"}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-[10px] text-slate-400 font-bold uppercase block">Order Total</span>
-                            <span className="font-black text-slate-900 dark:text-white">₹{order.totalAmount?.toLocaleString()}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-[11px] text-slate-400 dark:text-slate-505 font-black uppercase tracking-widest block">{order.paymentMethod || "COD"}</span>
+                            <span className="text-lg font-black text-slate-900 dark:text-white">₹{order.totalAmount?.toLocaleString()}</span>
                           </div>
                         </div>
 
-                        {/* Items list */}
-                        <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 p-4 rounded-xl space-y-2">
-                          <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide block border-b dark:border-slate-800 pb-1.5">Items Purchased</span>
-                          <div className="divide-y dark:divide-slate-800">
-                            {order.items?.map((item: any, idx: number) => (
-                              <div key={idx} className="py-2 first:pt-0 last:pb-0 flex justify-between text-xs font-semibold text-slate-750 dark:text-slate-300">
-                                <span>{item.name} <strong className="text-slate-950 dark:text-white font-black">x{item.quantity}</strong></span>
-                                <span>₹{(item.price * item.quantity).toLocaleString()}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Visual Shipping/Tracking Bar */}
-                        <div className="pt-2">
-                          <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wide block mb-3">Order Status Tracking</span>
-                          <div className="flex items-center justify-between relative max-w-md mx-auto">
-                            {/* Track bar background */}
-                            <div className="absolute top-3.5 left-0 right-0 h-1 bg-slate-200 dark:bg-slate-800 -z-0" />
-                            
-                            {/* Filled tracker depending on status */}
-                            <div className="absolute top-3.5 left-0 h-1 bg-slate-950 dark:bg-white transition-all duration-300 -z-0" style={{
-                              width: order.status === "Pending" ? "0%" : order.status === "Shipped" ? "50%" : "100%"
-                            }} />
-
-                            {[
-                              { label: "Placed", status: "Pending" },
-                              { label: "Shipped", status: "Shipped" },
-                              { label: "Delivered", status: "Delivered" }
-                            ].map((step, idx) => {
-                              const statuses = ["Pending", "Shipped", "Delivered"];
-                              const currentIdx = statuses.indexOf(order.status || "Pending");
-                              const stepIdx = statuses.indexOf(step.status);
-                              const isCompleted = stepIdx <= currentIdx;
-                              return (
-                                <div key={step.status} className="flex flex-col items-center z-10 relative">
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${
-                                    isCompleted 
-                                      ? "bg-slate-955 dark:bg-white text-white dark:text-slate-950 shadow-sm" 
-                                      : "bg-slate-200 dark:bg-slate-800 text-slate-400"
-                                  }`}>
-                                    {isCompleted ? "✓" : idx + 1}
+                        {/* Split details columns */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Left Column: Items purchased list */}
+                          <div className="space-y-3.5">
+                            <h4 className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Items Summary</h4>
+                            <div className="space-y-3">
+                              {order.items?.map((item: any, idx: number) => (
+                                <div key={idx} className="flex items-center justify-between text-xs font-semibold text-slate-800 dark:text-slate-200">
+                                  <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center font-bold text-slate-500 dark:text-slate-400 text-[10px] shrink-0 border dark:border-slate-700">
+                                      x{item.quantity}
+                                    </div>
+                                    <span className="font-bold text-slate-900 dark:text-white line-clamp-1">{item.name}</span>
                                   </div>
-                                  <span className="text-[9.5px] font-bold mt-1.5 uppercase text-slate-500">{step.label}</span>
+                                  <span className="font-black text-slate-800 dark:text-slate-200">₹{(item.price * item.quantity).toLocaleString()}</span>
                                 </div>
-                              );
-                            })}
+                              ))}
+                            </div>
+                            
+                            {/* Billing details list */}
+                            <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-1.5 text-[11px] text-slate-400 dark:text-slate-550 font-semibold">
+                              <div className="flex justify-between">
+                                <span>Subtotal:</span>
+                                <span>₹{(order.subtotal || 0).toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Delivery Fee:</span>
+                                <span>{order.deliveryFee === 0 ? "FREE" : `₹${order.deliveryFee}`}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Estimated GST Tax (18%):</span>
+                                <span>₹{(order.tax || 0).toLocaleString()}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right Column: Address and Payment */}
+                          <div className="space-y-4">
+                            <h4 className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Shipping & Verification</h4>
+                            
+                            <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-xl border border-slate-200/50 dark:border-slate-800/50 space-y-3 shadow-inner">
+                              <div>
+                                <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-black block">Delivery Address</span>
+                                <p className="text-[11px] text-slate-700 dark:text-slate-350 leading-relaxed font-semibold mt-0.5">
+                                  {order.customerName}<br />
+                                  Phone: {order.customerPhone}<br />
+                                  {order.customerAddress}
+                                </p>
+                              </div>
+
+                              <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                                <div>
+                                  <span className="text-[9px] text-slate-400 dark:text-slate-505 uppercase font-black block">Verification Status</span>
+                                  <span className="text-[10.5px] text-slate-700 dark:text-slate-300 font-bold block mt-0.5">
+                                    {order.paymentStatus || "Pending Approval"}
+                                  </span>
+                                </div>
+                                {order.transactionId && (
+                                  <div className="text-right">
+                                    <span className="text-[9px] text-slate-400 dark:text-slate-505 uppercase font-black block">UPI Ref ID</span>
+                                    <span className="text-[10.5px] font-mono font-bold text-slate-700 dark:text-slate-300 block mt-0.5">
+                                      {order.transactionId}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Tracking progress tracker */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between relative max-w-xs mx-auto pt-2">
+                                <div className="absolute top-5 left-0 right-0 h-0.5 bg-slate-200 dark:bg-slate-800 -z-0" />
+                                <div className="absolute top-5 left-0 h-0.5 bg-slate-950 dark:bg-white transition-all duration-300 -z-0" style={{
+                                  width: order.status === "Pending" ? "0%" : order.status === "Shipped" ? "50%" : "100%"
+                                }} />
+
+                                {[
+                                  { label: "Placed", status: "Pending" },
+                                  { label: "Shipped", status: "Shipped" },
+                                  { label: "Delivered", status: "Delivered" }
+                                ].map((step, idx) => {
+                                  const statuses = ["Pending", "Shipped", "Delivered"];
+                                  const currentIdx = statuses.indexOf(order.status || "Pending");
+                                  const stepIdx = statuses.indexOf(step.status);
+                                  const isCompleted = stepIdx <= currentIdx;
+                                  return (
+                                    <div key={step.status} className="flex flex-col items-center z-10 relative">
+                                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black transition-all ${
+                                        isCompleted 
+                                          ? "bg-slate-950 dark:bg-white text-white dark:text-slate-950 shadow-sm" 
+                                          : "bg-slate-200 dark:bg-slate-800 text-slate-400"
+                                      }`}>
+                                        {isCompleted ? "✓" : idx + 1}
+                                      </div>
+                                      <span className="text-[8.5px] font-extrabold mt-1 uppercase text-slate-400">{step.label}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1533,7 +1593,7 @@ export default function CustomerDashboardPage() {
               <button
                 type="submit"
                 disabled={submittingComplaint}
-                className="w-full bg-red-650 hover:bg-red-500 disabled:opacity-50 text-white py-3 rounded-xl font-bold uppercase transition shadow-lg cursor-pointer"
+                className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white py-3 rounded-xl font-bold uppercase transition shadow-lg cursor-pointer"
               >
                 {submittingComplaint ? "Submitting..." : "Submit Official Complaint"}
               </button>

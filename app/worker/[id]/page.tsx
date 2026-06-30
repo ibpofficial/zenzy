@@ -862,7 +862,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
                             : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900"
                         }`}
                       >
-                        <Wallet className={`w-5 h-5 ${paymentMethod === "cod" ? "text-slate-955 dark:text-white" : "text-slate-400 dark:text-slate-500"}`} />
+                        <Wallet className={`w-5 h-5 ${paymentMethod === "cod" ? "text-slate-905 dark:text-white" : "text-slate-400 dark:text-slate-500"}`} />
                         <div>
                           <span className="block text-[13px] font-black text-slate-900 dark:text-white">Pay Cash</span>
                           <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">COD (Pay after service)</span>
@@ -878,7 +878,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
                             : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900"
                         }`}
                       >
-                        <QrCode className={`w-5 h-5 ${paymentMethod === "qr" ? "text-slate-955 dark:text-white" : "text-slate-400 dark:text-slate-500"}`} />
+                        <QrCode className={`w-5 h-5 ${paymentMethod === "qr" ? "text-slate-905 dark:text-white" : "text-slate-400 dark:text-slate-500"}`} />
                         <div>
                           <span className="block text-[13px] font-black text-slate-900 dark:text-white">Scan QR</span>
                           <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">Instant UPI Payment</span>
@@ -978,7 +978,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
                               placeholder="e.g. 302812345678"
                               value={transactionId}
                               onChange={(e) => setTransactionId(e.target.value.replace(/\D/g, ""))}
-                              className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 focus:border-slate-955 dark:focus:border-slate-100 focus:ring-1 focus:ring-slate-950 rounded-xl text-xs font-black font-mono tracking-widest outline-none text-slate-800 dark:text-slate-200"
+                              className="w-full px-4 py-3 bg-white dark:bg-slate-955 border border-slate-200 dark:border-slate-800 focus:border-slate-900 dark:focus:border-slate-100 focus:ring-1 focus:ring-slate-900 rounded-xl text-xs font-black font-mono tracking-widest outline-none text-slate-800 dark:text-slate-200"
                             />
                             {transactionId.length > 0 && transactionId.length < 12 && (
                               <p className="text-[9px] text-red-500 dark:text-red-400 font-semibold mt-1 animate-pulse">

@@ -53,7 +53,7 @@ export default function RootLayout({
           precedence="default"
         />
       </head>
-      <body className="bg-slate-50 text-slate-900 min-h-screen font-sans flex flex-col">
+      <body className="bg-slate-50 text-slate-900 min-h-screen font-sans flex flex-col pb-20 md:pb-0">
         <AuthProvider>
           <ThemeApplier />
           <EmailVerificationGuard>

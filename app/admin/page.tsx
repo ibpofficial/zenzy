@@ -2715,7 +2715,7 @@ export default function AdminPage() {
   if (!isAuthorized) {
     return (
       <main className="min-h-screen bg-slate-950 text-white flex items-center justify-center font-sans p-6 relative overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-red-650 rounded-full blur-[130px] opacity-20"></div>
+        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-red-600 rounded-full blur-[130px] opacity-20"></div>
         <div className="w-full max-w-md bg-slate-900/80 border border-slate-800/80 backdrop-blur-md p-10 rounded-[2.5rem] text-center space-y-6 relative z-10 shadow-2xl animate-fade-up">
           <div className="w-16 h-16 bg-red-500/10 border border-red-500/30 text-red-400 rounded-2xl flex items-center justify-center mx-auto shadow-md">
             <ShieldAlert className="w-8 h-8" />
@@ -2998,15 +2998,26 @@ export default function AdminPage() {
                     <textarea rows={3} required value={prodDesc} onChange={(e) => setProdDesc(e.target.value)} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl resize-none font-semibold text-xs leading-relaxed outline-none" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-405 uppercase block">Product Photo</label>
-                    <div className="flex gap-2">
-                      <button type="button" onClick={() => productImagesInputRef.current?.click()} className="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer">
-                        Upload Image
+                    <label className="text-[10px] font-bold text-slate-405 uppercase block">Product Photo / Image Link</label>
+                    <div className="flex gap-2 items-center flex-wrap">
+                      <button type="button" onClick={() => productImagesInputRef.current?.click()} className="bg-slate-900 dark:bg-slate-800 text-white px-3 py-2 rounded-xl text-[10px] font-bold cursor-pointer shrink-0 border-none">
+                        Upload File
                       </button>
                       <input ref={productImagesInputRef} type="file" accept="image/*" className="hidden" onChange={handleProductImageUpload} />
+                      <span className="text-[10px] text-slate-400 font-bold shrink-0">OR</span>
+                      <input
+                        type="url"
+                        placeholder="Paste image URL direct link..."
+                        value={prodImage}
+                        onChange={(e) => setProdImage(e.target.value)}
+                        className="flex-grow px-3 py-2 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl outline-none text-slate-800 dark:text-slate-200"
+                      />
                     </div>
                     {prodImage && (
-                      <img src={prodImage} className="w-16 h-16 rounded-xl object-cover border mt-1" alt="" />
+                      <div className="relative w-16 h-16 rounded-xl overflow-hidden border mt-1 group">
+                        <img src={prodImage} className="w-full h-full object-cover" alt="" />
+                        <button type="button" onClick={() => setProdImage("")} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[9px] font-bold transition">Clear</button>
+                      </div>
                     )}
                   </div>
 
@@ -4086,7 +4097,7 @@ export default function AdminPage() {
                             onClick={() => handleFlagReview(rev.id, "Fake Review", false)}
                             className={`px-2.5 py-1 rounded text-[9px] font-bold border transition cursor-pointer ${
                               rev.flags?.includes("Fake Review")
-                                ? "bg-red-650 text-white border-red-600"
+                                ? "bg-red-600 text-white border-red-600"
                                 : "border-slate-200 dark:border-slate-800 text-slate-450 hover:bg-slate-50 dark:hover:bg-slate-850"
                             }`}
                           >
@@ -4152,7 +4163,7 @@ export default function AdminPage() {
                             onClick={() => handleFlagReview(rev.id, "Fake Review", true)}
                             className={`px-2.5 py-1 rounded text-[9px] font-bold border transition cursor-pointer ${
                               rev.flags?.includes("Fake Review")
-                                ? "bg-red-650 text-white border-red-600"
+                                ? "bg-red-600 text-white border-red-600"
                                 : "border-slate-200 dark:border-slate-800 text-slate-455 hover:bg-slate-50 dark:hover:bg-slate-850"
                             }`}
                           >
@@ -4163,7 +4174,7 @@ export default function AdminPage() {
                             onClick={() => handleFlagReview(rev.id, "Abusive Comment", true)}
                             className={`px-2.5 py-1 rounded text-[9px] font-bold border transition cursor-pointer ${
                               rev.flags?.includes("Abusive Comment")
-                                ? "bg-red-650 text-white border-red-600"
+                                ? "bg-red-600 text-white border-red-600"
                                 : "border-slate-200 dark:border-slate-800 text-slate-455 hover:bg-slate-50 dark:hover:bg-slate-850"
                             }`}
                           >
@@ -4773,14 +4784,14 @@ export default function AdminPage() {
                           <button
                             type="button"
                             onClick={handleSeedMockData}
-                            className="w-full bg-indigo-650 hover:bg-indigo-600 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
                           >
                             ⚡ Seed Mock System Data
                           </button>
                           <button
                             type="button"
                             onClick={handleWipeAllData}
-                            className="w-full bg-red-650 hover:bg-red-600 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+                            className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
                           >
                             ⚠️ Reset Collections (Clean)
                           </button>

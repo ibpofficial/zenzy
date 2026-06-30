@@ -14,6 +14,7 @@ import {
 import { db } from "@/lib/firebase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import LoadingScreen from "@/components/LoadingScreen";
 import {
   Search,
   ShoppingCart,
@@ -34,7 +35,8 @@ import {
   Check,
   QrCode,
   Wallet,
-  ArrowRight
+  ArrowRight,
+  ArrowLeft
 } from "lucide-react";
 
 interface Product {
@@ -59,6 +61,17 @@ export default function ShopPage() {
   
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedImageIdx, setSelectedImageIdx] = useState(0);
+  const [detailQty, setDetailQty] = useState(1);
+
+  // Artificial mounting loader buffer for buttery smooth loading experience
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 700);
+    return () => clearTimeout(timer);
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -101,7 +114,6 @@ export default function ShopPage() {
     if (cached) {
       try {
         setProducts(JSON.parse(cached));
-        setLoading(false);
       } catch (e) {}
     }
   }, []);
@@ -115,7 +127,6 @@ export default function ShopPage() {
       });
       setProducts(list);
       sessionStorage.setItem("zenzy_shop_products_cache", JSON.stringify(list));
-      setLoading(false);
     });
 
     const unsubConfig = onSnapshot(doc(db, "settings", "siteConfig"), (snap) => {
@@ -403,11 +414,241 @@ export default function ShopPage() {
     { name: "Safety", icon: Shield }
   ];
 
+  if (loading) {
+    return <LoadingScreen autoDismiss={false} />;
+  }
+
+  if (selectedProduct) {
+    const originalPrice = Math.round(selectedProduct.price * 1.35);
+    const savings = originalPrice - selectedProduct.price;
+    
+    // Generate mock thumbnails showing close-ups
+    const productImages = [
+      selectedProduct.image,
+      selectedProduct.image,
+      selectedProduct.image
+    ];
+
+    return (
+      <div className="relative flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300 overflow-hidden">
+        {/* Premium ambient glows */}
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none z-0" />
+        <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] bg-blue-500/5 dark:bg-blue-500/5 rounded-full blur-3xl pointer-events-none z-0" />
+        
+        {/* Dot Grid Pattern */}
+        <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-60 pointer-events-none z-0" />
+        
+        <Navbar />
+
+        <main className="relative z-10 max-w-7xl mx-auto w-full px-5 sm:px-8 pt-28 pb-16 flex-grow animate-fade-in">
+          {/* Breadcrumb & Back */}
+          <div className="flex items-center justify-between mb-8">
+            <button
+              onClick={() => setSelectedProduct(null)}
+              className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition cursor-pointer bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2.5 rounded-lg shadow-sm"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to Shop
+            </button>
+            <div className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden sm:block">
+              Shop &gt; {selectedProduct.category} &gt; <span className="text-slate-655 dark:text-slate-300">{selectedProduct.name}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 pt-4">
+            {/* Left: Product Media Gallery */}
+            <div className="space-y-4">
+              <div className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-900 flex items-center justify-center group shadow-xs">
+                <img
+                  src={productImages[selectedImageIdx]}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  alt={selectedProduct.name}
+                />
+                <span className="absolute top-4 left-4 bg-emerald-500 text-white font-black text-[9.5px] uppercase tracking-widest px-3 py-1 rounded-full shadow-md animate-pulse">
+                  Save 25%
+                </span>
+              </div>
+              
+              {/* Image Select Thumbnails */}
+              <div className="flex gap-3">
+                {productImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedImageIdx(idx)}
+                    className={`w-20 h-20 rounded-xl overflow-hidden transition cursor-pointer relative bg-slate-100 dark:bg-slate-900 ${
+                      selectedImageIdx === idx 
+                        ? "ring-2 ring-emerald-500 shadow-md" 
+                        : "opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={img} className="w-full h-full object-cover" alt="" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: Product Details Showcase */}
+            <div className="flex flex-col justify-between space-y-6 lg:space-y-0">
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <span className="bg-slate-150 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider">
+                    {selectedProduct.category}
+                  </span>
+                  <h1 className="text-2.5xl sm:text-3.5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
+                    {selectedProduct.name}
+                  </h1>
+                  <div className="flex items-center gap-3">
+                    <span className="text-gold font-bold text-sm flex items-center gap-0.5">
+                      ★ {selectedProduct.rating || 4.8}
+                    </span>
+                    <span className="text-xs font-bold text-slate-400">· 120 Customer Ratings</span>
+                    <span className="text-xs font-bold text-slate-400">· 18 Answered Questions</span>
+                  </div>
+                </div>
+
+                <div className="py-4 border-b dark:border-slate-800/80 space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Special Discount Price</span>
+                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/5 px-2.5 py-0.5 rounded">
+                      25% OFF
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-3 flex-wrap">
+                    <span className="text-3xl font-black text-slate-900 dark:text-white">
+                      ₹{selectedProduct.price.toLocaleString()}
+                    </span>
+                    <span className="text-sm font-bold text-slate-400 dark:text-slate-500 line-through">
+                      ₹{originalPrice.toLocaleString()}
+                    </span>
+                    <span className="text-xs font-extrabold text-slate-400">
+                      (You save ₹{savings.toLocaleString()})
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Description</span>
+                  <p className="text-xs sm:text-sm text-slate-655 dark:text-slate-355 leading-relaxed font-semibold">
+                    {selectedProduct.description} This professional-grade supply has been standard checked by Zenzy partner technicians. Perfect for residential or workplace applications, ensuring long durability, high compatibility, and optimal performance under all standard usage conditions.
+                  </p>
+                </div>
+
+                {/* Spec details grid */}
+                <div className="grid grid-cols-2 gap-4 pt-4 text-xs font-semibold text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    <span>1 Year Standard Warranty</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    <span>Fast Dispatch (24h)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    <span>7 Days Easy Replacement</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    <span>Zenzy Quality Checked</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quantity Selector & Cart CTA Row */}
+              <div className="space-y-4 pt-6 border-t border-slate-100 dark:border-slate-800/80">
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span className="text-slate-455">Quantity Selector</span>
+                  <span className={selectedProduct.stock > 0 ? "text-emerald-500" : "text-red-500"}>
+                    {selectedProduct.stock > 0 ? `In Stock (${selectedProduct.stock} units available)` : "Out of Stock"}
+                  </span>
+                </div>
+                
+                <div className="flex gap-4 flex-wrap sm:flex-nowrap">
+                  <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setDetailQty(prev => Math.max(1, prev - 1))}
+                      className="w-10 h-10 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-center transition cursor-pointer text-slate-750 dark:text-slate-300 font-extrabold text-sm border-none bg-transparent"
+                    >
+                      -
+                    </button>
+                    <span className="text-sm font-black text-slate-800 dark:text-white min-w-[20px] text-center">
+                      {detailQty}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setDetailQty(prev => Math.min(selectedProduct.stock || 10, prev + 1))}
+                      className="w-10 h-10 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-center transition cursor-pointer text-slate-750 dark:text-slate-300 font-extrabold text-sm border-none bg-transparent"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (!user) {
+                        openAuthModal("login");
+                        return;
+                      }
+                      setCheckoutItems([{ product: selectedProduct, quantity: detailQty }]);
+                      setIsDirectBuy(true);
+                      setOrderPayment("COD");
+                      setTransactionId("");
+                      setCheckoutOpen(true);
+                    }}
+                    disabled={selectedProduct.stock <= 0}
+                    className="flex-1 flex items-center justify-center gap-2 bg-slate-905 hover:bg-slate-900 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed py-3 px-6 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-150 shadow-sm cursor-pointer hover:scale-[1.01] active:scale-97 border-none bg-slate-950"
+                  >
+                    <ShoppingBag className="w-4.5 h-4.5" />
+                    <span>Buy Now</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      for (let i = 0; i < detailQty; i++) {
+                        handleAddToCart(selectedProduct, true);
+                      }
+                      showToast(`${detailQty}x ${selectedProduct.name} added to cart!`);
+                    }}
+                    disabled={selectedProduct.stock <= 0}
+                    className="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-250 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed py-3 px-6 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-150 shadow-sm cursor-pointer hover:scale-[1.01] active:scale-97 border-none"
+                  >
+                    <ShoppingCart className="w-4.5 h-4.5" />
+                    <span>Add to Cart</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        {/* Floating Alert Toast */}
+        {toast && (
+          <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 dark:bg-white text-white dark:text-slate-950 px-6 py-4 rounded-full font-bold text-[13px] shadow-float flex items-center gap-2.5 animate-fade-up">
+            <CheckCircle className="w-4 h-4 text-emerald-500" />
+            {toast}
+          </div>
+        )}
+
+        <div className="hidden md:block">
+          <Footer />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300">
+    <div className="relative flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300 overflow-hidden">
+      {/* Premium ambient glows */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-3xl pointer-events-none z-0" />
+      <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] bg-blue-500/5 dark:bg-blue-500/5 rounded-full blur-3xl pointer-events-none z-0" />
+      
+      {/* Dot Grid Pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-60 pointer-events-none z-0" />
+      
       <Navbar />
 
-      <main className="max-w-7xl mx-auto w-full px-5 sm:px-8 pt-28 pb-16 flex-grow">
+      <main className="relative z-10 max-w-7xl mx-auto w-full px-5 sm:px-8 pt-28 pb-16 flex-grow">
         
         {/* Hero Banner with Clear, Professional looping video backdrop */}
         <div className="relative bg-slate-950 dark:bg-slate-950 border dark:border-slate-850 rounded-xl p-8 sm:p-12 text-white overflow-hidden mb-8 shadow-lg min-h-[220px] flex flex-col justify-center">
@@ -450,7 +691,7 @@ export default function ShopPage() {
         </div>
 
         {/* Top Control Bar with Centered Search Suggestions & Right Cart Summary */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 px-6 py-4 rounded-xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 mb-8 mt-2 relative z-30">
+        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-slate-200/60 dark:border-slate-800 px-6 py-4 rounded-xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 mb-8 mt-2 relative z-30">
           <div className="flex items-center gap-2.5 shrink-0">
             <ShoppingBag className="w-5 h-5 text-emerald-500" />
             <h2 className="font-extrabold text-sm uppercase tracking-wider text-slate-800 dark:text-white">Zenzy Store</h2>
@@ -458,7 +699,7 @@ export default function ShopPage() {
           
           {/* Centered Modern Search Bar with Suggestion Dropdown */}
           <div className="flex-1 max-w-xl w-full relative" ref={searchContainerRef}>
-            <div className="relative flex items-center bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 focus-within:border-slate-900 dark:focus-within:border-white transition-all duration-200 shadow-sm">
+            <div className="relative flex items-center bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 focus-within:border-emerald-500 dark:focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500/10 transition-all duration-200 shadow-sm">
               <Search className="w-4.5 h-4.5 text-slate-400 shrink-0" />
               <input
                 type="text"
@@ -477,7 +718,7 @@ export default function ShopPage() {
                 </button>
               )}
             </div>
-
+ 
             {/* Smart Suggestions Modal Dropdown */}
             {showSuggestions && searchSuggestions.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
@@ -498,27 +739,26 @@ export default function ShopPage() {
               </div>
             )}
           </div>
-
+ 
           {/* Cart Summary & Track Orders Trigger Buttons */}
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 flex-wrap">
             {user && (
               <Link
                 href="/dashboard"
                 onClick={() => {
                   localStorage.setItem("zenzy_active_tab", "shop_orders");
                 }}
-                className="flex items-center gap-2 border border-slate-205 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850 px-4 py-3 rounded-lg font-bold text-xs text-slate-700 dark:text-slate-200 transition shadow-xs hover:border-slate-400 dark:hover:border-slate-600 cursor-pointer"
+                className="flex items-center gap-2 bg-slate-950 dark:bg-white text-white dark:text-slate-950 px-4.5 py-3 rounded-md hover:rounded-xl font-bold text-xs transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-95 cursor-pointer border-none"
               >
-                <ShoppingBag className="w-4 h-4 text-slate-400" />
+                <ShoppingBag className="w-4 h-4" />
                 <span>Track Orders</span>
               </Link>
             )}
-
             <button
               onClick={() => setCartOpen(true)}
-              className="relative flex items-center gap-2 border border-slate-200 dark:border-slate-805 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-850 px-4.5 py-3 rounded-lg font-bold text-xs text-slate-805 dark:text-slate-200 transition shadow-xs hover:border-slate-400 dark:hover:border-slate-600 cursor-pointer"
+              className="relative flex items-center gap-2 bg-slate-950 hover:bg-slate-900 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 px-4.5 py-3 rounded-md hover:rounded-xl font-bold text-xs transition-all duration-200 shadow-sm hover:scale-[1.02] active:scale-95 cursor-pointer border-none"
             >
-              <ShoppingCart className="w-4 h-4 text-slate-400" />
+              <ShoppingCart className="w-4 h-4" />
               <span>Cart Summary</span>
               {cart.length > 0 && (
                 <span className="bg-emerald-500 text-white text-[9.5px] font-black px-2 py-0.5 rounded-full shrink-0">
@@ -528,15 +768,15 @@ export default function ShopPage() {
             </button>
           </div>
         </div>
-
+ 
         {/* E-Commerce Grid Container */}
         <div id="supplies-grid" className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           
           {/* Left Side: Advanced Filters */}
           <aside className="lg:col-span-1 space-y-6">
             
-            {/* Smart Category Filter with Premium Vercel-like list design */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850/80 p-5 rounded-xl shadow-sm space-y-1.5">
+            {/* Smart Category Filter with Premium list design */}
+            <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-slate-200/60 dark:border-slate-800 p-5 rounded-xl shadow-sm space-y-2">
               <h3 className="font-extrabold text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2.5 block">Categories</h3>
               {categoriesList.map((cat) => {
                 const Icon = cat.icon;
@@ -545,18 +785,18 @@ export default function ShopPage() {
                   <button
                     key={cat.name}
                     onClick={() => setSelectedCategory(cat.name)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg font-bold text-xs transition duration-150 cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 font-bold text-xs transition-all duration-250 cursor-pointer border-none ${
                       isSelected
-                        ? "bg-slate-100 dark:bg-slate-800 text-slate-950 dark:text-white"
-                        : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-850"
+                        ? "bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-xl shadow-sm"
+                        : "bg-transparent text-slate-505 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white rounded-md hover:rounded-xl"
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isSelected ? "text-emerald-505 dark:text-emerald-400" : "text-slate-400"}`} />
+                      <Icon className={`w-4 h-4 ${isSelected ? "text-emerald-500 dark:text-emerald-400" : "text-slate-400"}`} />
                       <span>{cat.name}</span>
                     </div>
                     <span className={`text-[9.5px] px-2 py-0.5 rounded font-bold ${
-                      isSelected ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                      isSelected ? "bg-white/20 text-white dark:bg-slate-100 dark:text-slate-950" : "bg-slate-150 dark:bg-slate-800 text-slate-500"
                     }`}>
                       {cat.name === "All"
                         ? products.length
@@ -566,6 +806,8 @@ export default function ShopPage() {
                 );
               })}
             </div>
+
+
 
             {/* Price Range Slider */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850/80 p-5 rounded-xl shadow-sm space-y-4">
@@ -626,7 +868,7 @@ export default function ShopPage() {
                     setSearchQuery("");
                     setMaxPriceFilter(2000);
                   }}
-                  className="bg-slate-950 dark:bg-white text-white dark:text-slate-955 px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+                  className="bg-slate-950 dark:bg-white text-white dark:text-slate-950 px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
                 >
                   Clear Filters
                 </button>
@@ -637,11 +879,16 @@ export default function ShopPage() {
                   {filteredProducts.slice(0, visibleCount).map((prod) => (
                     <article
                       key={prod.id}
-                      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-xl overflow-hidden flex flex-col justify-between hover:border-slate-400 dark:hover:border-slate-600 transition-all duration-200 shadow-sm hover:shadow-md group"
+                      onClick={() => {
+                        setSelectedProduct(prod);
+                        setSelectedImageIdx(0);
+                        setDetailQty(1);
+                      }}
+                      className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-slate-200/60 dark:border-slate-800 rounded-xl overflow-hidden flex flex-col justify-between hover:border-emerald-500/50 dark:hover:border-emerald-500/40 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(16,185,129,0.08)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300 group cursor-pointer"
                     >
                       <div>
                         {/* Image Frame */}
-                        <div className="relative h-44 bg-slate-50 dark:bg-slate-955 overflow-hidden border-b border-slate-100 dark:border-slate-850">
+                        <div className="relative h-44 bg-slate-50 dark:bg-slate-950 overflow-hidden border-b border-slate-100 dark:border-slate-850">
                           <img
                             src={prod.image}
                             alt={prod.name}
@@ -657,7 +904,7 @@ export default function ShopPage() {
                             </div>
                           )}
                           {prod.stock > 0 && prod.stock <= 5 && (
-                            <span className="absolute bottom-3 right-3 bg-red-650 text-white px-2 py-0.5 rounded text-[8.5px] font-black uppercase tracking-widest animate-pulse">
+                            <span className="absolute bottom-3 right-3 bg-red-600 text-white px-2 py-0.5 rounded text-[8.5px] font-black uppercase tracking-widest animate-pulse">
                               Only {prod.stock} Left
                             </span>
                           )}
@@ -683,13 +930,21 @@ export default function ShopPage() {
                       <div className="p-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-3 bg-slate-50/30 dark:bg-slate-950/10">
                         <div className="flex justify-between items-center">
                           <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Price</span>
-                          <span className="text-lg font-black text-slate-900 dark:text-white">₹{prod.price.toLocaleString()}</span>
+                          <div className="text-right">
+                            <span className="text-[10px] text-slate-400 dark:text-slate-550 line-through mr-1.5 font-semibold">
+                              ₹{Math.round(prod.price * 1.35).toLocaleString()}
+                            </span>
+                            <span className="text-lg font-black text-slate-900 dark:text-white">₹{prod.price.toLocaleString()}</span>
+                          </div>
                         </div>
                         
                         <button
-                          onClick={() => handleAddToCart(prod)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCart(prod);
+                          }}
                           disabled={prod.stock <= 0}
-                          className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 text-white disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-150 shadow-sm cursor-pointer hover:scale-[1.02] active:scale-95 border-none"
+                          className="w-full flex items-center justify-center gap-2 bg-slate-950 hover:bg-slate-900 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-150 shadow-sm cursor-pointer hover:scale-[1.02] active:scale-95 border-none"
                         >
                           <ShoppingCart className="w-4 h-4" />
                           <span>Add to Cart</span>
@@ -807,7 +1062,7 @@ export default function ShopPage() {
                   </div>
                   <div className="border-t dark:border-slate-800 my-2 pt-2 flex justify-between text-sm font-bold text-slate-900 dark:text-white">
                     <span>Grand Total:</span>
-                    <span className="text-base font-black text-slate-955 dark:text-white">₹{cartInvoice.grandTotal.toLocaleString()}</span>
+                    <span className="text-base font-black text-slate-900 dark:text-white">₹{cartInvoice.grandTotal.toLocaleString()}</span>
                   </div>
                 </div>
                 
@@ -817,7 +1072,7 @@ export default function ShopPage() {
                     setCartOpen(false);
                     handleOpenCartCheckout();
                   }}
-                  className="w-full bg-slate-950 dark:bg-white text-white dark:text-slate-955 hover:bg-slate-800 dark:hover:bg-slate-100 py-3.5 rounded-xl font-bold uppercase transition cursor-pointer text-center block text-xs tracking-wider"
+                  className="w-full bg-slate-950 dark:bg-white text-white dark:text-slate-950 hover:bg-slate-800 dark:hover:bg-slate-100 py-3.5 rounded-xl font-bold uppercase transition cursor-pointer text-center block text-xs tracking-wider"
                 >
                   Proceed to Checkout
                 </button>
@@ -985,7 +1240,7 @@ export default function ShopPage() {
                   <button
                     type="submit"
                     disabled={submittingOrder}
-                    className="w-full bg-slate-955 dark:bg-white text-white dark:text-slate-955 py-3.5 rounded-xl font-bold uppercase transition shadow-lg cursor-pointer"
+                    className="w-full bg-slate-950 dark:bg-white text-white dark:text-slate-950 py-3.5 rounded-xl font-bold uppercase transition shadow-lg cursor-pointer"
                   >
                     {submittingOrder ? "Confirming Order..." : "Place Shop Order"}
                   </button>
@@ -993,7 +1248,7 @@ export default function ShopPage() {
 
                 {/* Right side: UPI QR scan instructions if online payment */}
                 {orderPayment === "UPI QR" && (
-                  <div className="flex-1 p-6 flex flex-col items-center justify-center bg-slate-55 dark:bg-slate-955 md:max-w-[300px] gap-4">
+                  <div className="flex-1 p-6 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 md:max-w-[300px] gap-4">
                     <div className="text-center space-y-1">
                       <span className="bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
                         UPI QR Code
@@ -1003,10 +1258,10 @@ export default function ShopPage() {
 
                     <div className="relative w-44 h-44 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 rounded-xl shadow-sm flex items-center justify-center">
                       {/* Corner borders */}
-                      <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-slate-955 dark:border-white rounded-tl"></div>
-                      <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-slate-955 dark:border-white rounded-tr"></div>
-                      <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-slate-955 dark:border-white rounded-bl"></div>
-                      <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-slate-955 dark:border-white rounded-br"></div>
+                      <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-slate-900 dark:border-white rounded-tl"></div>
+                      <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-slate-900 dark:border-white rounded-tr"></div>
+                      <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-slate-900 dark:border-white rounded-bl"></div>
+                      <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-slate-900 dark:border-white rounded-br"></div>
                       
                       {siteConfig?.qrCode ? (
                         <img src={siteConfig.qrCode} className="w-full h-full object-contain" alt="Store Payment QR" />
