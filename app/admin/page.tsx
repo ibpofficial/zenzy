@@ -308,6 +308,9 @@ export default function AdminPage() {
   const [broadcastType, setBroadcastType] = useState("system");
   const [broadcastSubmitting, setBroadcastSubmitting] = useState(false);
   const [broadcasts, setBroadcasts] = useState<any[]>([]);
+  const [allNotifications, setAllNotifications] = useState<any[]>([]);
+  const [notificationSearch, setNotificationSearch] = useState("");
+  const [broadcastSubTab, setBroadcastSubTab] = useState<"broadcast" | "all_notifications">("broadcast");
 
   const [suspensionModalWorker, setSuspensionModalWorker] = useState<any | null>(null);
   const [suspensionLevel, setSuspensionLevel] = useState<"Warning" | "Suspension" | "Blacklist">("Warning");
@@ -860,6 +863,32 @@ export default function AdminPage() {
     }
   };
 
+  const handleDeleteNotification = async (id: string) => {
+    if (!verifyPermission(["Super Admin", "Moderator"], "Delete Notification Permanently")) return;
+    if (!confirm("Are you sure you want to permanently delete this notification?")) return;
+    try {
+      await deleteDoc(doc(db, "notifications", id));
+      await logActivityAndAudit("Delete Notification", `Permanently deleted user notification with ID: ${id}`);
+      showToast("Notification deleted permanently!");
+    } catch (err) {
+      console.error("Failed to delete notification: ", err);
+      showToast("Failed to delete notification.", "error");
+    }
+  };
+
+  const handleDeleteBroadcast = async (id: string) => {
+    if (!verifyPermission(["Super Admin", "Moderator"], "Delete Broadcast")) return;
+    if (!confirm("Are you sure you want to permanently delete this broadcast?")) return;
+    try {
+      await deleteDoc(doc(db, "broadcasts", id));
+      await logActivityAndAudit("Delete Broadcast", `Permanently deleted broadcast with ID: ${id}`);
+      showToast("Broadcast deleted permanently!");
+    } catch (err) {
+      console.error("Failed to delete broadcast: ", err);
+      showToast("Failed to delete broadcast.", "error");
+    }
+  };
+
   // Ticket priority update and chat style conversational messaging responder
   const handleChatReply = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1276,6 +1305,12 @@ export default function AdminPage() {
         s.forEach((d) => list.push({ ...d.data(), id: d.id }));
         list.sort((a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime());
         setBroadcasts(list);
+      }),
+      onSnapshot(collection(db, "notifications"), (s) => {
+        const list: any[] = [];
+        s.forEach((d) => list.push({ ...d.data(), id: d.id }));
+        list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        setAllNotifications(list);
       }),
       onSnapshot(collection(db, "auditLogs"), (s) => {
         const list: any[] = [];
@@ -5761,141 +5796,318 @@ export default function AdminPage() {
 
           {/* TAB: BROADCAST NOTIFICATIONS */}
           {activeTab === "broadcast" && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-up">
-              
-              {/* Dispatch Form */}
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-subtle h-fit space-y-4">
-                <h3 className="font-extrabold text-sm uppercase tracking-wide border-b dark:border-slate-800 pb-2.5">
-                  Broadcast Alerts Panel
-                </h3>
-                <form onSubmit={handleSendBroadcast} className="space-y-3.5 text-xs font-semibold">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Target Audience</label>
-                    <select
-                      value={broadcastTarget}
-                      onChange={(e: any) => setBroadcastTarget(e.target.value)}
-                      className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold cursor-pointer"
-                    >
-                      <option value="all">All Registered Accounts</option>
-                      <option value="users">Customers / Clients Only</option>
-                      <option value="workers">Workers / Providers Only</option>
-                      <option value="city">Specific City Location</option>
-                    </select>
-                  </div>
-
-                  {broadcastTarget === "city" && (
-                    <div className="space-y-1 animate-fade-down">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Target City</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Noida, Gurgaon"
-                        value={broadcastCity}
-                        onChange={(e) => setBroadcastCity(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl"
-                      />
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Alert Type</label>
-                      <select
-                        value={broadcastType}
-                        onChange={(e: any) => setBroadcastType(e.target.value)}
-                        className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold font-semibold cursor-pointer text-slate-800 dark:text-white"
-                      >
-                        <option value="system">⚠️ System Notice</option>
-                        <option value="offer">🎉 Festival Offer</option>
-                        <option value="cashback">💰 Cashback Reward</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Title</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Offer Headline"
-                        value={broadcastTitle}
-                        onChange={(e) => setBroadcastTitle(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Broadcast Message Body *</label>
-                    <textarea
-                      required
-                      rows={5}
-                      placeholder="Type details that will be received by target devices..."
-                      value={broadcastMsg}
-                      onChange={(e) => setBroadcastMsg(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl resize-none font-semibold text-xs"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={broadcastSubmitting}
-                    className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-3 rounded-xl font-bold uppercase transition"
-                  >
-                    {broadcastSubmitting ? "Dispersing..." : "Dispatch Broadcast"}
-                  </button>
-                </form>
+            <div className="space-y-6 animate-fade-up">
+              {/* Sub-navigation inside Broadcast Tab */}
+              <div className="flex gap-4 border-b dark:border-slate-800 pb-3">
+                <button
+                  onClick={() => setBroadcastSubTab("broadcast")}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    broadcastSubTab === "broadcast"
+                      ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+                      : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  Broadcast Alerts & History
+                </button>
+                <button
+                  onClick={() => setBroadcastSubTab("all_notifications")}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    broadcastSubTab === "all_notifications"
+                      ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+                      : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  All User Notifications ({allNotifications.length})
+                </button>
               </div>
 
-              {/* History Table */}
-              <div className="lg:col-span-2 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-3xl overflow-hidden shadow-subtle">
-                <div className="p-5 border-b dark:border-slate-800 flex justify-between items-center">
-                  <h3 className="font-extrabold text-sm uppercase">Broadcast Logs</h3>
-                  <span className="text-[9px] bg-slate-150 dark:bg-slate-800 text-slate-500 font-extrabold px-2.5 py-1 rounded-full uppercase">Audit Trail</span>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50 dark:bg-slate-850 border-b dark:border-slate-800 font-bold text-[10px] uppercase text-slate-400">
-                        <th className="p-4 pl-6">Dispatched On</th>
-                        <th className="p-4">Target Audience</th>
-                        <th className="p-4">Title & Details</th>
-                        <th className="p-4 text-center">Delivered</th>
-                        <th className="p-4">Sender</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-semibold">
-                      {broadcasts.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="p-8 text-center text-slate-400 font-bold uppercase text-[10px] tracking-wider">No broadcasts dispatched yet.</td>
-                        </tr>
-                      ) : (
-                        broadcasts.map((b) => (
-                          <tr key={b.id} className="hover:bg-slate-50/50">
-                            <td className="p-4 pl-6 text-slate-400">
-                              {new Date(b.timestamp || 0).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}{" "}
-                              <span className="block text-[9px] mt-0.5">{new Date(b.timestamp || 0).toLocaleTimeString()}</span>
-                            </td>
-                            <td className="p-4">
-                              <span className="capitalize block">{b.target}</span>
-                              {b.city && <span className="text-[9px] text-slate-400 block font-bold">City: {b.city}</span>}
-                            </td>
-                            <td className="p-4">
-                              <span className="font-bold text-slate-900 dark:text-white block">{b.title}</span>
-                              <span className="text-[10px] text-slate-400 block font-normal mt-0.5 max-w-xs truncate">{b.message}</span>
-                            </td>
-                            <td className="p-4 text-center">
-                              <span className="bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 px-2.5 py-0.5 rounded font-black text-[9.5px]">
-                                {b.deliveredCount || 0} dev.
-                              </span>
-                            </td>
-                            <td className="p-4 text-slate-450 font-mono text-[10px]">{b.sentBy}</td>
-                          </tr>
-                        ))
+              {broadcastSubTab === "broadcast" ? (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  
+                  {/* Dispatch Form */}
+                  <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-subtle h-fit space-y-4">
+                    <h3 className="font-extrabold text-sm uppercase tracking-wide border-b dark:border-slate-800 pb-2.5">
+                      Broadcast Alerts Panel
+                    </h3>
+                    <form onSubmit={handleSendBroadcast} className="space-y-3.5 text-xs font-semibold">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Target Audience</label>
+                        <select
+                          value={broadcastTarget}
+                          onChange={(e: any) => setBroadcastTarget(e.target.value)}
+                          className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold cursor-pointer"
+                        >
+                          <option value="all">All Registered Accounts</option>
+                          <option value="users">Customers / Clients Only</option>
+                          <option value="workers">Workers / Providers Only</option>
+                          <option value="city">Specific City Location</option>
+                        </select>
+                      </div>
+
+                      {broadcastTarget === "city" && (
+                        <div className="space-y-1 animate-fade-down">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase">Target City</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Noida, Gurgaon"
+                            value={broadcastCity}
+                            onChange={(e) => setBroadcastCity(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl"
+                          />
+                        </div>
                       )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
 
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase">Alert Type</label>
+                          <select
+                            value={broadcastType}
+                            onChange={(e: any) => setBroadcastType(e.target.value)}
+                            className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold font-semibold cursor-pointer text-slate-800 dark:text-white"
+                          >
+                            <option value="system">⚠️ System Notice</option>
+                            <option value="offer">🎉 Festival Offer</option>
+                            <option value="cashback">💰 Cashback Reward</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase">Title</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Offer Headline"
+                            value={broadcastTitle}
+                            onChange={(e) => setBroadcastTitle(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Broadcast Message Body *</label>
+                        <textarea
+                          required
+                          rows={5}
+                          placeholder="Type details that will be received by target devices..."
+                          value={broadcastMsg}
+                          onChange={(e) => setBroadcastMsg(e.target.value)}
+                          className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl resize-none font-semibold text-xs"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={broadcastSubmitting}
+                        className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-3 rounded-xl font-bold uppercase transition"
+                      >
+                        {broadcastSubmitting ? "Dispersing..." : "Dispatch Broadcast"}
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* History Table */}
+                  <div className="lg:col-span-2 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-3xl overflow-hidden shadow-subtle">
+                    <div className="p-5 border-b dark:border-slate-800 flex justify-between items-center">
+                      <h3 className="font-extrabold text-sm uppercase">Broadcast Logs</h3>
+                      <span className="text-[9px] bg-slate-150 dark:bg-slate-800 text-slate-500 font-extrabold px-2.5 py-1 rounded-full uppercase">Audit Trail</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50 dark:bg-slate-850 border-b dark:border-slate-800 font-bold text-[10px] uppercase text-slate-400">
+                            <th className="p-4 pl-6">Dispatched On</th>
+                            <th className="p-4">Target Audience</th>
+                            <th className="p-4">Title & Details</th>
+                            <th className="p-4 text-center">Delivered</th>
+                            <th className="p-4">Sender</th>
+                            <th className="p-4 text-center">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-semibold">
+                          {broadcasts.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="p-8 text-center text-slate-400 font-bold uppercase text-[10px] tracking-wider">No broadcasts dispatched yet.</td>
+                            </tr>
+                          ) : (
+                            broadcasts.map((b) => (
+                              <tr key={b.id} className="hover:bg-slate-50/50">
+                                <td className="p-4 pl-6 text-slate-400">
+                                  {new Date(b.timestamp || 0).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}{" "}
+                                  <span className="block text-[9px] mt-0.5">{new Date(b.timestamp || 0).toLocaleTimeString()}</span>
+                                </td>
+                                <td className="p-4">
+                                  <span className="capitalize block">{b.target}</span>
+                                  {b.city && <span className="text-[9px] text-slate-400 block font-bold">City: {b.city}</span>}
+                                </td>
+                                <td className="p-4">
+                                  <span className="font-bold text-slate-900 dark:text-white block">{b.title}</span>
+                                  <span className="text-[10px] text-slate-400 block font-normal mt-0.5 max-w-xs truncate">{b.message}</span>
+                                </td>
+                                <td className="p-4 text-center">
+                                  <span className="bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 px-2.5 py-0.5 rounded font-black text-[9.5px]">
+                                    {b.deliveredCount || 0} dev.
+                                  </span>
+                                </td>
+                                <td className="p-4 text-slate-450 font-mono text-[10px]">{b.sentBy}</td>
+                                <td className="p-4 text-center">
+                                  <button
+                                    onClick={() => handleDeleteBroadcast(b.id)}
+                                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-955/20 rounded-xl transition cursor-pointer"
+                                    title="Delete Broadcast Log"
+                                  >
+                                    <Trash2 className="w-4.5 h-4.5" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-3xl overflow-hidden shadow-subtle p-6 space-y-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b dark:border-slate-800 pb-4">
+                    <div>
+                      <h3 className="font-extrabold text-sm uppercase">All User Notifications</h3>
+                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Manage and permanently delete notifications sent to users.</p>
+                    </div>
+                    <div className="relative w-full sm:max-w-xs">
+                      <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Search notifications..."
+                        value={notificationSearch}
+                        onChange={(e) => setNotificationSearch(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl text-xs font-semibold outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 dark:bg-slate-850 border-b dark:border-slate-800 font-bold text-[10px] uppercase text-slate-400">
+                          <th className="p-4 pl-6">Created At</th>
+                          <th className="p-4">Recipient</th>
+                          <th className="p-4">Notification Info</th>
+                          <th className="p-4">Type</th>
+                          <th className="p-4 text-center">Status</th>
+                          <th className="p-4 text-center">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs font-semibold">
+                        {allNotifications
+                          .filter((n) => {
+                            const q = notificationSearch.toLowerCase().trim();
+                            if (!q) return true;
+                            
+                            // Lookup recipient user info
+                            const userMatch = allUsers.find(u => u.id === n.userId);
+                            const workerMatch = workers.find(w => w.id === n.userId);
+                            const recipientName = userMatch?.name || workerMatch?.name || "";
+                            const recipientEmail = userMatch?.email || workerMatch?.email || "";
+                            
+                            return (
+                              n.title?.toLowerCase().includes(q) ||
+                              n.text?.toLowerCase().includes(q) ||
+                              n.userId?.toLowerCase().includes(q) ||
+                              recipientName.toLowerCase().includes(q) ||
+                              recipientEmail.toLowerCase().includes(q)
+                            );
+                          })
+                          .length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-slate-400 font-bold uppercase text-[10px] tracking-wider">No notifications found.</td>
+                          </tr>
+                        ) : (
+                          allNotifications
+                            .filter((n) => {
+                              const q = notificationSearch.toLowerCase().trim();
+                              if (!q) return true;
+                              
+                              const userMatch = allUsers.find(u => u.id === n.userId);
+                              const workerMatch = workers.find(w => w.id === n.userId);
+                              const recipientName = userMatch?.name || workerMatch?.name || "";
+                              const recipientEmail = userMatch?.email || workerMatch?.email || "";
+                              
+                              return (
+                                n.title?.toLowerCase().includes(q) ||
+                                n.text?.toLowerCase().includes(q) ||
+                                n.userId?.toLowerCase().includes(q) ||
+                                recipientName.toLowerCase().includes(q) ||
+                                recipientEmail.toLowerCase().includes(q)
+                              );
+                            })
+                            .map((n) => {
+                              // Lookup recipient name & email
+                              const userMatch = allUsers.find(u => u.id === n.userId);
+                              const workerMatch = workers.find(w => w.id === n.userId);
+                              const rName = userMatch?.name || workerMatch?.name || "Unknown User";
+                              const rEmail = userMatch?.email || workerMatch?.email || n.userId || "";
+                              const rRole = userMatch ? "Client" : workerMatch ? "Worker" : "Unknown";
+
+                              return (
+                                <tr key={n.id} className="hover:bg-slate-50/50">
+                                  <td className="p-4 pl-6 text-slate-400">
+                                    {new Date(n.createdAt || 0).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}{" "}
+                                    <span className="block text-[9px] mt-0.5">{new Date(n.createdAt || 0).toLocaleTimeString()}</span>
+                                  </td>
+                                  <td className="p-4">
+                                    <span className="font-bold text-slate-900 dark:text-white block">{rName}</span>
+                                    <span className="text-[10px] text-slate-400 block font-normal mt-0.5">{rEmail}</span>
+                                    <span className={`inline-block text-[8px] font-black uppercase px-2.5 py-0.5 rounded mt-1.5 ${
+                                      rRole === "Worker"
+                                        ? "bg-amber-100 text-amber-800 dark:bg-amber-955/40 dark:text-amber-400"
+                                        : "bg-primary-100 text-primary-800 dark:bg-primary-955/40 dark:text-primary-400"
+                                    }`}>
+                                      {rRole}
+                                    </span>
+                                  </td>
+                                  <td className="p-4">
+                                    <span className="font-bold text-slate-900 dark:text-white block">{n.title}</span>
+                                    <span className="text-[10.5px] text-slate-450 block font-normal mt-0.5 max-w-sm whitespace-pre-wrap leading-relaxed">{n.text}</span>
+                                  </td>
+                                  <td className="p-4">
+                                    <span className={`px-2 py-0.5 rounded font-black text-[9.5px] uppercase ${
+                                      n.type === "booking" ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400" :
+                                      n.type === "payment" ? "bg-amber-50 dark:bg-amber-955 text-amber-700 dark:text-amber-400" :
+                                      n.type === "message" || n.type === "support" ? "bg-primary-50 dark:bg-primary-955 text-primary-700 dark:text-primary-450" :
+                                      "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                                    }`}>
+                                      {n.type || "system"}
+                                    </span>
+                                  </td>
+                                  <td className="p-4 text-center">
+                                    <span className={`px-2 py-0.5 rounded font-black text-[9.5px] uppercase ${
+                                      n.read
+                                        ? "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                                        : "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 animate-pulse"
+                                    }`}>
+                                      {n.read ? "Read" : "Unread"}
+                                    </span>
+                                  </td>
+                                  <td className="p-4 text-center">
+                                    <button
+                                      onClick={() => handleDeleteNotification(n.id)}
+                                      className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-955/20 rounded-xl transition cursor-pointer"
+                                      title="Delete Notification Permanently"
+                                    >
+                                      <Trash2 className="w-4.5 h-4.5" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
