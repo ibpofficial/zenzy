@@ -23,6 +23,7 @@ import Footer from "@/components/Footer";
 import BookingTracker from "@/components/BookingTracker";
 import ReviewModal from "@/components/ReviewModal";
 import LoadingScreen from "@/components/LoadingScreen";
+import { reverseGeocode } from "@/lib/locationUtils";
 import {
   User,
   Calendar,
@@ -362,23 +363,12 @@ export default function CustomerDashboardPage() {
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
-          const data = await res.json();
-          if (data && data.address) {
-            const road = data.address.road || data.address.suburb || "Auto-detected Location";
-            const house = data.address.house_number || "";
-            setAddrLine(house ? `${house}, ${road}` : road);
-            setAddrCity(data.address.city || data.address.town || data.address.village || "New Delhi");
-            setAddrState(data.address.state || "Delhi");
-            setAddrZip(data.address.postcode || "110001");
-            showToast("Location detected successfully!");
-          } else {
-            setAddrLine(`Coordinates: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
-            setAddrCity("New Delhi");
-            setAddrState("Delhi");
-            setAddrZip("110001");
-            showToast("Location detected.");
-          }
+          const result = await reverseGeocode(latitude, longitude);
+          setAddrLine(result.fullAddress);
+          setAddrCity(result.city);
+          setAddrState(result.state);
+          setAddrZip(result.postcode);
+          showToast("Location detected successfully!");
         } catch (err) {
           const { latitude, longitude } = position.coords;
           setAddrLine(`Coordinates: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);

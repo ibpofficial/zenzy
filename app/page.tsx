@@ -3,12 +3,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, MapPin, Award, CheckCircle, ChevronDown, ShieldCheck, Sparkles, Building, Hammer, ArrowRight, Star, Zap, Users, Home, Clock, ChevronLeft, ChevronRight, LifeBuoy, X } from "lucide-react";
+import { Search, MapPin, Award, CheckCircle, ChevronDown, RefreshCw, ShieldCheck, Sparkles, Building, Hammer, ArrowRight, Star, Zap, Users, Home, Clock, ChevronLeft, ChevronRight, LifeBuoy, X } from "lucide-react";
 import { collection, getDocs, addDoc, onSnapshot, setDoc, doc, query, where, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
+import { reverseGeocode } from "@/lib/locationUtils";
 
 // Category icon color mapping for premium gradient icons
 const CAT_COLORS: Record<string, string> = {
@@ -276,6 +277,70 @@ export default function HomePage() {
   const [promos, setPromos] = useState<any[]>([]);
   const [activeSlide, setActiveSlide] = useState(0);
   const [siteSettings, setSiteSettings] = useState<any>(null);
+
+  // User Location Selection State
+  const [userLocation, setUserLocation] = useState("Delhi NCR");
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [detectingLoc, setDetectingLoc] = useState(false);
+  const [customLocInput, setCustomLocInput] = useState("");
+  const locationDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Load saved location on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("zenzy_user_location");
+      if (saved) {
+        setUserLocation(saved);
+      }
+    }
+  }, []);
+
+  // Click outside location dropdown handler
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (locationDropdownRef.current && !locationDropdownRef.current.contains(event.target as Node)) {
+        setShowLocationDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectLocation = (loc: string) => {
+    setUserLocation(loc);
+    localStorage.setItem("zenzy_user_location", loc);
+    setShowLocationDropdown(false);
+  };
+
+  const handleAutoLocationSearch = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    setDetectingLoc(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const result = await reverseGeocode(latitude, longitude);
+          setUserLocation(result.shortAddress);
+          localStorage.setItem("zenzy_user_location", result.shortAddress);
+        } catch (err) {
+          console.error("Auto detect failed", err);
+          setUserLocation("Delhi NCR");
+        } finally {
+          setDetectingLoc(false);
+          setShowLocationDropdown(false);
+        }
+      },
+      (error) => {
+        console.error("Auto detect error", error);
+        setDetectingLoc(false);
+        setShowLocationDropdown(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  };
 
   // FAQ Accordion State
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
@@ -689,8 +754,8 @@ export default function HomePage() {
       <Navbar />
 
       {/* ═══════════════════════════════════ HERO SLIDESHOW ═══════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 pt-28 pb-4">
-        <div className="relative h-[480px] sm:h-[520px] rounded-2xl overflow-hidden shadow-[0_24px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_24px_50px_rgba(0,0,0,0.3)]">
+      <section className="max-w-[1290px] mx-auto w-full px-[15px] sm:px-[27px] pt-28 pb-4">
+        <div className="relative h-[420px] sm:h-[460px] rounded-2xl overflow-hidden shadow-[0_24px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_24px_50px_rgba(0,0,0,0.3)]">
           {heroSlides.map((slide: any, idx: number) => (
             <div
               key={idx}
@@ -707,10 +772,10 @@ export default function HomePage() {
                 }}
               />
               {/* Light gradient only at left edge for text legibility — NOT darkening the whole image */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
 
-              <div className="max-w-lg text-white space-y-5 relative z-20">
+              <div className="max-w-xl text-white space-y-5 relative z-20">
                 <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-white/15 backdrop-blur-md border border-white/20">
                   <i className={`fas ${slide.icon} text-white/80`}></i>
                   {slide.badge}
@@ -721,17 +786,17 @@ export default function HomePage() {
                 <p className={`text-white/85 font-medium text-[14px] sm:text-[15px] leading-relaxed max-w-sm drop-shadow transition-all duration-700 delay-100 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
                   {slide.desc}
                 </p>
-                <div className={`flex items-center gap-3 pt-1 transition-all duration-700 delay-200 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+                <div className={`flex items-center gap-3.5 pt-1.5 transition-all duration-700 delay-200 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
                   <Link
                     href="/services"
-                    className="group relative overflow-hidden bg-white text-slate-950 px-6 py-3 rounded-xl font-extrabold text-[13px] hover:bg-slate-50 transition shadow-lg flex items-center gap-2 active:scale-95 duration-150"
+                    className="group relative overflow-hidden bg-white text-slate-950 px-7 py-3.5 rounded-xl font-black text-[12px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-md flex items-center gap-2.5 active:scale-95 hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(37,99,235,0.35)]"
                   >
                     Find Professionals
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                   </Link>
                   <Link
                     href="/rent"
-                    className="px-6 py-3 rounded-xl font-bold text-[13px] text-white bg-white/10 border border-white/25 hover:bg-white/20 hover:border-white/40 transition backdrop-blur-sm active:scale-95 duration-150"
+                    className="px-7 py-3.5 rounded-xl font-black text-[12px] uppercase tracking-widest text-white bg-white/10 border border-white/20 hover:bg-white hover:text-slate-950 transition-all duration-300 backdrop-blur-sm active:scale-95 hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(255,255,255,0.15)]"
                   >
                     Browse Rentals
                   </Link>
@@ -834,9 +899,88 @@ export default function HomePage() {
             </div>
 
             {/* Location Indicator Pill */}
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-850 text-slate-500 dark:text-slate-400 border border-slate-200/40 dark:border-slate-800/50 shadow-inner mr-2.5 select-none">
-              <MapPin className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-wider">Delhi NCR</span>
+            <div className="relative" ref={locationDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-850 text-slate-500 dark:text-slate-400 border border-slate-200/40 dark:border-slate-800/50 shadow-inner mr-2.5 select-none hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                <MapPin className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-wider max-w-[120px] truncate">{userLocation}</span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
+
+              {showLocationDropdown && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-xl z-50 p-2.5 space-y-1 animate-dropdown">
+                  <div className="text-[9px] font-bold text-slate-400 dark:text-slate-505 uppercase tracking-wider px-2 py-1">
+                    Select Location
+                  </div>
+                  {["Delhi NCR", "Jaipur", "Noida", "Gurugram"].map((loc) => (
+                    <button
+                      key={loc}
+                      type="button"
+                      onClick={() => handleSelectLocation(loc)}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer ${
+                        userLocation === loc ? "text-blue-500 bg-blue-50/50 dark:bg-blue-950/20" : "text-slate-700 dark:text-slate-350"
+                      }`}
+                    >
+                      {loc}
+                    </button>
+                  ))}
+                  
+                  <div className="px-2 py-1 space-y-1">
+                    <div className="flex gap-1">
+                      <input
+                        type="text"
+                        placeholder="Type address / colony..."
+                        value={customLocInput}
+                        onChange={(e) => setCustomLocInput(e.target.value)}
+                        className="flex-1 px-2.5 py-1.5 bg-slate-55 dark:bg-slate-950 text-[11px] font-semibold rounded-lg border border-slate-200 dark:border-slate-800 outline-none text-slate-800 dark:text-white"
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (customLocInput.trim()) {
+                              handleSelectLocation(customLocInput.trim());
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (customLocInput.trim()) {
+                            handleSelectLocation(customLocInput.trim());
+                          }
+                        }}
+                        className="px-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase rounded-lg hover:bg-slate-850 dark:hover:bg-slate-100 transition cursor-pointer"
+                      >
+                        Set
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-150 dark:border-slate-800 my-1.5" />
+                  <button
+                    type="button"
+                    onClick={handleAutoLocationSearch}
+                    disabled={detectingLoc}
+                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {detectingLoc ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        Detecting...
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="w-3.5 h-3.5" />
+                        Detect Location
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
 
             <button

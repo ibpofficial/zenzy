@@ -186,7 +186,7 @@ export default function ContactPage() {
 
           <div className="h-80 w-full bg-slate-100 dark:bg-slate-950 rounded-2xl overflow-hidden relative border border-slate-200 dark:border-slate-800">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3557.574637775966!2d75.8797455759714!3d26.892015262796195!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x396db7b5c8983935%3A0x6b83f3e28405d4f!2sVivekananda%20Global%20University!5e0!3m2!1sen!2sin!4v1716380695000!5m2!1sen!2sin&zoom=15&maptype=roadmap&markers=color:red%7C26.892015,75.879745"
+              src="https://maps.google.com/maps?q=Vivekananda%20Global%20University,%20NRI%20Road,%20Jagatpura,%20Jaipur&t=&z=15&ie=UTF8&iwloc=&output=embed"
               width="100%"
               height="100%"
               style={{ border: 0 }}

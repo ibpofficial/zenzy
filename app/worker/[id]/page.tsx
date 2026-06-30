@@ -10,6 +10,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReviewModal from "@/components/ReviewModal";
 import LoadingScreen from "@/components/LoadingScreen";
+import { reverseGeocode } from "@/lib/locationUtils";
 import { CheckCircle, Award, Star, Phone, MessageSquare, MapPin, Calendar, Clock, CreditCard, ChevronRight, X, ZoomIn, QrCode, Wallet, Copy, Check } from "lucide-react";
 
 export default function WorkerProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -71,14 +72,8 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-          if (response.ok) {
-            const data = await response.json();
-            const addr = data.display_name || `${data.address?.road || ""}, ${data.address?.suburb || ""}, ${data.address?.city || ""}`;
-            setBookingLocation(addr);
-          } else {
-            setBookingLocation("Sector 12, Dwarka, New Delhi, Delhi, 110075");
-          }
+          const result = await reverseGeocode(latitude, longitude);
+          setBookingLocation(result.fullAddress);
         } catch (e) {
           setBookingLocation("Sector 12, Dwarka, New Delhi, Delhi, 110075");
         } finally {
