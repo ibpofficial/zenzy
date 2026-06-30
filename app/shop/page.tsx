@@ -33,7 +33,8 @@ import {
   Copy,
   Check,
   QrCode,
-  Wallet
+  Wallet,
+  ArrowRight
 } from "lucide-react";
 
 interface Product {
@@ -423,16 +424,28 @@ export default function ShopPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/30 to-transparent z-0" />
           <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none z-0" />
           
-          <div className="relative z-10 max-w-2xl space-y-4">
+          <div className="relative z-10 max-w-2xl space-y-5">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[10px] font-black tracking-wider uppercase bg-white/10 border border-white/10 text-emerald-450 dark:text-emerald-400">
               <Sparkles className="w-3.5 h-3.5" /> Zenzy E-Store
             </span>
-            <h1 className="text-3.5xl sm:text-5xl font-extrabold tracking-tight leading-none text-white animate-fade-in">
+            <h1 className="text-3.5xl sm:text-5xl font-black tracking-tight leading-none text-white animate-fade-in">
               Marketplace Supplies
             </h1>
-            <p className="text-slate-200 font-medium text-xs sm:text-sm leading-relaxed max-w-lg">
-              Equip your home with expert-approved tools, deep-cleaning chemical sprays, modular smart devices, and fire safety systems. Inspected for standard compatibility and fast dispatch.
-            </p>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const element = document.getElementById("supplies-grid");
+                  if (element) {
+                    element.scrollIntoView({ behavior: "smooth" });
+                  }
+                }}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs uppercase tracking-widest px-6 py-3.5 rounded-xl transition-all duration-200 shadow-md hover:scale-[1.03] active:scale-95 flex items-center gap-2 cursor-pointer border-none"
+              >
+                <span>Shop Now</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -517,7 +530,7 @@ export default function ShopPage() {
         </div>
 
         {/* E-Commerce Grid Container */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div id="supplies-grid" className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           
           {/* Left Side: Advanced Filters */}
           <aside className="lg:col-span-1 space-y-6">
@@ -667,29 +680,20 @@ export default function ShopPage() {
                       </div>
 
                       {/* Price and Action CTAs */}
-                      <div className="p-5 pt-0 mt-2 border-t border-slate-100 dark:border-slate-800 pt-4 flex items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-950/20">
-                        <span className="text-base font-black text-slate-900 dark:text-white">₹{prod.price.toLocaleString()}</span>
-                        
-                        <div className="flex items-center gap-2 shrink-0">
-                          {/* Add to Cart Icon Button */}
-                          <button
-                            onClick={() => handleAddToCart(prod)}
-                            disabled={prod.stock <= 0}
-                            title="Add to Cart"
-                            className="bg-slate-100 dark:bg-slate-800 text-slate-655 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed p-2.5 rounded-lg transition-colors duration-150 cursor-pointer"
-                          >
-                            <ShoppingCart className="w-4 h-4" />
-                          </button>
-                          
-                          {/* Buy Now Button */}
-                          <button
-                            onClick={() => handleBuyNow(prod)}
-                            disabled={prod.stock <= 0}
-                            className="bg-slate-950 dark:bg-white text-white dark:text-slate-955 hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 rounded-lg font-bold text-[10.5px] uppercase transition shadow-sm cursor-pointer"
-                          >
-                            Buy Now
-                          </button>
+                      <div className="p-5 pt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-3 bg-slate-50/30 dark:bg-slate-950/10">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Price</span>
+                          <span className="text-lg font-black text-slate-900 dark:text-white">₹{prod.price.toLocaleString()}</span>
                         </div>
+                        
+                        <button
+                          onClick={() => handleAddToCart(prod)}
+                          disabled={prod.stock <= 0}
+                          className="w-full flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-600 text-white disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-150 shadow-sm cursor-pointer hover:scale-[1.02] active:scale-95 border-none"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                          <span>Add to Cart</span>
+                        </button>
                       </div>
                     </article>
                   ))}

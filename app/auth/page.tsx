@@ -135,13 +135,13 @@ export default function AuthPage() {
 
       {/* Centered Brand Logo */}
       <div className="mb-8 text-center relative z-10">
-        <Link href="/" className="inline-flex items-center gap-2 text-3xl font-black tracking-tight text-white hover:opacity-90 transition">
-          <span className="bg-gradient-to-r from-primary-400 to-indigo-400 bg-clip-text text-transparent">{siteConfig?.siteName || "zenzy"}</span>
-          <span className="w-2.5 h-2.5 rounded-full bg-primary-500 mt-1 brand-pulse-dot shadow-lg shadow-primary-500/50"></span>
+        <Link href="/" className="inline-flex items-center gap-3 text-3.5xl font-black tracking-tight text-white hover:opacity-90 hover:scale-102 transition-all duration-200">
+          <img src="/logo.png" alt="Zenzy Logo" className="h-10 w-auto object-contain" />
+          <span className="bg-gradient-to-r from-white via-slate-100 to-slate-350 bg-clip-text text-transparent">{siteConfig?.siteName || "zenzy"}</span>
         </Link>
-        <p className="text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase tracking-widest mt-2 flex items-center justify-center gap-1.5">
+        <p className="text-slate-500 dark:text-slate-400 font-black text-[10px] uppercase tracking-widest mt-3.5 flex items-center justify-center gap-1.5">
           <span>Premium Service marketplace</span>
-          <span className="w-1 h-1 rounded-full bg-slate-700"></span>
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-750"></span>
           <span>Verified Protocol</span>
         </p>
       </div>

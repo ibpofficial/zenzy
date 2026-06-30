@@ -849,7 +849,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════ UNIVERSAL SEARCH BAR ═══════════════════════════════════ */}
-      <section className="max-w-4xl mx-auto w-full px-5 sm:px-8 py-6 animate-fade-up">
+      <section className="relative z-30 max-w-4xl mx-auto w-full px-5 sm:px-8 py-6 animate-fade-up">
         <form onSubmit={handleSearchSubmit} className="relative z-20">
           <div className="flex items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl p-2.5 border border-slate-200/80 dark:border-slate-800/80 focus-within:border-blue-500 dark:focus-within:border-blue-400 focus-within:scale-[1.01] hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] focus-within:shadow-[0_20px_45px_rgba(37,99,235,0.15)] dark:focus-within:shadow-[0_20px_45px_rgba(0,0,0,0.5)] transition-all duration-300">
             <div className="pl-4 text-slate-400 shrink-0">
@@ -995,7 +995,7 @@ export default function HomePage() {
 
           {/* Suggestions Dropdown */}
           {showSuggestions && (suggestions.length > 0 || spellingSuggestion || (recentSearches.length > 0 && !searchQuery)) && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.45)] overflow-hidden z-50 animate-fade-in duration-200">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.45)] overflow-hidden z-50 animate-fade-in duration-200">
               {/* Recent Searches */}
               {!searchQuery && recentSearches.length > 0 && (
                 <div className="py-2.5 max-h-[300px] overflow-y-auto">
@@ -1219,7 +1219,6 @@ export default function HomePage() {
 
       {/* ═══════════════════════════════════ TRENDING PROS ═══════════════════════════════════ */}
       <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-8 animate-fade-up">
-        <div className="bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-950/30 rounded-2xl p-6 sm:p-10 border border-slate-200/60 dark:border-slate-800/80 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-white dark:bg-slate-900 rounded-2xl text-primary-500 shadow-subtle dark:shadow-none border dark:border-slate-800">
@@ -1325,7 +1324,6 @@ export default function HomePage() {
               </article>
             ))}
           </div>
-        </div>
       </section>
 
       {/* ═══════════════════════════════════ PREMIUM BOOKING TRUST BANNER ═══════════════════════════════════ */}

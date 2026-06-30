@@ -290,6 +290,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubSettings();
   }, [user]);
 
+  // Request Notification Permissions when user logs in / is authenticated
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window && user) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission().then((permission) => {
+          console.log("Notification permission state:", permission);
+        });
+      }
+    }
+  }, [user]);
+
   const loginWithEmail = async (email: string, pass: string) => {
     setLoading(true);
     try {

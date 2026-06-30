@@ -40,6 +40,11 @@ export default function Navbar() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+      if (window.innerWidth < 768) {
+        setShowNavbar(true);
+        lastScrollY.current = currentScrollY;
+        return;
+      }
       if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
         setShowNavbar(false);
       } else {
@@ -193,8 +198,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* Floating Rectangle Navbar */}
-      <header className={`fixed left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl glass-nav z-55 border border-slate-200/50 dark:border-slate-800/40 transition-all duration-300 ease-in-out shadow-[0_15px_35px_rgba(0,0,0,0.05),0_5px_15px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] ${
+      <header className={`md:fixed absolute left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl glass-nav z-55 border border-slate-200/50 dark:border-slate-800/40 transition-all duration-300 ease-in-out shadow-[0_15px_35px_rgba(0,0,0,0.05),0_5px_15px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] ${
         mobileMenuOpen ? "rounded-3xl" : "rounded-2xl"
       } ${
         siteConfig?.showAnnouncement && siteConfig?.announcementBar ? "top-14" : "top-4"
@@ -212,8 +216,8 @@ export default function Navbar() {
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <Link href="/" className="flex items-center gap-1.5 text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight hover:scale-105 active:scale-95 transition-transform duration-200">
-              <span>{siteConfig?.siteName || "zenzy"}</span>
+            <Link href="/" className="flex items-center gap-1.5 text-2.5xl font-extrabold text-slate-900 dark:text-white tracking-tight hover:scale-[1.02] active:scale-95 transition-all duration-200">
+              <img src="/logo.png" alt="Zenzy Logo" className="h-8.5 w-auto object-contain" />
               <span className="w-2.5 h-2.5 rounded-full bg-primary-600 dark:bg-primary-500 mt-1.5 brand-pulse-dot"></span>
             </Link>
           </div>

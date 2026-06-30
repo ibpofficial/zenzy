@@ -8,7 +8,7 @@ export default function Footer() {
   const { openAuthModal } = useAuth();
 
   return (
-    <footer className="relative mt-20 text-slate-300">
+    <footer className="hidden md:block relative mt-20 text-slate-300">
       {/* SVG Water Waves */}
       <div className="w-full overflow-hidden leading-[0] bg-transparent">
         <svg
@@ -41,8 +41,9 @@ export default function Footer() {
 
             {/* Logo & Intro Column */}
             <div className="lg:col-span-2">
-              <h2 className="text-3xl font-extrabold text-white mb-4 tracking-tight">
-                zenzy<span className="inline-block w-2.5 h-2.5 rounded-full bg-primary-600 ml-1.5 brand-pulse-dot"></span>
+              <h2 className="text-3.5xl font-extrabold text-white mb-4 tracking-tight flex items-center gap-2.5">
+                <img src="/logo.png" alt="Zenzy Logo" className="h-8.5 w-auto object-contain brightness-0 invert" />
+                <span>zenzy</span>
               </h2>
               <p className="text-slate-400 text-[14px] leading-relaxed max-w-sm mb-6">
                 Empowering local service professionals and linking them transparently to users. Organizing India's unorganized workforce with dignity, digital identity, and premium quality.

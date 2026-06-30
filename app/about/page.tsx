@@ -70,6 +70,17 @@ export default function AboutPage() {
 
         {/* Section 1: Mission Hero */}
         <section className="text-center max-w-3xl mx-auto space-y-6 animate-fade-up">
+          {/* Animated Big Logo */}
+          <div className="flex justify-center mb-6">
+            <div className="relative w-36 h-36 flex items-center justify-center animate-logo-entrance">
+              <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-3xl animate-pulse-slow"></div>
+              <img
+                src="/logo.png"
+                alt="Zenzy Big Logo"
+                className="w-28 h-28 object-contain relative z-10 animate-bounce-soft"
+              />
+            </div>
+          </div>
           <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/40 uppercase tracking-wider">
             <Sparkles className="w-4 h-4" /> Zenzy Mission Protocol
           </span>
