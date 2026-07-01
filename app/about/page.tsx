@@ -19,45 +19,61 @@ const TwitterIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+const DEFAULT_TEAM = [
+  {
+    id: "default-ishant",
+    name: "Ishant Upadhyay",
+    role: "Founder & Chief Architect",
+    desc: "Visionary designer focused on engineering high-end localized service protocols to uplift India's unorganized workforce.",
+    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&h=400&q=80",
+    linkedin: "https://linkedin.com",
+    twitter: "https://twitter.com",
+    email: "ishant@zenzy.com"
+  },
+  {
+    id: "default-ananya",
+    name: "Ananya Sharma",
+    role: "Head of Operations",
+    desc: "Manages Dwarka Sector-level partner verification channels and onboarding protocols.",
+    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&h=400&q=80",
+    linkedin: "https://linkedin.com",
+    twitter: "https://twitter.com",
+    email: "ananya@zenzy.com"
+  }
+];
+
 export default function AboutPage() {
-  const [team, setTeam] = useState<any[]>([]);
+  const [team, setTeam] = useState<any[]>(DEFAULT_TEAM);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "team"), (snap) => {
       const items: any[] = [];
       snap.forEach((doc) => items.push({ id: doc.id, ...doc.data() }));
 
+      if (items.length > 0) {
+        // Merge Firestore data with default team so both core members are always displayed
+        const merged = [...items];
+        DEFAULT_TEAM.forEach((def) => {
+          if (!merged.some((item) => item.name?.toLowerCase() === def.name.toLowerCase())) {
+            merged.push(def);
+          }
+        });
+        setTeam(merged);
+      } else {
+        setTeam(DEFAULT_TEAM);
+      }
+
       // Seed if empty
       if (snap.empty) {
         const seedTeam = async () => {
           const teamRef = collection(db, "team");
-          const defaultTeam = [
-            {
-              name: "Ishant Upadhyay",
-              role: "Founder & Chief Architect",
-              desc: "Visionary designer focused on engineering high-end localized service protocols to uplift India's unorganized workforce.",
-              image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&h=400&q=80",
-              linkedin: "https://linkedin.com",
-              twitter: "https://twitter.com",
-              email: "ishant@zenzy.com"
-            },
-            {
-              name: "Ananya Sharma",
-              role: "Head of Operations",
-              desc: "Manages Dwarka Sector-level partner verification channels and onboarding protocols.",
-              image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&h=400&q=80",
-              linkedin: "https://linkedin.com",
-              twitter: "https://twitter.com",
-              email: "ananya@zenzy.com"
-            }
-          ];
-          for (const member of defaultTeam) {
-            await addDoc(teamRef, member);
+          for (const member of DEFAULT_TEAM) {
+            // Remove id key when seeding Firestore
+            const { id, ...data } = member;
+            await addDoc(teamRef, data);
           }
         };
         seedTeam();
-      } else {
-        setTeam(items);
       }
     });
     return () => unsub();
@@ -95,7 +111,7 @@ export default function AboutPage() {
         {/* Section 2: Stat Bubbles */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-up">
           <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle text-center space-y-2 hover:-translate-y-1 transition duration-300">
-            <div className="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 flex items-center justify-center mx-auto mb-4">
               <Award className="w-6 h-6" />
             </div>
             <span className="block text-4xl font-black text-slate-900 dark:text-white">1,300+</span>
@@ -105,7 +121,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle text-center space-y-2 hover:-translate-y-1 transition duration-300">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <span className="block text-4xl font-black text-slate-900 dark:text-white">0% Markup</span>
@@ -115,7 +131,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-subtle text-center space-y-2 hover:-translate-y-1 transition duration-300">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-4">
               <Heart className="w-6 h-6" />
             </div>
             <span className="block text-4xl font-black text-slate-900 dark:text-white">47 Blocks</span>
@@ -149,35 +165,31 @@ export default function AboutPage() {
             <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">The builders behind the labor protocol</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto">
             {team.map((member) => {
               const isIshant = member.name?.toLowerCase().includes("ishant");
               if (isIshant) {
                 return (
                   <div
                     key={member.id}
-                    className="animate-founder-card relative p-[2.5px] rounded-2xl overflow-hidden shadow-2xl hover:shadow-[0_24px_60px_rgba(244,63,94,0.3)] hover:scale-[1.02] transition-all duration-500"
+                    className="animate-founder-card relative p-[2px] rounded-2xl overflow-hidden shadow-2xl hover:shadow-[0_24px_60px_rgba(244,63,94,0.25)] hover:scale-[1.02] transition-all duration-500 w-full sm:w-[350px] md:w-[360px]"
                   >
                     {/* Glowing animated background rotating outline */}
                     <div className="absolute inset-0 animate-founder-glow"></div>
 
                     {/* Inner content with futuristic particles pattern backdrop */}
-                    <div className="relative bg-slate-950 dark:bg-slate-950 bg-grid-particles text-white p-7 rounded-2xl space-y-5 flex flex-col h-full z-10">
+                    <div className="relative bg-slate-950 dark:bg-slate-950 bg-grid-particles text-white rounded-[14px] overflow-hidden flex flex-col h-full z-10">
 
-                      {/* Avatar container with special pulsing neon ring outline */}
-                      <div className="relative w-full aspect-square rounded-2xl overflow-hidden border-2 animate-neon-ring group">
+                      {/* Integrated image at top (no outer padding, no border around image) */}
+                      <div className="relative w-full aspect-[4/3] overflow-hidden group">
                         <img
                           src={member.image}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 grayscale-[20%] group-hover:grayscale-0 filter"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-750"
                           alt={member.name}
                         />
-
-                        {/* High-end diagnostic diagonal sweep sheen overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent animate-sheen-sweep pointer-events-none"></div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent"></div>
-
-                        {/* Floating badge with a pulsing active green dot */}
-                        <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-slate-950/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 shadow-lg">
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none opacity-60"></div>
+                        {/* Floating badge */}
+                        <div className="absolute bottom-3 left-4 flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-xl border border-white/10 shadow-lg">
                           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse brand-pulse-dot"></span>
                           <span className="text-white text-[9px] font-black uppercase tracking-widest">
                             Founder & Lead
@@ -185,27 +197,31 @@ export default function AboutPage() {
                         </div>
                       </div>
 
-                      <div className="flex-1 space-y-2.5">
-                        <h4 className="text-2.5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-indigo-300 to-cyan-300 drop-shadow-[0_0_15px_rgba(244,63,94,0.2)]">
-                          {member.name}
-                        </h4>
-                        <span className="block text-[11px] font-black text-slate-450 uppercase tracking-widest">
-                          {member.role}
-                        </span>
-                        <p className="text-slate-300 text-[13.5px] font-medium leading-relaxed">
-                          {member.desc}
-                        </p>
-                      </div>                      {/* Social contacts with dynamic micro-interactions */}
-                      <div className="flex items-center gap-3 pt-4 border-t border-white/10">
-                        <a href={member.linkedin || "#"} target="_blank" rel="noreferrer" className="w-9.5 h-9.5 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition-all hover:scale-110 active:scale-95 cursor-pointer border border-white/5">
-                          <LinkedinIcon className="w-4.5 h-4.5" />
-                        </a>
-                        <a href={member.twitter || "#"} target="_blank" rel="noreferrer" className="w-9.5 h-9.5 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition-all hover:scale-110 active:scale-95 cursor-pointer border border-white/5">
-                          <TwitterIcon className="w-4.5 h-4.5" />
-                        </a>
-                        <a href={`mailto:${member.email}`} className="w-9.5 h-9.5 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition-all hover:scale-110 active:scale-95 cursor-pointer border border-white/5">
-                          <Mail className="w-4.5 h-4.5" />
-                        </a>
+                      <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                        <div className="space-y-2">
+                          <h4 className="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-indigo-300 to-cyan-300 drop-shadow-[0_0_15px_rgba(244,63,94,0.25)]">
+                            {member.name}
+                          </h4>
+                          <span className="block text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                            {member.role}
+                          </span>
+                          <p className="text-slate-300 text-[13.5px] font-medium leading-relaxed">
+                            {member.desc}
+                          </p>
+                        </div>
+
+                        {/* Social contacts with dynamic micro-interactions */}
+                        <div className="flex items-center gap-3 pt-4 border-t border-white/10">
+                          <a href={member.linkedin || "#"} target="_blank" rel="noreferrer" className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition-all hover:scale-110 active:scale-95 cursor-pointer border border-white/5">
+                            <LinkedinIcon className="w-4.5 h-4.5" />
+                          </a>
+                          <a href={member.twitter || "#"} target="_blank" rel="noreferrer" className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition-all hover:scale-110 active:scale-95 cursor-pointer border border-white/5">
+                            <TwitterIcon className="w-4.5 h-4.5" />
+                          </a>
+                          <a href={`mailto:${member.email}`} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-slate-300 hover:text-white transition-all hover:scale-110 active:scale-95 cursor-pointer border border-white/5">
+                            <Mail className="w-4.5 h-4.5" />
+                          </a>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -216,28 +232,38 @@ export default function AboutPage() {
               return (
                 <div
                   key={member.id}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-subtle flex flex-col justify-between hover:-translate-y-1.5 transition duration-300 hover:border-slate-300 dark:hover:border-slate-700"
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-subtle flex flex-col justify-between overflow-hidden hover:-translate-y-1.5 transition duration-300 hover:border-slate-300 dark:hover:border-slate-700 w-full sm:w-[350px] md:w-[360px]"
                 >
-                  <div className="space-y-4">
-                    <div className="relative w-full aspect-square rounded-2xl overflow-hidden border dark:border-slate-800">
-                      <img src={member.image} className="w-full h-full object-cover" alt={member.name} />
+                  <div className="flex flex-col h-full">
+                    {/* Integrated image at top (no outer padding, no border around image) */}
+                    <div className="relative w-full aspect-[4/3] overflow-hidden group">
+                      <img
+                        src={member.image}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-750"
+                        alt={member.name}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-slate-900 via-transparent to-transparent pointer-events-none opacity-40"></div>
                     </div>
-                    <div className="space-y-1">
-                      <h4 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">{member.name}</h4>
-                      <span className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{member.role}</span>
-                      <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold leading-relaxed pt-1">{member.desc}</p>
+                    
+                    <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                      <div className="space-y-2">
+                        <h4 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{member.name}</h4>
+                        <span className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{member.role}</span>
+                        <p className="text-slate-550 dark:text-slate-400 text-xs font-semibold leading-relaxed pt-1">{member.desc}</p>
+                      </div>
+
+                      <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <a href={member.linkedin || "#"} target="_blank" rel="noreferrer" className="w-8.5 h-8.5 rounded-xl bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-850 dark:hover:text-white transition-all hover:scale-110 active:scale-95 cursor-pointer">
+                          <LinkedinIcon className="w-4 h-4" />
+                        </a>
+                        <a href={member.twitter || "#"} target="_blank" rel="noreferrer" className="w-8.5 h-8.5 rounded-xl bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 flex items-center justify-center text-slate-450 hover:text-slate-850 dark:hover:text-white transition-all hover:scale-110 active:scale-95 cursor-pointer">
+                          <TwitterIcon className="w-4.5 h-4.5" />
+                        </a>
+                        <a href={`mailto:${member.email}`} className="w-8.5 h-8.5 rounded-xl bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 flex items-center justify-center text-slate-450 hover:text-slate-850 dark:hover:text-white transition-all hover:scale-110 active:scale-95 cursor-pointer">
+                          <Mail className="w-4.5 h-4.5" />
+                        </a>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3 pt-4 mt-4 border-t dark:border-slate-800">
-                    <a href={member.linkedin || "#"} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-850 hover:bg-slate-105 border dark:border-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-855 dark:hover:text-white transition cursor-pointer">
-                      <LinkedinIcon className="w-4 h-4" />
-                    </a>
-                    <a href={member.twitter || "#"} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-850 hover:bg-slate-105 border dark:border-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-855 dark:hover:text-white transition cursor-pointer">
-                      <TwitterIcon className="w-4 h-4" />
-                    </a>
-                    <a href={`mailto:${member.email}`} className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-850 hover:bg-slate-105 border dark:border-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-855 dark:hover:text-white transition cursor-pointer">
-                      <Mail className="w-4.5 h-4.5" />
-                    </a>
                   </div>
                 </div>
               );

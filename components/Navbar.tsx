@@ -22,7 +22,8 @@ import {
   Calendar,
   CreditCard,
   Check,
-  ShoppingBag
+  ShoppingBag,
+  ChevronRight
 } from "lucide-react";
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -198,7 +199,7 @@ export default function Navbar() {
         </div>
       )}
 
-      <header className={`md:fixed absolute left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl glass-nav z-55 border border-slate-200/50 dark:border-slate-800/40 transition-all duration-300 ease-in-out shadow-[0_15px_35px_rgba(0,0,0,0.05),0_5px_15px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] ${
+      <header className={`md:fixed absolute left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl bg-white dark:bg-[#070b13] z-55 border border-slate-200 dark:border-slate-800 transition-all duration-200 ease-out shadow-[0_15px_35px_rgba(0,0,0,0.05),0_5px_15px_rgba(0,0,0,0.03)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.45)] ${
         mobileMenuOpen ? "rounded-3xl" : "rounded-2xl"
       } ${
         siteConfig?.showAnnouncement && siteConfig?.announcementBar ? "top-14" : "top-4"
@@ -222,18 +223,18 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Desktop Navigation Link Pills */}
-          <nav className="hidden md:flex gap-1 bg-slate-50/50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-subtle">
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-2">
             {links.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[13px] font-extrabold tracking-wide transition-all duration-300 hover:scale-105 active:scale-95 ${
+                  className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[13px] font-extrabold tracking-wide border transition-all duration-200 ease-out hover:scale-[1.03] active:scale-95 ${
                     isActive
-                      ? "bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-450 shadow-[0_8px_20px_rgba(37,99,235,0.12)] border border-slate-100/80 dark:border-slate-700/50"
-                      : "text-slate-500 dark:text-slate-400 hover:text-primary-650 dark:hover:text-primary-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-[0_8px_20px_rgba(37,99,235,0.08)] hover:border hover:border-slate-100/60 dark:hover:border-slate-800/80"
+                      ? "bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-400 shadow-[0_8px_20px_rgba(37,99,235,0.06)] border-slate-200/40 dark:border-slate-700/30"
+                      : "text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 bg-slate-50/40 dark:bg-slate-900/40 border-slate-200/20 dark:border-slate-800/20 hover:bg-white dark:hover:bg-slate-850 hover:shadow-subtle hover:border-slate-200/50 dark:hover:border-slate-700/30"
                   }`}
                 >
                   <i className={`fas ${link.icon}`}></i>
@@ -258,7 +259,7 @@ export default function Navbar() {
             {!user && (
               <button
                 onClick={toggleDarkMode}
-                className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-subtle hover:scale-110 active:scale-90 transition-all duration-200 cursor-pointer"
+                className="w-10 h-10 rounded-xl bg-slate-50/40 dark:bg-slate-900/40 border border-slate-200/20 dark:border-slate-800/20 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:border-slate-200/50 dark:hover:border-slate-700/30 hover:shadow-subtle hover:scale-105 active:scale-90 transition-all duration-200 cursor-pointer"
                 title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
               >
                 {isDarkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4" />}
@@ -268,7 +269,7 @@ export default function Navbar() {
             {/* Notifications Trigger */}
             <button
               onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-855 hover:shadow-subtle hover:text-primary-600 dark:hover:text-primary-400 hover:scale-110 active:scale-90 transition-all duration-200 relative cursor-pointer"
+              className="w-10 h-10 rounded-xl bg-slate-50/40 dark:bg-slate-900/40 border border-slate-200/20 dark:border-slate-800/20 flex items-center justify-center text-slate-650 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-850 hover:border-slate-200/50 dark:hover:border-slate-700/30 hover:shadow-subtle hover:text-primary-600 dark:hover:text-primary-400 hover:scale-105 active:scale-90 transition-all duration-200 relative cursor-pointer"
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
@@ -327,7 +328,7 @@ export default function Navbar() {
                         iconColor = "bg-primary-50 text-primary-600 dark:bg-primary-950/40 dark:text-primary-400";
                       } else if (item.type === "payment" || item.type === "subscription") {
                         Icon = CreditCard;
-                        iconColor = "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400";
+                        iconColor = "bg-amber-50 text-amber-605 dark:bg-amber-955/40 dark:text-amber-400";
                       }
                       return (
                         <div
@@ -366,7 +367,7 @@ export default function Navbar() {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary-500 dark:hover:border-primary-400 hover:scale-110 active:scale-90 transition-all duration-200 flex items-center justify-center overflow-hidden cursor-pointer focus:outline-none"
+                  className="w-10 h-10 rounded-xl border border-slate-200/20 dark:border-slate-800/20 hover:border-primary-500/40 dark:hover:border-primary-400/40 hover:scale-105 active:scale-90 transition-all duration-200 flex items-center justify-center overflow-hidden cursor-pointer focus:outline-none"
                   title="Profile Menu"
                 >
                   <img
@@ -458,7 +459,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/auth"
-                className="px-5 py-2.5 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 hover:bg-slate-800 dark:hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all duration-200 shadow-md font-extrabold text-[12px] tracking-wide flex items-center gap-2 cursor-pointer border border-transparent dark:border-slate-800 hover:shadow-lg"
+                className="px-5 py-2.5 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 hover:bg-slate-800 dark:hover:bg-slate-100 hover:scale-105 active:scale-95 transition-all duration-200 shadow-md font-extrabold text-[12px] tracking-wide flex items-center gap-2 cursor-pointer border border-slate-200/20 dark:border-slate-800/25 hover:shadow-lg"
               >
                 <UserIcon className="w-4 h-4" />
                 <span>Sign In</span>
@@ -469,7 +470,7 @@ export default function Navbar() {
             {role === "admin" && (
               <Link
                 href="/admin"
-                className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-955/30 border border-amber-200 dark:border-amber-900/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-200"
+                className="w-9 h-9 rounded-xl bg-amber-50/30 dark:bg-amber-955/20 border border-amber-250/20 dark:border-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white flex items-center justify-center hover:scale-105 active:scale-90 transition-all duration-200"
                 title="God Mode Portal"
               >
                 <ShieldAlert className="w-4 h-4 animate-bounce" />
@@ -480,37 +481,54 @@ export default function Navbar() {
 
         {/* Mobile Dropdown Menu Overlay */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200/50 dark:border-slate-800/50 animate-fade-up w-full px-5 py-6 space-y-4 rounded-b-3xl">
-            {links.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-350 font-extrabold text-[15px] shadow-subtle hover:bg-slate-50 dark:hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] transition"
-              >
-                <i className={`fas ${link.icon} text-primary-500 w-5`}></i>
-                <span>{link.name}</span>
-              </Link>
-            ))}
+          <div className="md:hidden border-t border-slate-200/20 dark:border-slate-850 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg w-full px-5 py-6 space-y-2 rounded-b-3xl shadow-xl">
+            {links.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl transition duration-150 active:scale-98 ${
+                    isActive
+                      ? "bg-primary-50/50 dark:bg-primary-950/20 text-primary-650 dark:text-primary-400 font-extrabold"
+                      : "text-slate-650 dark:text-slate-350 font-bold hover:bg-slate-100/50 dark:hover:bg-slate-850/40"
+                  }`}
+                >
+                  <div className="flex items-center gap-3.5">
+                    <i className={`fas ${link.icon} text-primary-500 w-5 text-center text-sm`}></i>
+                    <span className="text-[14px]">{link.name}</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                </Link>
+              );
+            })}
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 window.dispatchEvent(new CustomEvent("open-support-desk"));
               }}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-350 font-extrabold text-[15px] shadow-subtle hover:bg-slate-50 dark:hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] transition text-left cursor-pointer border-none"
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-slate-650 dark:text-slate-350 font-bold hover:bg-slate-100/50 dark:hover:bg-slate-855/40 transition duration-150 active:scale-98 text-left cursor-pointer border-none"
             >
-              <i className="fas fa-life-ring text-primary-500 w-5"></i>
-              <span>Help Desk</span>
+              <div className="flex items-center gap-3.5">
+                <i className="fas fa-life-ring text-primary-500 w-5 text-center text-sm"></i>
+                <span className="text-[14px]">Help Desk</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
             </button>
 
-            <Link
-              href="/shop"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-3.5 rounded-xl font-bold text-[15px] hover:bg-slate-800 hover:scale-[1.02] active:scale-[0.98] transition shadow-md"
-            >
-              <i className="fas fa-store text-emerald-400"></i>
-              <span>Shop</span>
-            </Link>
+            <div className="pt-3">
+              <Link
+                href="/shop"
+                onClick={() => setMobileMenuOpen(false)}
+                className="special-badge-border rounded-xl py-2 px-5 text-[14px] font-extrabold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] overflow-hidden flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/10"
+              >
+                <div className="special-badge-content flex items-center justify-center gap-1.5">
+                  <i className="fas fa-store text-emerald-400"></i>
+                  <span>Shop</span>
+                </div>
+              </Link>
+            </div>
           </div>
         )}
       </header>

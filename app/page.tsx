@@ -1000,7 +1000,7 @@ export default function HomePage() {
               {/* Recent Searches */}
               {!searchQuery && recentSearches.length > 0 && (
                 <div className="py-2.5 max-h-[300px] overflow-y-auto">
-                  <div className="px-4 py-1.5 flex justify-between items-center text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                  <div className="px-4 py-1.5 flex justify-between items-center text-[10px] font-bold text-slate-400 dark:text-slate-505 uppercase tracking-wider">
                     <span>Recent Searches</span>
                     <button
                       type="button"
@@ -1070,7 +1070,7 @@ export default function HomePage() {
               )}
               {suggestions.length > 0 && (
                 <div className="py-2.5 max-h-[300px] overflow-y-auto">
-                  <div className="px-4 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider">
+                  <div className="px-4 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">
                     Suggested Search
                   </div>
                   {suggestions.map((item, idx) => (
@@ -1084,7 +1084,7 @@ export default function HomePage() {
                         <i className={`fas ${item.icon}`}></i>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="block text-[13.5px] font-extrabold text-slate-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-450 transition-colors truncate">
+                        <span className="block text-[13.5px] font-extrabold text-slate-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-455 transition-colors truncate">
                           {item.name}
                         </span>
                         <span className="block text-[9.5px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider">
@@ -1125,34 +1125,32 @@ export default function HomePage() {
             <p className="text-[12px] text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">Curated service packages at flat rates</p>
           </div>
         </div>
-        <div className="flex gap-6 overflow-x-auto hide-scrollbar pb-6 -mx-5 px-5 sm:mx-0 sm:px-0">
+        <div className="flex gap-6 overflow-x-auto hide-scrollbar pt-4 pb-8 -mx-5 px-5 sm:mx-0 sm:px-0">
           {promos.length === 0 ? (
             [1, 2, 3].map((n) => (
-              <div key={n} className="min-w-[310px] h-56 rounded-2xl skeleton shrink-0"></div>
+              <div key={n} className="min-w-[310px] h-64 rounded-2xl skeleton shrink-0"></div>
             ))
           ) : (
             promos.map((promo) => (
               <div
                 key={promo.id}
-                className="min-w-[310px] md:min-w-[350px] h-58 rounded-2xl relative overflow-hidden shrink-0 group border border-slate-200/50 dark:border-slate-800/40 cursor-pointer shadow-[0_8px_30px_rgba(0,0,0,0.03)] dark:shadow-none hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] transition-all duration-300 transform hover:-translate-y-1.5"
+                className="min-w-[310px] md:min-w-[340px] h-64 rounded-2xl relative overflow-hidden shrink-0 group border border-slate-200/50 dark:border-slate-800/40 cursor-pointer shadow-subtle hover:shadow-card transition-all duration-300 transform hover:-translate-y-1.5"
               >
                 <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
                   style={{ backgroundImage: `url('${promo.bg}')` }}
                 ></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-transparent"></div>
                 <span
                   style={promo.badgeStyle ? parseStyleString(promo.badgeStyle) : undefined}
-                  className="absolute top-4 right-4 bg-slate-950/80 dark:bg-white/95 text-white dark:text-slate-950 font-black text-[9px] tracking-widest uppercase px-3 py-1 rounded-full z-10 shadow border border-white/10 dark:border-slate-250/10 backdrop-blur-md"
+                  className="absolute top-3 right-3 bg-slate-950/80 dark:bg-white/95 text-white dark:text-slate-950 font-black text-[9px] tracking-widest uppercase px-3 py-1 rounded-full z-10 shadow border border-white/10 dark:border-slate-250/10 backdrop-blur-md"
                 >
                   {promo.badge}
                 </span>
-                <div className="absolute bottom-5 left-5 right-5 text-white z-10">
-                  <h3 className="font-extrabold text-[17px] tracking-tight leading-snug">{promo.title}</h3>
-                  <p className="text-[11.5px] text-slate-350 mt-1 font-semibold">{promo.subtitle}</p>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-black text-primary-400 dark:text-primary-300 mt-2.5 group-hover:underline">
-                    Book Now <ArrowRight className="w-3.5 h-3.5" />
-                  </span>
+                
+                {/* Floating glass description box */}
+                <div className="absolute bottom-3 left-3 w-[220px] bg-white/15 dark:bg-white/10 backdrop-blur-[2px] border border-white/20 p-3.5 rounded-xl z-10 transition-all duration-300 text-left">
+                  <h3 className="font-extrabold text-[13px] tracking-tight leading-snug text-white drop-shadow-sm">{promo.title}</h3>
+                  <p className="text-[10px] text-white/80 mt-0.5 font-medium truncate drop-shadow-sm">{promo.subtitle}</p>
                 </div>
               </div>
             ))

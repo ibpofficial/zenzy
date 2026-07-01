@@ -759,7 +759,6 @@ html {
 .max-h-\[300px\]::-webkit-scrollbar {
   width: 5px;
 }
-.custom-scrollbar::-webkit-scrollbar-track,
 .max-h-\[300px\]::-webkit-scrollbar-track {
   background: transparent;
 }
