@@ -29,16 +29,6 @@ const DEFAULT_TEAM = [
     linkedin: "https://linkedin.com",
     twitter: "https://twitter.com",
     email: "ishant@zenzy.com"
-  },
-  {
-    id: "default-ananya",
-    name: "Ananya Sharma",
-    role: "Head of Operations",
-    desc: "Manages Dwarka Sector-level partner verification channels and onboarding protocols.",
-    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&h=400&q=80",
-    linkedin: "https://linkedin.com",
-    twitter: "https://twitter.com",
-    email: "ananya@zenzy.com"
   }
 ];
 
@@ -51,14 +41,7 @@ export default function AboutPage() {
       snap.forEach((doc) => items.push({ id: doc.id, ...doc.data() }));
 
       if (items.length > 0) {
-        // Merge Firestore data with default team so both core members are always displayed
-        const merged = [...items];
-        DEFAULT_TEAM.forEach((def) => {
-          if (!merged.some((item) => item.name?.toLowerCase() === def.name.toLowerCase())) {
-            merged.push(def);
-          }
-        });
-        setTeam(merged);
+        setTeam(items);
       } else {
         setTeam(DEFAULT_TEAM);
       }

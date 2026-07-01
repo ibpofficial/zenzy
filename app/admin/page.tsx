@@ -300,6 +300,32 @@ export default function AdminPage() {
   const [tmSubmitting, setTmSubmitting] = useState(false);
   const tmImageInputRef = useRef<HTMLInputElement>(null);
 
+  // Team Member Edit States
+  const [editingTeamMember, setEditingTeamMember] = useState<any | null>(null);
+  const [editTmName, setEditTmName] = useState("");
+  const [editTmRole, setEditTmRole] = useState("");
+  const [editTmDesc, setEditTmDesc] = useState("");
+  const [editTmImage, setEditTmImage] = useState("");
+  const [editTmLinkedin, setEditTmLinkedin] = useState("");
+  const [editTmTwitter, setEditTmTwitter] = useState("");
+  const [editTmEmail, setEditTmEmail] = useState("");
+  const [editTmSubmitting, setEditTmSubmitting] = useState(false);
+  const editTmImageInputRef = useRef<HTMLInputElement>(null);
+
+  // Default team definition for database seeding
+  const DEFAULT_TEAM = [
+    {
+      id: "default-ishant",
+      name: "Ishant Upadhyay",
+      role: "Founder & Chief Architect",
+      desc: "Visionary designer focused on engineering high-end localized service protocols to uplift India's unorganized workforce.",
+      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&h=400&q=80",
+      linkedin: "https://linkedin.com",
+      twitter: "https://twitter.com",
+      email: "ishant@zenzy.com"
+    }
+  ];
+
   // Custom States for Admin Upgrades
   const [analyticsPeriod, setAnalyticsPeriod] = useState<"daily" | "weekly" | "monthly">("daily");
 
@@ -1301,6 +1327,17 @@ export default function AdminPage() {
         const list: any[] = [];
         s.forEach((d) => list.push({ ...d.data(), id: d.id }));
         setTeamMembers(list);
+
+        if (s.empty) {
+          const seedTeam = async () => {
+            const teamRef = collection(db, "team");
+            for (const member of DEFAULT_TEAM) {
+              const { id, ...data } = member;
+              await addDoc(teamRef, data);
+            }
+          };
+          seedTeam();
+        }
       }),
       onSnapshot(collection(db, "broadcasts"), (s) => {
         const list: any[] = [];
@@ -2029,6 +2066,7 @@ export default function AdminPage() {
 
   const handleCreateTeamMember = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!verifyPermission(["Super Admin", "Moderator"], "Add Team Member")) return;
     if (!tmName.trim() || !tmRole.trim() || !tmDesc.trim()) {
       showToast("Name, Role/Post and Bio description are required.", "error");
       return;
@@ -2069,6 +2107,58 @@ export default function AdminPage() {
       showToast("Team member removed from directory.");
     } catch (err) {
       showToast("Deletion failed.", "error");
+    }
+  };
+
+  const handleTriggerEditTeamMember = (member: any) => {
+    setEditingTeamMember(member);
+    setEditTmName(member.name || "");
+    setEditTmRole(member.role || "");
+    setEditTmDesc(member.desc || "");
+    setEditTmImage(member.image || "");
+    setEditTmLinkedin(member.linkedin || "");
+    setEditTmTwitter(member.twitter || "");
+    setEditTmEmail(member.email || "");
+  };
+
+  const handleSaveTeamMemberEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verifyPermission(["Super Admin", "Moderator"], "Edit Team Member")) return;
+    if (!editingTeamMember) return;
+    if (!editTmName.trim() || !editTmRole.trim() || !editTmDesc.trim()) {
+      showToast("Name, Role/Post and Bio description are required.", "error");
+      return;
+    }
+    setEditTmSubmitting(true);
+    try {
+      await updateDoc(doc(db, "team", editingTeamMember.id), {
+        name: editTmName.trim(),
+        role: editTmRole.trim(),
+        desc: editTmDesc.trim(),
+        image: editTmImage || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&h=400&q=80",
+        linkedin: editTmLinkedin.trim() || "https://linkedin.com",
+        twitter: editTmTwitter.trim() || "https://twitter.com",
+        email: editTmEmail.trim() || "info@zenzy.com"
+      });
+      await logActivityAndAudit("Edit Team Member", `Updated team member ID ${editingTeamMember.id}`);
+      setEditingTeamMember(null);
+      showToast("Team member updated successfully!");
+    } catch (err) {
+      showToast("Failed to update team member.", "error");
+    } finally {
+      setEditTmSubmitting(false);
+    }
+  };
+
+  const handleEditTmImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const b64 = await compressImageToBase64(file, 400, 0.72);
+      setEditTmImage(b64);
+      showToast("Edit profile image processed!");
+    } catch {
+      showToast("Image compression failed.", "error");
     }
   };
 
@@ -5078,7 +5168,7 @@ export default function AdminPage() {
                             placeholder="e.g. Ishant Upadhyay"
                             value={tmName}
                             onChange={(e) => setTmName(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold outline-none"
+                            className="w-full px-4 py-2.5 bg-slate-55 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold outline-none"
                           />
                         </div>
                         <div className="space-y-1">
@@ -5089,7 +5179,7 @@ export default function AdminPage() {
                             placeholder="e.g. Founder & Chief Architect"
                             value={tmRole}
                             onChange={(e) => setTmRole(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold outline-none"
+                            className="w-full px-4 py-2.5 bg-slate-55 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold outline-none"
                           />
                         </div>
                         <div className="space-y-1">
@@ -5100,7 +5190,7 @@ export default function AdminPage() {
                             placeholder="e.g. Visionary designer focused on engineering..."
                             value={tmDesc}
                             onChange={(e) => setTmDesc(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none resize-none"
+                            className="w-full px-4 py-2.5 bg-slate-55 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none resize-none"
                           />
                         </div>
                         <div className="space-y-1">
@@ -5110,7 +5200,7 @@ export default function AdminPage() {
                             placeholder="https://linkedin.com/in/..."
                             value={tmLinkedin}
                             onChange={(e) => setTmLinkedin(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none"
+                            className="w-full px-4 py-2.5 bg-slate-55 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none"
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
@@ -5121,7 +5211,7 @@ export default function AdminPage() {
                               placeholder="https://twitter.com/..."
                               value={tmTwitter}
                               onChange={(e) => setTmTwitter(e.target.value)}
-                              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none"
+                              className="w-full px-4 py-2.5 bg-slate-55 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none"
                             />
                           </div>
                           <div className="space-y-1">
@@ -5183,7 +5273,7 @@ export default function AdminPage() {
                     <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-subtle h-fit">
                       <div className="p-5 border-b border-slate-100 dark:border-slate-800">
                         <h3 className="font-extrabold text-sm uppercase tracking-wide">
-                          Dynamic Team Directory Directory
+                          Dynamic Team Directory
                         </h3>
                       </div>
                       <div className="overflow-x-auto">
@@ -5218,15 +5308,20 @@ export default function AdminPage() {
                                   </td>
                                   <td className="p-4">
                                     <span className="block text-slate-700 dark:text-slate-300 font-mono text-[10px]">{member.email}</span>
-                                    <div className="flex items-center gap-2 mt-1 text-slate-400">
+                                    <div className="flex items-center gap-2 mt-1 text-slate-450">
                                       {member.linkedin && <span className="text-[9px]">LinkedIn</span>}
                                       {member.twitter && <span className="text-[9px]">Twitter</span>}
                                     </div>
                                   </td>
                                   <td className="p-4 text-right pr-6">
-                                    <button onClick={() => handleDeleteTeamMember(member.id)} className="text-slate-450 hover:text-red-500 cursor-pointer p-1">
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
+                                    <div className="flex justify-end gap-2">
+                                      <button onClick={() => handleTriggerEditTeamMember(member)} className="text-slate-450 hover:text-primary-500 cursor-pointer p-1">
+                                        <Edit2 className="w-4 h-4" />
+                                      </button>
+                                      <button onClick={() => handleDeleteTeamMember(member.id)} className="text-slate-450 hover:text-red-500 cursor-pointer p-1">
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
                                   </td>
                                 </tr>
                               ))
@@ -7481,6 +7576,128 @@ export default function AdminPage() {
         </div>
       )}
       
+      {/* TEAM MEMBER EDIT MODAL */}
+      {editingTeamMember && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-[500px] rounded-[2.5rem] overflow-hidden shadow-2xl relative border dark:border-slate-800 animate-fade-up">
+            <div className="p-6 bg-slate-950 text-white relative">
+              <button onClick={() => setEditingTeamMember(null)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer"><X className="w-4 h-4" /></button>
+              <h3 className="font-extrabold text-lg tracking-tight">Edit Team Member</h3>
+            </div>
+            <form onSubmit={handleSaveTeamMemberEdit} className="p-6 space-y-4 max-h-[460px] overflow-y-auto text-xs font-semibold">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-455 uppercase">Member Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={editTmName}
+                  onChange={(e) => setEditTmName(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-455 uppercase">Role / Post *</label>
+                <input
+                  type="text"
+                  required
+                  value={editTmRole}
+                  onChange={(e) => setEditTmRole(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-455 uppercase">Bio Description *</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={editTmDesc}
+                  onChange={(e) => setEditTmDesc(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl resize-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-455 uppercase">Linkedin Link</label>
+                <input
+                  type="text"
+                  value={editTmLinkedin}
+                  onChange={(e) => setEditTmLinkedin(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-455 uppercase">Twitter Link</label>
+                  <input
+                    type="text"
+                    value={editTmTwitter}
+                    onChange={(e) => setEditTmTwitter(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-455 uppercase">Email ID</label>
+                  <input
+                    type="email"
+                    value={editTmEmail}
+                    onChange={(e) => setEditTmEmail(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-55 dark:bg-slate-850 border dark:border-slate-800 rounded-xl"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-slate-455 uppercase block">Upload Profile Photo</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => editTmImageInputRef.current?.click()}
+                    className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-3.5 py-2 rounded-xl text-[10px] font-bold cursor-pointer hover:opacity-90 transition-opacity"
+                  >
+                    Select Photo
+                  </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={editTmImageInputRef}
+                    onChange={handleEditTmImageUpload}
+                    className="hidden"
+                  />
+                  {editTmImage && (
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 shrink-0">
+                      <img src={editTmImage} className="w-full h-full object-cover" alt="Preview" />
+                      <button
+                        type="button"
+                        onClick={() => setEditTmImage("")}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingTeamMember(null)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-900 dark:text-white py-3 rounded-xl font-bold text-xs uppercase cursor-pointer text-center font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editTmSubmitting}
+                  className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-3 rounded-xl font-bold text-xs uppercase cursor-pointer"
+                >
+                  {editTmSubmitting ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Toast notifications */}
       {toast && (
         <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-4 rounded-full font-bold text-[13px] shadow-float flex items-center gap-2.5 animate-fade-up ${
