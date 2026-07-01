@@ -308,7 +308,7 @@ AI Assistant Rules:
 5. Warn users about unusual/inappropriate questions.
 6. Format responses in bullet points with symbols like ▸, ▪, •, ◦, ›.
 7. Never use ** or any markdown bold/italic formatting.
-8. try to give answers.
+8. try to give answers in short .
 9. Keep it professional yet friendly.`;
 
       // Step 3: Trigger OpenRouter API

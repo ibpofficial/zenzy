@@ -120,6 +120,8 @@ export default function CustomerDashboardPage() {
 
   // Past bookings accordion toggles
   const [expandedPastBookings, setExpandedPastBookings] = useState<Record<string, boolean>>({});
+  // E-Store orders accordion toggles
+  const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
 
   // Security Mocks
   const [twoFactor, setTwoFactor] = useState(false);
@@ -1315,146 +1317,162 @@ export default function CustomerDashboardPage() {
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-200/80 dark:divide-slate-800/80">
-                    {shopOrders.map((order) => (
-                      <div
-                        key={order.id}
-                        className="py-8 first:pt-0 last:pb-0 space-y-6 animate-fade-up animate-once"
-                      >
-                        {/* Order Header Summary */}
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2.5 flex-wrap">
-                              <h3 className="font-extrabold text-[15px] text-slate-900 dark:text-white">Order Reference</h3>
-                              <span className="text-[10px] text-slate-400 font-mono font-bold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
-                                #{order.id.slice(-8).toUpperCase()}
+                    {shopOrders.map((order) => {
+                      const isExpanded = !!expandedOrders[order.id];
+                      return (
+                        <div
+                          key={order.id}
+                          className="py-6 first:pt-0 last:pb-0 border-b border-slate-100 dark:border-slate-800 last:border-none animate-fade-up animate-once"
+                        >
+                          {/* Order Header Summary */}
+                          <div 
+                            onClick={() => {
+                              setExpandedOrders(prev => ({
+                                ...prev,
+                                [order.id]: !prev[order.id]
+                              }));
+                            }}
+                            className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 cursor-pointer hover:opacity-90 select-none transition-all duration-200"
+                          >
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2.5 flex-wrap">
+                                <h3 className="font-extrabold text-[15px] text-slate-900 dark:text-white">Order Reference</h3>
+                                <span className="text-[10px] text-slate-400 font-mono font-bold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                                  #{order.id.slice(-8).toUpperCase()}
+                                </span>
+                                <span className={`inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+                                  order.status === "Pending" ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400" :
+                                  order.status === "Shipped" ? "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400" :
+                                  "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                                }`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${
+                                    order.status === "Pending" ? "bg-amber-500 animate-pulse" :
+                                    order.status === "Shipped" ? "bg-blue-500 animate-pulse" :
+                                    "bg-emerald-500"
+                                  }`}></span>
+                                  {order.status}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-slate-405 dark:text-slate-500 font-bold block">
+                                Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "N/A"}
                               </span>
-                              <span className={`inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${
-                                order.status === "Pending" ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400" :
-                                order.status === "Shipped" ? "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400" :
-                                "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
-                              }`}>
-                                <span className={`w-1.5 h-1.5 rounded-full ${
-                                  order.status === "Pending" ? "bg-amber-500 animate-pulse" :
-                                  order.status === "Shipped" ? "bg-blue-500 animate-pulse" :
-                                  "bg-emerald-500"
-                                }`}></span>
-                                {order.status}
-                              </span>
                             </div>
-                            <span className="text-[11px] text-slate-405 dark:text-slate-500 font-bold block">
-                              Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "N/A"}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-[11px] text-slate-400 dark:text-slate-505 font-black uppercase tracking-widest block">{order.paymentMethod || "COD"}</span>
-                            <span className="text-lg font-black text-slate-900 dark:text-white">₹{order.totalAmount?.toLocaleString()}</span>
-                          </div>
-                        </div>
-
-                        {/* Split details columns */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {/* Left Column: Items purchased list */}
-                          <div className="space-y-3.5">
-                            <h4 className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Items Summary</h4>
-                            <div className="space-y-3">
-                              {order.items?.map((item: any, idx: number) => (
-                                <div key={idx} className="flex items-center justify-between text-xs font-semibold text-slate-800 dark:text-slate-200">
-                                  <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center font-bold text-slate-500 dark:text-slate-400 text-[10px] shrink-0 border dark:border-slate-700">
-                                      x{item.quantity}
-                                    </div>
-                                    <span className="font-bold text-slate-900 dark:text-white line-clamp-1">{item.name}</span>
-                                  </div>
-                                  <span className="font-black text-slate-800 dark:text-slate-200">₹{(item.price * item.quantity).toLocaleString()}</span>
-                                </div>
-                              ))}
-                            </div>
-                            
-                            {/* Billing details list */}
-                            <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-1.5 text-[11px] text-slate-400 dark:text-slate-550 font-semibold">
-                              <div className="flex justify-between">
-                                <span>Subtotal:</span>
-                                <span>₹{(order.subtotal || 0).toLocaleString()}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Delivery Fee:</span>
-                                <span>{order.deliveryFee === 0 ? "FREE" : `₹${order.deliveryFee}`}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Estimated GST Tax (18%):</span>
-                                <span>₹{(order.tax || 0).toLocaleString()}</span>
-                              </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-[11px] text-slate-400 dark:text-slate-550 font-black uppercase tracking-widest block">{order.paymentMethod || "COD"}</span>
+                              <span className="text-lg font-black text-slate-900 dark:text-white">₹{order.totalAmount?.toLocaleString()}</span>
+                              <ChevronDown className={`w-5 h-5 text-slate-400 dark:text-slate-500 transition-transform duration-300 ${
+                                isExpanded ? "rotate-180" : ""
+                              }`} />
                             </div>
                           </div>
 
-                          {/* Right Column: Address and Payment */}
-                          <div className="space-y-4">
-                            <h4 className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Shipping & Verification</h4>
-                            
-                            <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-xl border border-slate-200/50 dark:border-slate-800/50 space-y-3 shadow-inner">
-                              <div>
-                                <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-black block">Delivery Address</span>
-                                <p className="text-[11px] text-slate-700 dark:text-slate-350 leading-relaxed font-semibold mt-0.5">
-                                  {order.customerName}<br />
-                                  Phone: {order.customerPhone}<br />
-                                  {order.customerAddress}
-                                </p>
-                              </div>
-
-                              <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-                                <div>
-                                  <span className="text-[9px] text-slate-400 dark:text-slate-505 uppercase font-black block">Verification Status</span>
-                                  <span className="text-[10.5px] text-slate-700 dark:text-slate-300 font-bold block mt-0.5">
-                                    {order.paymentStatus || "Pending Approval"}
-                                  </span>
-                                </div>
-                                {order.transactionId && (
-                                  <div className="text-right">
-                                    <span className="text-[9px] text-slate-400 dark:text-slate-505 uppercase font-black block">UPI Ref ID</span>
-                                    <span className="text-[10.5px] font-mono font-bold text-slate-700 dark:text-slate-300 block mt-0.5">
-                                      {order.transactionId}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Tracking progress tracker */}
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between relative max-w-xs mx-auto pt-2">
-                                <div className="absolute top-5 left-0 right-0 h-0.5 bg-slate-200 dark:bg-slate-800 -z-0" />
-                                <div className="absolute top-5 left-0 h-0.5 bg-slate-950 dark:bg-white transition-all duration-300 -z-0" style={{
-                                  width: order.status === "Pending" ? "0%" : order.status === "Shipped" ? "50%" : "100%"
-                                }} />
-
-                                {[
-                                  { label: "Placed", status: "Pending" },
-                                  { label: "Shipped", status: "Shipped" },
-                                  { label: "Delivered", status: "Delivered" }
-                                ].map((step, idx) => {
-                                  const statuses = ["Pending", "Shipped", "Delivered"];
-                                  const currentIdx = statuses.indexOf(order.status || "Pending");
-                                  const stepIdx = statuses.indexOf(step.status);
-                                  const isCompleted = stepIdx <= currentIdx;
-                                  return (
-                                    <div key={step.status} className="flex flex-col items-center z-10 relative">
-                                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black transition-all ${
-                                        isCompleted 
-                                          ? "bg-slate-950 dark:bg-white text-white dark:text-slate-950 shadow-sm" 
-                                          : "bg-slate-200 dark:bg-slate-800 text-slate-400"
-                                      }`}>
-                                        {isCompleted ? "✓" : idx + 1}
+                          {/* Split details columns (visible only when expanded) */}
+                          {isExpanded && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 animate-fade-up">
+                              {/* Left Column: Items purchased list */}
+                              <div className="space-y-3.5">
+                                <h4 className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Items Summary</h4>
+                                <div className="space-y-3">
+                                  {order.items?.map((item: any, idx: number) => (
+                                    <div key={idx} className="flex items-center justify-between text-xs font-semibold text-slate-800 dark:text-slate-200">
+                                      <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center font-bold text-slate-500 dark:text-slate-400 text-[10px] shrink-0 border dark:border-slate-700">
+                                          x{item.quantity}
+                                        </div>
+                                        <span className="font-bold text-slate-900 dark:text-white line-clamp-1">{item.name}</span>
                                       </div>
-                                      <span className="text-[8.5px] font-extrabold mt-1 uppercase text-slate-400">{step.label}</span>
+                                      <span className="font-black text-slate-800 dark:text-slate-200">₹{(item.price * item.quantity).toLocaleString()}</span>
                                     </div>
-                                  );
-                                })}
+                                  ))}
+                                </div>
+                                
+                                {/* Billing details list */}
+                                <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-1.5 text-[11px] text-slate-400 dark:text-slate-550 font-semibold">
+                                  <div className="flex justify-between">
+                                    <span>Subtotal:</span>
+                                    <span>₹{(order.subtotal || 0).toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Delivery Fee:</span>
+                                    <span>{order.deliveryFee === 0 ? "FREE" : `₹${order.deliveryFee}`}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Estimated GST Tax (18%):</span>
+                                    <span>₹{(order.tax || 0).toLocaleString()}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Right Column: Address and Payment */}
+                              <div className="space-y-4">
+                                <h4 className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider">Shipping & Verification</h4>
+                                
+                                <div className="bg-slate-50/50 dark:bg-slate-950/20 p-4 rounded-xl border border-slate-200/50 dark:border-slate-800/50 space-y-3 shadow-inner">
+                                  <div>
+                                    <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-black block">Delivery Address</span>
+                                    <p className="text-[11px] text-slate-700 dark:text-slate-350 leading-relaxed font-semibold mt-0.5">
+                                      {order.customerName}<br />
+                                      Phone: {order.customerPhone}<br />
+                                      {order.customerAddress}
+                                    </p>
+                                  </div>
+
+                                  <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                                    <div>
+                                      <span className="text-[9px] text-slate-400 dark:text-slate-505 uppercase font-black block">Verification Status</span>
+                                      <span className="text-[10.5px] text-slate-700 dark:text-slate-300 font-bold block mt-0.5">
+                                        {order.paymentStatus || "Pending Approval"}
+                                      </span>
+                                    </div>
+                                    {order.transactionId && (
+                                      <div className="text-right">
+                                        <span className="text-[9px] text-slate-400 dark:text-slate-505 uppercase font-black block">UPI Ref ID</span>
+                                        <span className="text-[10.5px] font-mono font-bold text-slate-700 dark:text-slate-300 block mt-0.5">
+                                          {order.transactionId}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Tracking progress tracker */}
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between relative max-w-xs mx-auto pt-2">
+                                    <div className="absolute top-5 left-0 right-0 h-0.5 bg-slate-200 dark:bg-slate-800 -z-0" />
+                                    <div className="absolute top-5 left-0 h-0.5 bg-slate-950 dark:bg-white transition-all duration-300 -z-0" style={{
+                                      width: order.status === "Pending" ? "0%" : order.status === "Shipped" ? "50%" : "100%"
+                                    }} />
+
+                                    {[
+                                      { label: "Placed", status: "Pending" },
+                                      { label: "Shipped", status: "Shipped" },
+                                      { label: "Delivered", status: "Delivered" }
+                                    ].map((step, idx) => {
+                                      const statuses = ["Pending", "Shipped", "Delivered"];
+                                      const currentIdx = statuses.indexOf(order.status || "Pending");
+                                      const stepIdx = statuses.indexOf(step.status);
+                                      const isCompleted = stepIdx <= currentIdx;
+                                      return (
+                                        <div key={step.status} className="flex flex-col items-center z-10 relative">
+                                          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black transition-all ${
+                                            isCompleted 
+                                              ? "bg-slate-955 dark:bg-white text-white dark:text-slate-950 shadow-sm" 
+                                              : "bg-slate-200 dark:bg-slate-800 text-slate-400"
+                                          }`}>
+                                            {isCompleted ? "✓" : idx + 1}
+                                          </div>
+                                          <span className="text-[8.5px] font-extrabold mt-1 uppercase text-slate-400">{step.label}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                          </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

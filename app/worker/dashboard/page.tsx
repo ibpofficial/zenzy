@@ -53,8 +53,8 @@ type Tab =
 
 const badgeColors: Record<string, string> = {
   Pending: "bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-400",
-  Accepted: "bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-400",
-  OnTheWay: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/30 dark:text-indigo-400",
+  Accepted: "bg-emerald-100 text-emerald-800 dark:bg-emerald-955/30 dark:text-emerald-400",
+  OnTheWay: "bg-teal-100 text-teal-805 dark:bg-teal-955/30 dark:text-teal-400",
   Started: "bg-purple-100 text-purple-800 dark:bg-purple-950/30 dark:text-purple-400",
   Completed: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400",
   Cancelled: "bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-400",
@@ -481,15 +481,21 @@ export default function ProviderDashboardPage() {
               )}
             </div>
           </div>
-        )}        {/* Welcome Section */}
-        <div className="relative bg-slate-900 dark:bg-slate-925 border border-slate-800 rounded-2xl p-6 sm:p-8 text-white overflow-hidden mb-8 shadow-[0_24px_50px_rgba(0,0,0,0.18)]">
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-blue-500/20 rounded-full blur-[120px] pointer-events-none" />
-          <div className="absolute -bottom-16 -left-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+        )}        {/* Vetted Partner Portal Badge */}
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-black uppercase text-emerald-605 dark:text-emerald-400 tracking-wider mb-4 animate-fade-up">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Vetted Partner Workspace</span>
+        </div>
+
+        {/* Welcome Section */}
+        <div className="relative bg-gradient-to-br from-slate-900 via-slate-925 to-emerald-950/20 border border-slate-800 rounded-2xl p-6 sm:p-8 text-white overflow-hidden mb-8 shadow-[0_24px_50px_rgba(0,0,0,0.18)]">
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-emerald-500/20 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute -bottom-16 -left-12 w-48 h-48 bg-teal-500/10 rounded-full blur-[100px] pointer-events-none" />
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="flex items-center gap-5">
               {/* Profile Avatar with double rings & upload button */}
               <div className="relative group shrink-0">
-                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/10 ring-4 ring-blue-500/20 shadow-xl bg-slate-800">
+                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/10 ring-4 ring-emerald-500/20 shadow-xl bg-slate-800">
                   <img
                     src={pAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=150&h=150&q=80"}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -514,7 +520,7 @@ export default function ProviderDashboardPage() {
                 <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-900 shadow-md" />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">Partner Central</p>
+                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Partner Central</p>
                 <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">{userData?.name || "Zenzy Pro"}</h1>
                 <p className="text-slate-400 text-[11px] font-semibold mt-1.5 flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-500 animate-pulse" />
@@ -563,14 +569,14 @@ export default function ProviderDashboardPage() {
                     onClick={() => setActiveTab(tab.id as Tab)}
                     className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 cursor-pointer ${
                       isActive
-                        ? "bg-blue-50/70 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500"
+                        ? "bg-emerald-50/70 dark:bg-emerald-955/20 text-emerald-600 dark:text-emerald-400 border-l-4 border-emerald-500"
                         : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white border-l-4 border-transparent"
                     }`}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
                     <span className="flex-1 text-left">{tab.label}</span>
                     {tab.badge && tab.badge > 0 ? (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-blue-600 text-white" : "bg-red-500 text-white"}`}>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-emerald-600 text-white" : "bg-red-500 text-white"}`}>
                         {tab.badge}
                       </span>
                     ) : null}
@@ -595,9 +601,8 @@ export default function ProviderDashboardPage() {
                 
                 {/* SVG Performance Charts */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  
-                  {/* Earnings Line Chart */}
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] transition-all duration-300 space-y-4 group">
+                       {/* Earnings Line Chart */}
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:border-emerald-500 dark:hover:border-emerald-450 hover:shadow-[0_16px_36px_rgba(16,185,129,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] transition-all duration-300 space-y-4 group">
                     <h3 className="font-extrabold text-[13px] text-slate-850 dark:text-slate-200 uppercase tracking-wider border-b pb-3.5 dark:border-slate-800/80">
                       Weekly Earnings Profile
                     </h3>
@@ -606,8 +611,8 @@ export default function ProviderDashboardPage() {
                       <svg viewBox="0 0 300 120" className="w-full h-full overflow-visible">
                         <defs>
                           <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.15"/>
-                            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0"/>
+                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.15"/>
+                            <stop offset="100%" stopColor="#10b981" stopOpacity="0.0"/>
                           </linearGradient>
                         </defs>
                         <g className="stroke-slate-100 dark:stroke-slate-800/60" strokeWidth="0.5">
@@ -618,12 +623,12 @@ export default function ProviderDashboardPage() {
                         {/* Area Gradient */}
                         <path d="M 0 120 L 0 90 L 50 75 L 100 95 L 150 40 L 200 65 L 250 20 L 300 50 L 300 120 Z" fill="url(#chartGrad)" />
                         {/* Line path */}
-                        <path d="M 0 90 L 50 75 L 100 95 L 150 40 L 200 65 L 250 20 L 300 50" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" />
+                        <path d="M 0 90 L 50 75 L 100 95 L 150 40 L 200 65 L 250 20 L 300 50" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
                         {/* Dots */}
                         {[
                           { x: 0, y: 90 }, { x: 50, y: 75 }, { x: 100, y: 95 }, { x: 150, y: 40 }, { x: 200, y: 65 }, { x: 250, y: 20 }, { x: 300, y: 50 }
                         ].map((d, idx) => (
-                          <circle key={idx} cx={d.x} cy={d.y} r="3.5" fill="#3b82f6" stroke="#ffffff" strokeWidth="1.5" className="hover:scale-125 transition-transform duration-200" />
+                          <circle key={idx} cx={d.x} cy={d.y} r="3.5" fill="#10b981" stroke="#ffffff" strokeWidth="1.5" className="hover:scale-125 transition-transform duration-200" />
                         ))}
                       </svg>
                     </div>
@@ -633,7 +638,7 @@ export default function ProviderDashboardPage() {
                   </div>
 
                   {/* Bookings Bar Chart */}
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:border-blue-500 dark:hover:border-blue-450 hover:shadow-[0_16px_36px_rgba(59,130,246,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] transition-all duration-300 space-y-4 group">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-6 rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:border-emerald-500 dark:hover:border-emerald-450 hover:shadow-[0_16px_36px_rgba(16,185,129,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] transition-all duration-300 space-y-4 group">
                     <h3 className="font-extrabold text-[13px] text-slate-855 dark:text-slate-200 uppercase tracking-wider border-b pb-3.5 dark:border-slate-800/80">
                       Daily Booking Volume
                     </h3>
@@ -652,13 +657,12 @@ export default function ProviderDashboardPage() {
                           <span className="text-[10px] font-black text-slate-700 dark:text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             {item.count}
                           </span>
-                          <div className="w-6 bg-blue-600/90 dark:bg-blue-500/90 rounded-t-lg transition-all duration-300 hover:bg-blue-500 dark:hover:bg-blue-400 shadow-sm" style={{ height: item.height, minHeight: "10px" }} />
+                          <div className="w-6 bg-emerald-650/90 dark:bg-emerald-500/90 rounded-t-lg transition-all duration-300 hover:bg-emerald-500 dark:hover:bg-emerald-400 shadow-sm" style={{ height: item.height, minHeight: "10px" }} />
                           <span className="text-[9px] text-slate-400 font-bold uppercase">{item.day}</span>
                         </div>
                       ))}
                     </div>
                   </div>
-
                 </div>
               </div>
             )}
@@ -676,12 +680,12 @@ export default function ProviderDashboardPage() {
                 ) : (
                   <div className="space-y-4">
                     {jobs.filter((j) => j.status === "Pending").map((book) => (
-                      <div key={book.id} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-2xl flex flex-col gap-4 shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:shadow-[0_16px_36px_rgba(59,130,246,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] hover:border-blue-500 dark:hover:border-blue-450 transition-all duration-300 group">
+                      <div key={book.id} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-2xl flex flex-col gap-4 shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:shadow-[0_16px_36px_rgba(16,185,129,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] hover:border-emerald-500 dark:hover:border-emerald-450 transition-all duration-300 group">
                         <div className="flex justify-between items-start flex-wrap gap-3">
                           <div>
-                            <span className="font-extrabold text-[15px] text-slate-850 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors block">{book.customerName}</span>
+                            <span className="font-extrabold text-[15px] text-slate-855 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors block">{book.customerName}</span>
                             <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold block mt-0.5">📞 {book.customerPhone}</span>
-                            <span className="text-[10.5px] text-blue-600 dark:text-blue-400 font-bold mt-1.5 block">📅 {book.date} at {book.time}</span>
+                            <span className="text-[10.5px] text-emerald-600 dark:text-emerald-400 font-bold mt-1.5 block">📅 {book.date} at {book.time}</span>
                           </div>
                           <div className="text-right">
                             <span className="text-lg font-black text-slate-900 dark:text-white block">₹{book.price}</span>
@@ -689,7 +693,7 @@ export default function ProviderDashboardPage() {
                           </div>
                         </div>
                         {book.notes && (
-                          <div className="p-3.5 bg-slate-50 dark:bg-slate-850/50 border border-slate-100 dark:border-slate-800 rounded-2xl text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          <div className="p-3.5 bg-slate-55 dark:bg-slate-850/50 border border-slate-100 dark:border-slate-800 rounded-2xl text-xs font-semibold text-slate-500 dark:text-slate-400">
                             <strong>Instructions:</strong> {book.notes}
                           </div>
                         )}
@@ -702,7 +706,7 @@ export default function ProviderDashboardPage() {
                           </button>
                           <button
                             onClick={() => handleModifyStatus(book.id, "Accepted", book.customerId)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-1 cursor-pointer shadow-sm"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-1 cursor-pointer shadow-sm"
                           >
                             Accept Job
                           </button>
@@ -727,22 +731,22 @@ export default function ProviderDashboardPage() {
                 ) : (
                   <div className="space-y-4">
                     {jobs.filter((j) => ["Accepted", "OnTheWay", "Started", "Job Done"].includes(j.status)).map((book) => (
-                      <div key={book.id} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-2xl flex flex-col gap-4 shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:shadow-[0_16px_36px_rgba(59,130,246,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] hover:border-blue-500 dark:hover:border-blue-450 transition-all duration-300 group">
+                      <div key={book.id} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 p-5 rounded-2xl flex flex-col gap-4 shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:shadow-[0_16px_36px_rgba(16,185,129,0.06)] dark:hover:shadow-[0_16px_36px_rgba(0,0,0,0.25)] hover:border-emerald-500 dark:hover:border-emerald-450 transition-all duration-300 group">
                         <div className="flex justify-between items-start flex-wrap gap-3">
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-extrabold text-[15px] text-slate-850 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{book.customerName}</span>
+                              <span className="font-extrabold text-[15px] text-slate-855 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{book.customerName}</span>
                               <span className={`text-[9px] font-bold px-2.5 py-1 rounded-full border ${
                                 book.status === "Pending" ? "bg-amber-50/50 border-amber-200/40 text-amber-700 dark:bg-amber-955/20 dark:text-amber-400 dark:border-amber-900/30" :
-                                book.status === "Accepted" ? "bg-blue-50/50 border-blue-200/40 text-blue-700 dark:bg-blue-955/20 dark:text-blue-400 dark:border-blue-900/30" :
-                                book.status === "OnTheWay" ? "bg-indigo-50/50 border-indigo-200/40 text-indigo-700 dark:bg-indigo-955/20 dark:text-indigo-400 dark:border-indigo-900/30" :
+                                book.status === "Accepted" ? "bg-emerald-50/50 border-emerald-200/40 text-emerald-705 dark:bg-emerald-955/20 dark:text-emerald-455 dark:border-emerald-900/30" :
+                                book.status === "OnTheWay" ? "bg-teal-50/50 border-teal-200/40 text-teal-700 dark:bg-teal-955/20 dark:text-teal-400 dark:border-teal-900/30" :
                                 book.status === "Started" ? "bg-purple-50/50 border-purple-200/40 text-purple-700 dark:bg-purple-955/20 dark:text-purple-400 dark:border-purple-900/30" :
                                 "bg-emerald-50/50 border-emerald-200/40 text-emerald-700 dark:bg-emerald-955/20 dark:text-emerald-400 dark:border-emerald-900/30"
                               }`}>
                                 {book.status}
                               </span>
                             </div>
-                            <span className="text-[10.5px] text-slate-400 dark:text-slate-500 font-bold block mt-1">
+                            <span className="text-[10.5px] text-slate-450 dark:text-slate-500 font-bold block mt-1">
                               📞 {book.customerPhone} · 📅 {book.date} at {book.time}
                             </span>
                           </div>
@@ -756,7 +760,7 @@ export default function ProviderDashboardPage() {
                           {book.status === "Accepted" && (
                             <button
                               onClick={() => handleModifyStatus(book.id, "OnTheWay", book.customerId)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-xl text-[10px] font-bold transition duration-200 cursor-pointer shadow-sm"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-[10px] font-bold transition duration-200 cursor-pointer shadow-sm"
                             >
                               Depart to Location
                             </button>
@@ -764,7 +768,7 @@ export default function ProviderDashboardPage() {
                           {book.status === "OnTheWay" && (
                             <button
                               onClick={() => handleModifyStatus(book.id, "Started", book.customerId)}
-                              className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl text-[10px] font-bold transition duration-200 cursor-pointer shadow-sm"
+                              className="bg-teal-655 hover:bg-teal-750 text-white px-3.5 py-1.5 rounded-xl text-[10px] font-bold transition duration-200 cursor-pointer shadow-sm"
                             >
                               Start Service Task
                             </button>
@@ -789,7 +793,7 @@ export default function ProviderDashboardPage() {
                             onClick={() => setActiveChatBooking(book)}
                             className="bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-850 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm text-slate-700 dark:text-slate-300"
                           >
-                            <MessageSquare className="w-3.5 h-3.5 text-slate-450" /> Message Customer
+                            <MessageSquare className="w-3.5 h-3.5 text-slate-455" /> Message Customer
                           </button>
                         </div>
                       </div>
@@ -1034,7 +1038,7 @@ export default function ProviderDashboardPage() {
                   <button
                     type="submit"
                     disabled={savingProfile}
-                    className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 px-6 py-3 rounded-xl font-bold text-xs uppercase flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:opacity-90 px-6 py-3 rounded-xl font-bold text-xs uppercase flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
                   >
                     <Save className="w-4 h-4" />
                     {savingProfile ? "Saving Profile..." : "Save Credentials"}

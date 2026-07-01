@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Mail, Lock, Phone, User as UserIcon, ArrowRight, ShieldCheck, X, Hammer, Sparkles } from "lucide-react";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export default function AuthModal() {
@@ -20,6 +20,18 @@ export default function AuthModal() {
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [selectedRole, setSelectedRole] = useState<"user" | "worker">("user");
+
+  useEffect(() => {
+    if (isAuthModalOpen && typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const roleParam = params.get("role");
+      if (roleParam === "worker" || roleParam === "professional" || roleParam === "pro") {
+        setSelectedRole("worker");
+      } else if (roleParam === "user" || roleParam === "customer") {
+        setSelectedRole("user");
+      }
+    }
+  }, [isAuthModalOpen]);
 
   // Form fields
   const [email, setEmail] = useState("");
@@ -125,7 +137,21 @@ export default function AuthModal() {
         }
         await signupWithEmail(email, password, name, phone, selectedRole, extraData);
       } else {
-        await loginWithEmail(email, password);
+        // Query to check if account exists in our collections first
+        const emailLower = email.toLowerCase().trim();
+        const [userSnap, workerSnap, adminSnap] = await Promise.all([
+          getDocs(query(collection(db, "users"), where("email", "==", emailLower))),
+          getDocs(query(collection(db, "workers"), where("email", "==", emailLower))),
+          getDocs(query(collection(db, "admins"), where("email", "==", emailLower)))
+        ]);
+
+        if (userSnap.empty && workerSnap.empty && adminSnap.empty) {
+          setErr("Account not found. Please sign up first!");
+          setLoading(false);
+          return;
+        }
+
+        await loginWithEmail(email, password, selectedRole);
       }
 
       // Success close
@@ -173,7 +199,7 @@ export default function AuthModal() {
             </div>
             <div>
               <h3 className="font-extrabold text-lg tracking-tight">
-                {isForgotPassword ? "Reset Password" : isSignUp ? "Partner Registration" : "Account Sign In"}
+                {isForgotPassword ? "Reset Password" : isSignUp ? "Partner Signup" : "Account Login"}
               </h3>
               <p className="text-[10px] text-slate-400 font-semibold tracking-wide mt-0.5 uppercase">Secure Authentication Portal</p>
             </div>
@@ -204,7 +230,7 @@ export default function AuthModal() {
                     }} 
                     className="text-primary-600 dark:text-primary-400 underline font-bold cursor-pointer bg-transparent border-none hover:text-primary-700 transition"
                   >
-                    Sign In
+                    Login
                   </button>
                 </>
               ) : (
@@ -218,7 +244,7 @@ export default function AuthModal() {
                     }} 
                     className="text-primary-600 dark:text-primary-400 underline font-bold cursor-pointer bg-transparent border-none hover:text-primary-700 transition"
                   >
-                    {isSignUp ? "Sign In" : "Sign Up"}
+                    {isSignUp ? "Login" : "Signup"}
                   </button>
                 </>
               )}
@@ -448,7 +474,7 @@ export default function AuthModal() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-slate-950 dark:bg-slate-100 hover:bg-slate-850 dark:hover:bg-slate-200 text-white dark:text-slate-950 py-3.5 rounded-xl font-extrabold text-[14px] transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-98 shadow-md hover:shadow-lg shadow-primary-500/10 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-650 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-700 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 shadow-[0_8px_30px_rgba(99,102,241,0.4)] flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (
                 <>
@@ -461,9 +487,9 @@ export default function AuthModal() {
               ) : isForgotPassword ? (
                 "Send Reset Link"
               ) : isSignUp ? (
-                "Sign Up Partner"
+                "Signup"
               ) : (
-                "Sign In"
+                "Login"
               )}
               {!loading && <ArrowRight className="w-4 h-4" />}
             </button>

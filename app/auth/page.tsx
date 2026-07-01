@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Mail, Lock, Phone, User as UserIcon, ArrowRight, ShieldCheck, Hammer, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { collection, onSnapshot, doc } from "firebase/firestore";
+import { collection, onSnapshot, doc, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export default function AuthPage() {
@@ -14,6 +14,18 @@ export default function AuthPage() {
   
   const [isSignUp, setIsSignUp] = useState(false);
   const [selectedRole, setSelectedRole] = useState<"user" | "worker">("user");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const roleParam = params.get("role");
+      if (roleParam === "worker" || roleParam === "professional" || roleParam === "pro") {
+        setSelectedRole("worker");
+      } else if (roleParam === "user" || roleParam === "customer") {
+        setSelectedRole("user");
+      }
+    }
+  }, []);
   
   // Form fields
   const [email, setEmail] = useState("");
@@ -99,7 +111,21 @@ export default function AuthPage() {
         }
         await signupWithEmail(email, password, name, phone, selectedRole, extraData);
       } else {
-        await loginWithEmail(email, password);
+        // Query to check if account exists in our collections first
+        const emailLower = email.toLowerCase().trim();
+        const [userSnap, workerSnap, adminSnap] = await Promise.all([
+          getDocs(query(collection(db, "users"), where("email", "==", emailLower))),
+          getDocs(query(collection(db, "workers"), where("email", "==", emailLower))),
+          getDocs(query(collection(db, "admins"), where("email", "==", emailLower)))
+        ]);
+
+        if (userSnap.empty && workerSnap.empty && adminSnap.empty) {
+          setErr("Account not found. Please sign up first!");
+          setLoading(false);
+          return;
+        }
+
+        await loginWithEmail(email, password, selectedRole);
       }
     } catch (error: any) {
       console.error(error);
@@ -157,14 +183,14 @@ export default function AuthPage() {
         {/* Header */}
         <div className="text-center sm:text-left space-y-1">
           <h1 className="text-2.5xl font-black text-slate-900 dark:text-white tracking-tight">
-            {isForgotPassword ? "Reset Password" : isSignUp ? "Create Partner Account" : "Welcome Back"}
+            {isForgotPassword ? "Reset Password" : isSignUp ? "Signup" : "Login"}
           </h1>
-          <p className="text-slate-450 dark:text-slate-500 font-bold text-[10.5px] uppercase tracking-wider leading-relaxed">
+          <p className="text-slate-455 dark:text-slate-500 font-bold text-[10.5px] uppercase tracking-wider leading-relaxed">
             {isForgotPassword 
               ? "We'll send you an email with reset instructions." 
               : isSignUp 
                 ? "Join Zenzy's premium vetted service network." 
-                : "Sign in to manage your bookings and rentals."}
+                : "Login to manage your bookings and rentals."}
           </p>
         </div>
 
@@ -180,11 +206,11 @@ export default function AuthPage() {
               }}
               className={`py-3 rounded-xl font-extrabold text-[12px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 duration-200 border-none ${
                 !isSignUp
-                  ? "bg-gradient-to-r from-primary-600 to-indigo-650 text-white shadow-md shadow-primary-900/20"
+                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-[0_4px_15px_rgba(99,102,241,0.3)]"
                   : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
               }`}
             >
-              Sign In
+              Login
             </button>
             <button
               type="button"
@@ -195,11 +221,11 @@ export default function AuthPage() {
               }}
               className={`py-3 rounded-xl font-extrabold text-[12px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 duration-200 border-none ${
                 isSignUp
-                  ? "bg-gradient-to-r from-primary-600 to-indigo-650 text-white shadow-md shadow-primary-900/20"
+                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-[0_4px_15px_rgba(99,102,241,0.3)]"
                   : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
               }`}
             >
-              Register
+              Signup
             </button>
           </div>
         ) : (
@@ -457,7 +483,7 @@ export default function AuthPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-primary-600 to-indigo-650 hover:from-primary-500 hover:to-indigo-600 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95 shadow-md shadow-primary-500/10 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+            className="w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-650 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-700 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 shadow-[0_8px_30px_rgba(99,102,241,0.4)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
           >
             {loading ? (
               <>
@@ -470,9 +496,9 @@ export default function AuthPage() {
             ) : isForgotPassword ? (
               "Send Reset Link"
             ) : isSignUp ? (
-              "Register Account"
+              "Signup"
             ) : (
-              "Sign In"
+              "Login"
             )}
             {!loading && <ArrowRight className="w-4 h-4" />}
           </button>

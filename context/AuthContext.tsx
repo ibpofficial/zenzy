@@ -22,7 +22,7 @@ interface AuthContextType {
   userData: any | null;
   loading: boolean;
   role: "user" | "worker" | "admin" | null;
-  loginWithEmail: (e: string, p: string) => Promise<void>;
+  loginWithEmail: (e: string, p: string, userRole?: "user" | "worker") => Promise<void>;
   signupWithEmail: (e: string, p: string, name: string, phone: string, userRole: "user" | "worker", extraData?: any) => Promise<void>;
   loginWithGoogle: (userRole: "user" | "worker") => Promise<void>;
   loginWithPhoneMock: (phone: string, name: string, userRole: "user" | "worker") => Promise<void>;
@@ -114,36 +114,94 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         
+        const savedRole = typeof window !== "undefined" ? localStorage.getItem("zenzy_active_role") as "user" | "worker" | "admin" | null : null;
         let collection_name = "users";
+
         if (isAdminUser) {
-          collection_name = "admins";
-          const adminDocRef = doc(db, "admins", currentUser.uid);
-          const adminDoc = await getDoc(adminDocRef);
-          
-          if (!adminDoc.exists()) {
-            // Auto create or migrate admin document if it doesn't exist
-            const adminData = {
-              uid: currentUser.uid,
-              email: currentUser.email || "",
-              name: currentUser.displayName || dynamicAdminData?.name || "Zenzy Admin",
-              role: dynamicAdminData?.role || "admin",
-              createdAt: dynamicAdminData?.createdAt || new Date().toISOString()
-            };
-            await setDoc(adminDocRef, adminData);
-            
-            // Delete old auto-generated doc if migrating
-            if (oldAdminDocId) {
-              try {
-                await deleteDoc(doc(db, "admins", oldAdminDocId));
-                console.log(`Successfully migrated admin document ${oldAdminDocId} to ${currentUser.uid}`);
-              } catch (err) {
-                console.error("Failed to delete migrated admin document:", err);
+          // Admin emails are always assigned the 'admin' role context to retain full system credentials
+          setRole("admin");
+
+          if (savedRole === "worker") {
+            collection_name = "workers";
+            const workerDocRef = doc(db, "workers", currentUser.uid);
+            const workerSnap = await getDoc(workerDocRef);
+            if (!workerSnap.exists()) {
+              const workerData = {
+                uid: currentUser.uid,
+                email: currentUser.email || `${currentUser.phoneNumber || currentUser.uid}@zenzy.com`,
+                name: currentUser.displayName || "Zenzy Pro",
+                phone: currentUser.phoneNumber || "",
+                role: "worker",
+                bio: "Hi, I am a skilled professional on Zenzy.",
+                description: "Skilled service provider ready to assist.",
+                category: "Electrician",
+                experience: "2 years",
+                pricing: "₹499/hr",
+                languages: ["Hindi", "English"],
+                status: "Available",
+                verified: true,
+                premium: true,
+                topRated: true,
+                stars: 5.0,
+                reviewsCount: 0,
+                documentStatus: "approved",
+                aadhaar: "",
+                pan: "",
+                portfolio: [],
+                avatar: currentUser.photoURL || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=400&h=400&q=80",
+                coverImage: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80",
+                createdAt: new Date().toISOString()
+              };
+              await setDoc(workerDocRef, workerData);
+              await setDoc(doc(db, "workers", currentUser.uid, "private", "kyc"), {
+                aadhaar: "",
+                pan: ""
+              });
+            }
+          } else if (savedRole === "user") {
+            collection_name = "users";
+            const userDocRef = doc(db, "users", currentUser.uid);
+            const userSnap = await getDoc(userDocRef);
+            if (!userSnap.exists()) {
+              const customerData = {
+                uid: currentUser.uid,
+                email: currentUser.email || `${currentUser.phoneNumber || currentUser.uid}@zenzy.com`,
+                name: currentUser.displayName || "Zenzy User",
+                phone: currentUser.phoneNumber || "",
+                role: "user",
+                walletBalance: 500,
+                favorites: [],
+                avatar: currentUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+                createdAt: new Date().toISOString()
+              };
+              await setDoc(userDocRef, customerData);
+            }
+          } else {
+            collection_name = "admins";
+            const adminDocRef = doc(db, "admins", currentUser.uid);
+            const adminDoc = await getDoc(adminDocRef);
+            if (!adminDoc.exists()) {
+              const adminData = {
+                uid: currentUser.uid,
+                email: currentUser.email || "",
+                name: currentUser.displayName || dynamicAdminData?.name || "Zenzy Admin",
+                role: dynamicAdminData?.role || "admin",
+                createdAt: dynamicAdminData?.createdAt || new Date().toISOString()
+              };
+              await setDoc(adminDocRef, adminData);
+              if (oldAdminDocId) {
+                try {
+                  await deleteDoc(doc(db, "admins", oldAdminDocId));
+                  console.log(`Successfully migrated admin document ${oldAdminDocId} to ${currentUser.uid}`);
+                } catch (err) {
+                  console.error("Failed to delete migrated admin document:", err);
+                }
               }
             }
           }
-          setRole("admin");
         } else {
-          // Check if user exists in workers or users collection first
+          // Standard role determination for users and workers
+          let targetRole: "user" | "worker" = "user";
           const workerDocRef = doc(db, "workers", currentUser.uid);
           const userDocRef = doc(db, "users", currentUser.uid);
           
@@ -152,11 +210,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             getDoc(userDocRef)
           ]);
 
-          const savedRole = typeof window !== "undefined" ? localStorage.getItem("zenzy_active_role") as "user" | "worker" | null : null;
-          let targetRole: "user" | "worker" = "user";
-
-          if (savedRole) {
-            targetRole = savedRole;
+          if (savedRole === "worker") {
+            targetRole = "worker";
+          } else if (savedRole === "user") {
+            targetRole = "user";
           } else if (workerSnap.exists() && !userSnap.exists()) {
             targetRole = "worker";
           } else if (userSnap.exists() && !workerSnap.exists()) {
@@ -165,7 +222,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             targetRole = "user";
           }
 
-          // Save the target role in localStorage so it stays in sync
           if (typeof window !== "undefined") {
             localStorage.setItem("zenzy_active_role", targetRole);
           }
@@ -301,9 +357,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
-  const loginWithEmail = async (email: string, pass: string) => {
+  const loginWithEmail = async (email: string, pass: string, userRole?: "user" | "worker") => {
     setLoading(true);
     try {
+      if (userRole && typeof window !== "undefined") {
+        localStorage.setItem("zenzy_active_role", userRole);
+      }
       await signInWithEmailAndPassword(auth, email, pass);
     } catch (error) {
       setLoading(false);

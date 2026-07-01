@@ -11,16 +11,97 @@ import Footer from "@/components/Footer";
 import ReviewModal from "@/components/ReviewModal";
 import LoadingScreen from "@/components/LoadingScreen";
 import { reverseGeocode } from "@/lib/locationUtils";
-import { CheckCircle, Award, Star, Phone, MessageSquare, MapPin, Calendar, Clock, CreditCard, ChevronRight, X, ZoomIn, QrCode, Wallet, Copy, Check } from "lucide-react";
+import { CheckCircle, Award, Star, Phone, MessageSquare, MapPin, Calendar, Clock, CreditCard, ChevronRight, X, ZoomIn, QrCode, Wallet, Copy, Check, ShieldAlert } from "lucide-react";
 
 export default function WorkerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const { user, userData, openAuthModal } = useAuth();
+  const { user, userData, role, logout, openAuthModal } = useAuth();
+  
+  const [workerBlockerOpen, setWorkerBlockerOpen] = useState(false);
+  const [adminEditOpen, setAdminEditOpen] = useState(false);
+
+  // Admin edit profile states
+  const [adminName, setAdminName] = useState("");
+  const [adminPhone, setAdminPhone] = useState("");
+  const [adminPricing, setAdminPricing] = useState("");
+  const [adminExperience, setAdminExperience] = useState("");
+  const [adminCategory, setAdminCategory] = useState("");
+  const [adminCategories, setAdminCategories] = useState("");
+  const [adminBio, setAdminBio] = useState("");
+  const [adminDescription, setAdminDescription] = useState("");
+  const [adminLanguages, setAdminLanguages] = useState("");
+  const [adminSkills, setAdminSkills] = useState("");
+  const [adminVerified, setAdminVerified] = useState(false);
+  const [adminPremium, setAdminPremium] = useState(false);
+  const [adminTopRated, setAdminTopRated] = useState(false);
+  const [adminStatus, setAdminStatus] = useState("Available");
+
+
+
+  const handleOpenBooking = () => {
+    if (!user) {
+      openAuthModal("login");
+      return;
+    }
+    if (role === "worker" || userData?.role === "worker") {
+      setWorkerBlockerOpen(true);
+      return;
+    }
+    setBookingOpen(true);
+  };
   const { id } = use(params);
 
   const [worker, setWorker] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (worker) {
+      setAdminName(worker.name || "");
+      setAdminPhone(worker.phone || "");
+      setAdminPricing(worker.pricing || "₹299/hr");
+      setAdminExperience(worker.experience || "2 years");
+      setAdminCategory(worker.category || "Electrician");
+      setAdminCategories(Array.isArray(worker.categories) ? worker.categories.join(", ") : worker.category || "Electrician");
+      setAdminBio(worker.bio || "");
+      setAdminDescription(worker.description || "");
+      setAdminLanguages(Array.isArray(worker.languages) ? worker.languages.join(", ") : "Hindi, English");
+      setAdminSkills(worker.skills || "");
+      setAdminVerified(!!worker.verified);
+      setAdminPremium(!!worker.premium);
+      setAdminTopRated(!!worker.topRated);
+      setAdminStatus(worker.status || "Available");
+    }
+  }, [worker]);
+
+  const handleAdminSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const workerDocRef = doc(db, id ? id : "");
+      const updatedData = {
+        name: adminName,
+        phone: adminPhone,
+        pricing: adminPricing,
+        experience: adminExperience,
+        category: adminCategory,
+        categories: adminCategories.split(",").map(c => c.trim()).filter(Boolean),
+        bio: adminBio,
+        description: adminDescription,
+        languages: adminLanguages.split(",").map(l => l.trim()).filter(Boolean),
+        skills: adminSkills,
+        verified: adminVerified,
+        premium: adminPremium,
+        topRated: adminTopRated,
+        status: adminStatus
+      };
+      await updateDoc(doc(db, "workers", id), updatedData);
+      setAdminEditOpen(false);
+      alert("Worker profile updated successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update profile as admin.");
+    }
+  };
 
   // Booking flow
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -360,7 +441,17 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
                 {/* Info */}
                 <div className="flex-1 space-y-2 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">{worker?.name}</h1>
+                    <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex flex-wrap items-center gap-3">
+                      {worker?.name}
+                      {(role === "admin" || userData?.role === "admin") && (
+                        <button
+                          onClick={() => setAdminEditOpen(true)}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition cursor-pointer shadow-md flex items-center gap-1 shrink-0"
+                        >
+                          Edit Profile (Admin)
+                        </button>
+                      )}
+                    </h1>
                     <div className="flex gap-1.5 flex-wrap">
                       {worker?.verified && (
                         <span className="bg-primary-50 dark:bg-primary-950/30 text-primary-600 dark:text-primary-400 text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase tracking-wider flex items-center gap-1">
@@ -550,7 +641,7 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
 
               <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
-                  onClick={() => { if (!user) { openAuthModal("login"); return; } setBookingOpen(true); }}
+                  onClick={handleOpenBooking}
                   className="w-full bg-slate-900 dark:bg-slate-100 hover:bg-primary-600 dark:hover:bg-slate-200 text-white dark:text-slate-950 py-4 rounded-xl font-bold text-[15px] transition shadow-[0_8px_20px_rgba(15,23,42,0.15)] dark:shadow-none flex items-center justify-center gap-2 cursor-pointer"
                 >
                   Book Now <ChevronRight className="w-4 h-4" />
@@ -1070,6 +1161,251 @@ export default function WorkerProfilePage({ params }: { params: Promise<{ id: st
       )}
 
       <ReviewModal isOpen={reviewOpen} onClose={() => setReviewOpen(false)} workerId={id} onReviewSubmitted={() => setReviewOpen(false)} />
+
+      {/* Worker account booking restricted modal */}
+      {workerBlockerOpen && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-955/70 backdrop-blur-md p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-[440px] rounded-[2.5rem] overflow-hidden shadow-2xl relative border border-slate-200/80 dark:border-slate-800 p-8 space-y-6 animate-scale-in text-center">
+            {/* Glow Effects inside Modal */}
+            <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary-500 rounded-full blur-[80px] opacity-15 pointer-events-none"></div>
+            <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-indigo-500 rounded-full blur-[80px] opacity-15 pointer-events-none"></div>
+
+            {/* Warning Icon */}
+            <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center mx-auto shadow-md">
+              <ShieldAlert className="w-8 h-8 animate-pulse" />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="font-extrabold text-xl text-slate-900 dark:text-white tracking-tight">Booking Restricted</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold leading-relaxed">
+                You are currently logged in as a verified **Zenzy Service Partner (Worker)**. Workers are not permitted to book services or schedule rentals.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-950/40 p-4.5 rounded-2xl border border-slate-200 dark:border-slate-850 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed">
+              ℹ️ To book a service or schedule a tour, please sign out and sign in using a standard **Customer** account.
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={async () => {
+                  setWorkerBlockerOpen(false);
+                  await logout();
+                  router.push("/auth?role=user");
+                }}
+                className="w-full bg-gradient-to-r from-primary-600 to-indigo-650 hover:from-primary-500 hover:to-indigo-600 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 shadow-md cursor-pointer flex items-center justify-center gap-2"
+              >
+                Sign Out & Switch to Customer
+              </button>
+              <button
+                onClick={() => setWorkerBlockerOpen(false)}
+                className="w-full border border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin edit worker profile modal */}
+      {adminEditOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-955/70 backdrop-blur-md p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-[650px] max-h-[85vh] rounded-[2rem] overflow-hidden shadow-2xl relative border border-slate-200 dark:border-slate-805 flex flex-col animate-scale-in">
+            {/* Header */}
+            <div className="bg-slate-900 text-white p-6 flex justify-between items-center shrink-0 border-b dark:border-slate-800">
+              <h3 className="font-extrabold text-base tracking-tight">Admin Control Panel: Edit Worker Profile</h3>
+              <button 
+                onClick={() => setAdminEditOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition active:scale-95"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Form Fields Body */}
+            <form onSubmit={handleAdminSaveProfile} className="p-7 overflow-y-auto space-y-4 flex-grow text-xs scrollbar-thin">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={adminName}
+                    onChange={(e) => setAdminName(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Phone Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={adminPhone}
+                    onChange={(e) => setAdminPhone(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Pricing Rate</label>
+                  <input
+                    type="text"
+                    required
+                    value={adminPricing}
+                    onChange={(e) => setAdminPricing(e.target.value)}
+                    placeholder="e.g. ₹499/hr"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Experience</label>
+                  <input
+                    type="text"
+                    required
+                    value={adminExperience}
+                    onChange={(e) => setAdminExperience(e.target.value)}
+                    placeholder="e.g. 5 years"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Primary Category</label>
+                  <input
+                    type="text"
+                    required
+                    value={adminCategory}
+                    onChange={(e) => setAdminCategory(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Categories (Comma separated)</label>
+                <input
+                  type="text"
+                  required
+                  value={adminCategories}
+                  onChange={(e) => setAdminCategories(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-semibold outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Languages (Comma separated)</label>
+                  <input
+                    type="text"
+                    required
+                    value={adminLanguages}
+                    onChange={(e) => setAdminLanguages(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-semibold outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Skills (Comma separated)</label>
+                  <input
+                    type="text"
+                    required
+                    value={adminSkills}
+                    onChange={(e) => setAdminSkills(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-semibold outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Short Bio</label>
+                <input
+                  type="text"
+                  required
+                  value={adminBio}
+                  onChange={(e) => setAdminBio(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-medium outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Detailed Description</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={adminDescription}
+                  onChange={(e) => setAdminDescription(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-medium outline-none resize-none"
+                />
+              </div>
+
+              {/* Status & Badges */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase block">Availability Status</label>
+                  <select
+                    value={adminStatus}
+                    onChange={(e) => setAdminStatus(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-850 border dark:border-slate-800 rounded-xl font-bold outline-none cursor-pointer"
+                  >
+                    <option value="Available">Available</option>
+                    <option value="Busy">Busy</option>
+                    <option value="Away">Away</option>
+                  </select>
+                </div>
+                
+                <div className="flex flex-col gap-2 justify-center pt-3">
+                  <label className="flex items-center gap-2 font-bold cursor-pointer text-slate-700 dark:text-slate-350">
+                    <input
+                      type="checkbox"
+                      checked={adminVerified}
+                      onChange={(e) => setAdminVerified(e.target.checked)}
+                      className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
+                    />
+                    <span>Verified Partner</span>
+                  </label>
+                  <label className="flex items-center gap-2 font-bold cursor-pointer text-slate-700 dark:text-slate-350">
+                    <input
+                      type="checkbox"
+                      checked={adminPremium}
+                      onChange={(e) => setAdminPremium(e.target.checked)}
+                      className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+                    />
+                    <span>Premium Partner</span>
+                  </label>
+                  <label className="flex items-center gap-2 font-bold cursor-pointer text-slate-700 dark:text-slate-350">
+                    <input
+                      type="checkbox"
+                      checked={adminTopRated}
+                      onChange={(e) => setAdminTopRated(e.target.checked)}
+                      className="w-4 h-4 accent-blue-500 rounded cursor-pointer"
+                    />
+                    <span>Top Rated Partner</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Footer Save Button */}
+              <div className="flex gap-3 pt-4 border-t dark:border-slate-800">
+                <button 
+                  type="button" 
+                  onClick={() => setAdminEditOpen(false)} 
+                  className="flex-1 bg-slate-100 dark:bg-slate-850 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-750 dark:text-slate-300 py-3.5 rounded-xl font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-650 hover:opacity-90 text-white py-3.5 rounded-xl font-black uppercase tracking-wider transition cursor-pointer shadow-md shadow-emerald-500/10"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );

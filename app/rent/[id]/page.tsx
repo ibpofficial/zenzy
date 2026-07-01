@@ -34,14 +34,30 @@ import {
   Grid,
   Info,
   Check,
-  X
+  X,
+  ShieldAlert
 } from "lucide-react";
 import { triggerNotification } from "@/lib/notifications";
 
 export default function PropertyDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const { user, userData, openAuthModal } = useAuth();
+  const { user, userData, role, logout, openAuthModal } = useAuth();
   const { id } = use(params);
+
+  const [workerBlockerOpen, setWorkerBlockerOpen] = useState(false);
+
+  const handleOpenTour = () => {
+    if (!user) {
+      openAuthModal("login");
+      return;
+    }
+    if (role === "worker" || userData?.role === "worker") {
+      setWorkerBlockerOpen(true);
+      return;
+    }
+    setTourPhone(userData?.phone || "");
+    setTourOpen(true);
+  };
 
   const [property, setProperty] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -487,14 +503,7 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
 
               <div className="pt-4 border-t dark:border-slate-800 space-y-2">
                 <button
-                  onClick={() => {
-                    if (!user) {
-                      openAuthModal("login");
-                      return;
-                    }
-                    setTourPhone(userData?.phone || "");
-                    setTourOpen(true);
-                  }}
+                  onClick={handleOpenTour}
                   disabled={property.available === false}
                   className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 rounded-xl font-bold text-[14px] transition shadow flex items-center justify-center gap-1.5 cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
@@ -606,6 +615,52 @@ export default function PropertyDetailsPage({ params }: { params: Promise<{ id: 
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 dark:bg-white text-white dark:text-slate-950 px-6 py-4 rounded-full font-bold text-[13px] shadow-float flex items-center gap-2.5 animate-fade-up">
           <CheckCircle className="w-4 h-4 text-emerald-500" />
           {toast}
+        </div>
+      )}
+
+      {/* Worker account tour booking restricted modal */}
+      {workerBlockerOpen && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-955/70 backdrop-blur-md p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-[440px] rounded-[2.5rem] overflow-hidden shadow-2xl relative border border-slate-200/80 dark:border-slate-800 p-8 space-y-6 animate-scale-in text-center">
+            {/* Glow Effects inside Modal */}
+            <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary-500 rounded-full blur-[80px] opacity-15 pointer-events-none"></div>
+            <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-indigo-500 rounded-full blur-[80px] opacity-15 pointer-events-none"></div>
+
+            {/* Warning Icon */}
+            <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center mx-auto shadow-md">
+              <ShieldAlert className="w-8 h-8 animate-pulse" />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="font-extrabold text-xl text-slate-900 dark:text-white tracking-tight">Booking Restricted</h3>
+              <p className="text-xs text-slate-550 dark:text-slate-405 font-semibold leading-relaxed">
+                You are currently logged in as a verified **Zenzy Service Partner (Worker)**. Workers are not permitted to schedule property tours or rent properties.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-950/40 p-4.5 rounded-2xl border border-slate-200 dark:border-slate-850 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed">
+              ℹ️ To schedule a tour or rent a property, please sign out and sign in using a standard **Customer** account.
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={async () => {
+                  setWorkerBlockerOpen(false);
+                  await logout();
+                  router.push("/auth?role=user");
+                }}
+                className="w-full bg-gradient-to-r from-primary-600 to-indigo-650 hover:from-primary-500 hover:to-indigo-600 text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-200 shadow-md cursor-pointer flex items-center justify-center gap-2"
+              >
+                Sign Out & Switch to Customer
+              </button>
+              <button
+                onClick={() => setWorkerBlockerOpen(false)}
+                className="w-full border border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
