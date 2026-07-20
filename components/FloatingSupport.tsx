@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { MessageSquare, X, Send, LifeBuoy, AlertCircle, CheckCircle, ExternalLink, HelpCircle, Phone, Sparkles, ChevronDown, ChevronUp, Clock, ShieldCheck, Ticket } from "lucide-react";
+import { MessageSquare, X, Send, LifeBuoy, AlertCircle, CheckCircle, ExternalLink, HelpCircle, ChevronDown, ChevronUp, Clock, ShieldCheck, Ticket } from "lucide-react";
 import { createPortal } from "react-dom";
 import { collection, addDoc, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -11,11 +11,11 @@ import Link from "next/link";
 const FAQS = [
   {
     q: "How do I track my service booking status?",
-    a: "You can track your service booking and communicate with your assigned professional directly in your Zenzy Workspace Portal."
+    a: "Track your service booking and communicate with your assigned professional directly in your Zenzy Workspace Portal."
   },
   {
     q: "What is Zenzy Escrow Payment Protection?",
-    a: "Your payment is held safely in escrow and only released to the professional once you inspect and approve the completed work."
+    a: "Your payment is held securely in escrow and released to the professional only after you approve the completed work."
   },
   {
     q: "How can I request a refund or reschedule?",
@@ -23,7 +23,7 @@ const FAQS = [
   },
   {
     q: "Are all professionals background verified?",
-    a: "Yes! Every active professional on Zenzy undergoes strict Aadhaar, PAN, and field work background verification."
+    a: "Yes. Every professional on Zenzy undergoes strict Aadhaar, PAN, and field work background verification."
   }
 ];
 
@@ -56,7 +56,6 @@ export default function FloatingSupport() {
     return () => window.removeEventListener("open-support-desk", handleOpen);
   }, []);
 
-  // Listen to user's tickets in real-time
   useEffect(() => {
     if (!user || !isOpen) return;
 
@@ -102,7 +101,7 @@ export default function FloatingSupport() {
 
       setSubject("");
       setMessage("");
-      setSuccessMsg("Ticket submitted successfully! Our help desk will respond shortly.");
+      setSuccessMsg("Ticket submitted successfully. Our team will respond shortly.");
       setActiveTab("history");
       setTimeout(() => setSuccessMsg(""), 5000);
     } catch (err) {
@@ -117,122 +116,100 @@ export default function FloatingSupport() {
 
   return createPortal(
     isOpen ? (
-      <div 
-        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/45 backdrop-blur-sm animate-fade-in font-sans"
+      <div
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
         onClick={() => setIsOpen(false)}
       >
-        <div 
-          className="w-full max-w-lg bg-white rounded-[28px] border border-slate-200/90 shadow-[0_25px_60px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden animate-scale-in text-left"
+        <div
+          className="w-full max-w-lg bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-scale-in"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header matching Zenzy Help Desk Clean Home Style */}
-          <div className="bg-white border-b border-slate-200/80 p-5 sm:p-6 flex items-center justify-between">
+          {/* Header */}
+          <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-50 border border-indigo-100/80 rounded-2xl text-indigo-600 shrink-0 shadow-xs">
+              <div className="p-2 bg-slate-100 rounded-lg text-slate-700">
                 <LifeBuoy className="w-5 h-5" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-extrabold text-base text-slate-900 tracking-tight">Zenzy Help Desk</h3>
-                  <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Live 24/7
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500 font-medium mt-0.5">Submit support tickets, track issues & instant resolution</p>
+                <h3 className="font-semibold text-slate-900 text-sm">Help Desk</h3>
+                <p className="text-[11px] text-slate-500 font-medium">Support & assistance</p>
               </div>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition cursor-pointer"
+              className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Subheader Segmented Tabs */}
-          <div className="bg-slate-50/80 px-5 py-3 border-b border-slate-200/60 flex items-center gap-1.5 shrink-0">
-            <button
-              onClick={() => setActiveTab("new")}
-              className={`flex-1 text-center py-2 px-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                activeTab === "new"
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "text-slate-600 hover:bg-slate-200/60"
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              New Ticket
-            </button>
-            <button
-              onClick={() => setActiveTab("history")}
-              className={`flex-1 text-center py-2 px-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                activeTab === "history"
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "text-slate-600 hover:bg-slate-200/60"
-              }`}
-            >
-              <Ticket className="w-3.5 h-3.5" />
-              My Tickets ({tickets.length})
-            </button>
-            <button
-              onClick={() => setActiveTab("faq")}
-              className={`flex-1 text-center py-2 px-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                activeTab === "faq"
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "text-slate-600 hover:bg-slate-200/60"
-              }`}
-            >
-              <HelpCircle className="w-3.5 h-3.5" />
-              Quick FAQs
-            </button>
+          {/* Tabs */}
+          <div className="px-6 py-3 border-b border-slate-200/60 flex gap-1 bg-slate-50/50">
+            {[
+              { id: "new", label: "New Ticket", icon: MessageSquare },
+              { id: "history", label: `Tickets (${tickets.length})`, icon: Ticket },
+              { id: "faq", label: "FAQ", icon: HelpCircle }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${isActive
+                      ? "bg-white text-slate-900 shadow-sm border border-slate-200/80"
+                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/80"
+                    }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Content Body */}
-          <div className="flex-1 overflow-y-auto p-5 sm:p-6 max-h-[420px]">
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto px-6 py-5 max-h-[440px]">
             {!user && activeTab !== "faq" ? (
-              <div className="py-8 flex flex-col items-center justify-center text-center space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center">
-                  <AlertCircle className="w-6 h-6 animate-pulse" />
+              <div className="py-10 flex flex-col items-center text-center">
+                <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+                  <AlertCircle className="w-6 h-6" />
                 </div>
-                <div className="space-y-1">
-                  <h4 className="font-black text-base text-slate-900">Sign In to Zenzy Help Desk</h4>
-                  <p className="text-slate-500 text-xs px-4 max-w-sm font-medium leading-relaxed">
-                    Log in to submit priority tickets, receive live notifications, and track agent replies.
-                  </p>
-                </div>
+                <h4 className="font-semibold text-slate-900 text-sm">Sign in to continue</h4>
+                <p className="text-slate-500 text-xs mt-1 max-w-xs">Sign in to submit tickets and track your support requests.</p>
                 <button
                   onClick={() => {
                     setIsOpen(false);
                     openAuthModal("login");
                   }}
-                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-black px-6 py-3 rounded-2xl shadow-md transition cursor-pointer active:scale-95"
+                  className="mt-4 bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium px-6 py-2.5 rounded-lg transition-all active:scale-95"
                 >
-                  Log In Now
+                  Sign In
                 </button>
               </div>
             ) : activeTab === "new" ? (
               <form onSubmit={handleSubmit} className="space-y-4">
                 {successMsg && (
-                  <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                    <p className="text-xs font-bold text-emerald-900 leading-relaxed">{successMsg}</p>
+                  <div className="bg-emerald-50 border border-emerald-200/60 rounded-lg p-3 flex items-start gap-2.5">
+                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <p className="text-xs text-emerald-800 font-medium">{successMsg}</p>
                   </div>
                 )}
 
-                {/* Category Selection */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Category</label>
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    Category
+                  </label>
                   <div className="flex flex-wrap gap-1.5">
                     {CATEGORIES.map((cat) => (
                       <button
                         key={cat}
                         type="button"
                         onClick={() => setSelectedCategory(cat)}
-                        className={`text-[10.5px] font-bold px-3 py-1.5 rounded-xl border transition cursor-pointer ${
-                          selectedCategory === cat
-                            ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
-                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                        }`}
+                        className={`text-[10px] font-medium px-3 py-1.5 rounded-lg border transition-all ${selectedCategory === cat
+                            ? "bg-slate-900 text-white border-slate-900"
+                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                          }`}
                       >
                         {cat}
                       </button>
@@ -240,77 +217,77 @@ export default function FloatingSupport() {
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Subject / Short Title</label>
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    Subject
+                  </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Need assistance with booking reschedule"
+                    placeholder="Brief summary of your issue"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-xs font-bold outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 transition-all text-slate-900"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-slate-400 focus:bg-white transition-all"
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Detailed Message</label>
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    Message
+                  </label>
                   <textarea
                     required
                     rows={4}
-                    placeholder="Provide details about your query, booking ID, or requirement..."
+                    placeholder="Describe your issue in detail..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-xs font-medium outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10 transition-all text-slate-900 resize-none"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-slate-400 focus:bg-white transition-all resize-none"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] disabled:opacity-50"
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
                 >
                   <Send className="w-4 h-4" />
-                  {submitting ? "Submitting Ticket..." : "Submit Support Ticket"}
+                  {submitting ? "Submitting..." : "Submit Ticket"}
                 </button>
               </form>
             ) : activeTab === "history" ? (
               <div className="space-y-3">
                 {tickets.length === 0 ? (
-                  <div className="text-center py-10 text-slate-400 space-y-2">
-                    <MessageSquare className="w-10 h-10 mx-auto opacity-20 mb-2" />
-                    <p className="text-xs font-extrabold text-slate-700">No support tickets found.</p>
-                    <p className="text-[10px] text-slate-400">Submit a query under the New Ticket tab to get help.</p>
+                  <div className="text-center py-10">
+                    <MessageSquare className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                    <p className="text-sm text-slate-500 font-medium">No tickets yet</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Submit your first support request</p>
                   </div>
                 ) : (
                   tickets.map((t) => (
-                    <div
-                      key={t.id}
-                      className="border border-slate-200/80 p-4 rounded-2xl bg-white shadow-xs space-y-2.5 text-left text-xs"
-                    >
-                      <div className="flex justify-between items-start gap-3">
+                    <div key={t.id} className="border border-slate-200 rounded-lg p-4 space-y-2.5">
+                      <div className="flex items-start justify-between">
                         <div>
-                          <span className="text-[9px] font-black uppercase text-indigo-600 tracking-wider block">{t.category || "General"}</span>
-                          <span className="font-extrabold text-slate-900 text-xs block mt-0.5">{t.subject}</span>
+                          <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
+                            {t.category || "General"}
+                          </span>
+                          <p className="font-medium text-slate-900 text-sm mt-0.5">{t.subject}</p>
                         </div>
-                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                          t.status === "Resolved"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : "bg-amber-50 text-amber-700 border border-amber-200"
-                        }`}>
+                        <span className={`text-[10px] font-medium px-2.5 py-1 rounded-full ${t.status === "Resolved"
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-amber-50 text-amber-700"
+                          }`}>
                           {t.status}
                         </span>
                       </div>
-                      <p className="text-slate-600 font-medium text-xs leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <p className="text-slate-600 text-sm bg-slate-50 rounded-lg p-3">
                         {t.message}
                       </p>
                       {t.reply && (
-                        <div className="bg-indigo-50/70 border border-indigo-100 p-3 rounded-xl space-y-1">
-                          <span className="text-[10px] font-black text-indigo-700 block flex items-center gap-1">
-                            <Sparkles className="w-3 h-3 text-indigo-600" /> Zenzy Agent Response:
-                          </span>
-                          <p className="text-slate-800 font-semibold leading-relaxed text-xs">
-                            {t.reply}
+                        <div className="bg-slate-50 rounded-lg p-3 border-l-2 border-slate-300">
+                          <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1">
+                            Agent Response
                           </p>
+                          <p className="text-slate-700 text-sm">{t.reply}</p>
                         </div>
                       )}
                     </div>
@@ -318,29 +295,25 @@ export default function FloatingSupport() {
                 )}
               </div>
             ) : (
-              /* FAQ TAB */
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {FAQS.map((faq, idx) => {
                   const isOpenFaq = openFaqIdx === idx;
                   return (
-                    <div
-                      key={idx}
-                      className="border border-slate-200/80 rounded-2xl bg-white overflow-hidden transition-all shadow-xs"
-                    >
+                    <div key={idx} className="border border-slate-200 rounded-lg overflow-hidden">
                       <button
                         type="button"
                         onClick={() => setOpenFaqIdx(isOpenFaq ? null : idx)}
-                        className="w-full p-3.5 text-left flex justify-between items-center gap-3 font-extrabold text-xs text-slate-900 hover:bg-slate-50 transition cursor-pointer"
+                        className="w-full px-4 py-3 text-left flex justify-between items-center gap-3 text-sm font-medium text-slate-900 hover:bg-slate-50 transition-colors"
                       >
                         <span>{faq.q}</span>
                         {isOpenFaq ? (
-                          <ChevronUp className="w-4 h-4 text-indigo-600 shrink-0" />
+                          <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
                         ) : (
                           <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
                         )}
                       </button>
                       {isOpenFaq && (
-                        <div className="px-3.5 pb-3.5 text-xs text-slate-600 font-medium leading-relaxed border-t border-slate-100 pt-2 bg-slate-50/50">
+                        <div className="px-4 pb-3 text-sm text-slate-600 border-t border-slate-100 pt-2.5 bg-slate-50/50">
                           {faq.a}
                         </div>
                       )}
@@ -351,18 +324,19 @@ export default function FloatingSupport() {
             )}
           </div>
 
-          {/* Clean Premium Footer */}
-          <div className="bg-slate-50 border-t border-slate-200/60 p-4 flex items-center justify-between text-xs font-bold text-slate-500 shrink-0">
-            <div className="flex items-center gap-1.5 text-[11px]">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Certified Zenzy Support</span>
+          {/* Footer */}
+          <div className="px-6 py-3.5 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[10px] font-medium text-slate-500">
+              <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
+              <span>Secure support</span>
             </div>
             <Link
               href="/contact"
               onClick={() => setIsOpen(false)}
-              className="inline-flex items-center gap-1 text-[11px] font-extrabold text-indigo-600 hover:underline"
+              className="text-[10px] font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1"
             >
-              Full Help Directory <ExternalLink className="w-3 h-3" />
+              Help Center
+              <ExternalLink className="w-3 h-3" />
             </Link>
           </div>
         </div>
@@ -371,4 +345,3 @@ export default function FloatingSupport() {
     document.body
   );
 }
-
