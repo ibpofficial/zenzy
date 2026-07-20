@@ -598,53 +598,53 @@ export default function CustomerDashboardPage() {
       <main className="relative z-10 max-w-7xl mx-auto w-full px-5 sm:px-8 pt-28 pb-16 flex-grow">
 
         {/* Hero Welcome Banner */}
-        <div className="relative overflow-hidden mb-8 rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-500 p-7 sm:p-10 shadow-2xl">
-          <div className="absolute top-0 right-0 w-80 h-80 rounded-full opacity-20 blur-3xl bg-white" />
-          <div className="absolute -bottom-16 -left-8 w-64 h-64 rounded-full opacity-10 blur-3xl bg-white" />
-          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'repeating-linear-gradient(45deg, white 0, white 1px, transparent 0, transparent 50%)', backgroundSize: '14px 14px' }} />
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+        <div className="mb-8 rounded-2xl bg-white border border-slate-200/80 p-6 sm:p-8 shadow-sm relative overflow-hidden transition-all duration-180">
+          <div className="absolute top-0 right-0 w-72 h-72 rounded-full opacity-30 blur-3xl bg-emerald-50 pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="flex items-center gap-5">
               <div className="relative group shrink-0">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-white/30 shadow-2xl">
+                <div className="w-18 h-18 rounded-2xl overflow-hidden ring-2 ring-emerald-500/20 border border-slate-200 shadow-sm">
                   <img
                     src={profAvatar || userData?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80"}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     alt="Customer Profile"
                   />
                 </div>
                 <label
                   htmlFor="avatarUploadHeader"
-                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-300"
+                  className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-180"
                   title="Upload profile photo"
                 >
                   <Upload className="w-4 h-4 text-white" />
-                  <span className="text-[8px] font-bold text-white">Upload</span>
+                  <span className="text-[9px] font-bold text-white">Upload</span>
                 </label>
                 <input id="avatarUploadHeader" type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white border-2 border-emerald-500 shadow-md flex items-center justify-center">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-white border-2 border-emerald-500 shadow-sm flex items-center justify-center">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 </span>
               </div>
               <div>
-                <p className="text-indigo-100 text-[10px] font-black uppercase tracking-widest mb-1">Welcome back</p>
-                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-sm">{userData?.name || "User"}!</h1>
-                <p className="text-indigo-100/80 text-xs font-semibold mt-1.5 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Verified Account
-                </p>
+                <p className="text-emerald-700 text-[10px] font-extrabold uppercase tracking-wider mb-1">Welcome back</p>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{userData?.name || "User"}</h1>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Verified Customer Account
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex flex-wrap gap-3 w-full md:w-auto">
-              <div className="flex-1 md:flex-none px-6 py-4 rounded-2xl text-center bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-300">
-                <span className="block text-2xl font-black text-white">{bookings.length}</span>
-                <span className="text-[9px] uppercase text-indigo-100 tracking-wider font-bold">Bookings</span>
+              <div className="flex-1 md:flex-none px-5 py-3 rounded-xl text-center bg-slate-50 border border-slate-200/70 hover:border-slate-300 transition-all duration-180">
+                <span className="block text-2xl font-extrabold text-slate-900">{bookings.length}</span>
+                <span className="text-[10px] uppercase text-slate-500 tracking-wider font-bold">Bookings</span>
               </div>
-              <div className="flex-1 md:flex-none px-6 py-4 rounded-2xl text-center bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-300">
-                <span className="block text-2xl font-black text-white">{addresses.length}</span>
-                <span className="text-[9px] uppercase text-indigo-100 tracking-wider font-bold">Addresses</span>
+              <div className="flex-1 md:flex-none px-5 py-3 rounded-xl text-center bg-slate-50 border border-slate-200/70 hover:border-slate-300 transition-all duration-180">
+                <span className="block text-2xl font-extrabold text-slate-900">{addresses.length}</span>
+                <span className="text-[10px] uppercase text-slate-500 tracking-wider font-bold">Addresses</span>
               </div>
-              <div className="flex-1 md:flex-none px-6 py-4 rounded-2xl text-center bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-300">
-                <span className="block text-2xl font-black text-white">{favorites.length}</span>
-                <span className="text-[9px] uppercase text-indigo-100 tracking-wider font-bold">Favorites</span>
+              <div className="flex-1 md:flex-none px-5 py-3 rounded-xl text-center bg-slate-50 border border-slate-200/70 hover:border-slate-300 transition-all duration-180">
+                <span className="block text-2xl font-extrabold text-slate-900">{favorites.length}</span>
+                <span className="text-[10px] uppercase text-slate-500 tracking-wider font-bold">Favorites</span>
               </div>
             </div>
           </div>
@@ -655,9 +655,9 @@ export default function CustomerDashboardPage() {
 
           {/* Sidebar Menu */}
           <aside className="lg:col-span-1 space-y-3">
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
               <div className="p-4 flex items-center gap-3 border-b border-slate-100">
-                <div className="w-9 h-9 rounded-xl overflow-hidden ring-2 ring-indigo-100 shrink-0">
+                <div className="w-9 h-9 rounded-xl overflow-hidden ring-2 ring-emerald-500/20 shrink-0 border border-slate-200">
                   <img
                     src={profAvatar || userData?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80"}
                     className="w-full h-full object-cover"
@@ -669,7 +669,7 @@ export default function CustomerDashboardPage() {
                   <p className="text-[10px] text-slate-400 font-semibold truncate">{userData?.email || user?.email}</p>
                 </div>
               </div>
-              <div className="p-3 flex flex-col gap-1">
+              <div className="p-2 flex flex-col gap-1">
                 {[
                   { id: "overview", label: "Overview", icon: User },
                   { id: "bookings", label: "My Bookings", icon: Calendar, badge: bookings.filter(b => ["Pending", "Accepted", "OnTheWay", "Started", "Job Done"].includes(b.status)).length },
@@ -686,15 +686,15 @@ export default function CustomerDashboardPage() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as Tab)}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 font-bold text-xs transition-all duration-200 cursor-pointer border-none rounded-xl ${isActive
-                        ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/30"
-                        : "text-slate-500 hover:bg-indigo-50 hover:text-indigo-700"
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 font-semibold text-xs transition-all duration-180 ease-in-out cursor-pointer border-none rounded-xl ${isActive
+                        ? "bg-emerald-600 text-white shadow-sm font-bold"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium"
                         }`}
                     >
-                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
                       <span className="flex-1 text-left">{tab.label}</span>
                       {tab.badge && tab.badge > 0 ? (
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isActive ? "bg-white/30 text-white" : "bg-red-500 text-white"
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${isActive ? "bg-white/25 text-white" : "bg-red-500 text-white"
                           }`}>
                           {tab.badge}
                         </span>
@@ -706,7 +706,7 @@ export default function CustomerDashboardPage() {
             </div>
             <button
               onClick={logout}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-xs transition-all duration-200 cursor-pointer text-red-500 hover:text-white hover:bg-red-500 bg-red-50 border border-red-100 hover:shadow-lg hover:shadow-red-500/20"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-xs transition-all duration-180 ease-in-out cursor-pointer text-slate-700 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 shadow-sm"
             >
               Logout Session
             </button>
@@ -717,37 +717,37 @@ export default function CustomerDashboardPage() {
 
             {/* TAB: OVERVIEW */}
             {activeTab === "overview" && (
-              <div className="space-y-8 animate-fade-up">
+              <div className="space-y-6 animate-fade-up">
                 {/* Stats quick panel */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                   {/* Completed Jobs */}
-                  <div className="bg-white border border-slate-100 p-5 rounded-2xl flex items-center gap-4 hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-200 transition-all duration-300 shadow-sm">
-                    <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
+                  <div className="bg-white border border-slate-200/80 p-5 rounded-2xl flex items-center gap-4 hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-300 transition-all duration-180 ease-in-out shadow-sm">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100/80">
                       <Calendar className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Completed Jobs</span>
-                      <span className="text-xl font-black text-slate-900">{bookings.filter(b => b.status === "Completed").length}</span>
+                      <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block">Completed Jobs</span>
+                      <span className="text-xl font-extrabold text-slate-900">{bookings.filter(b => b.status === "Completed").length}</span>
                     </div>
                   </div>
                   {/* Favorites */}
-                  <div className="bg-white border border-slate-100 p-5 rounded-2xl flex items-center gap-4 hover:-translate-y-0.5 hover:shadow-md hover:border-rose-200 transition-all duration-300 shadow-sm">
-                    <div className="w-11 h-11 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 border border-rose-100">
+                  <div className="bg-white border border-slate-200/80 p-5 rounded-2xl flex items-center gap-4 hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-300 transition-all duration-180 ease-in-out shadow-sm">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100/80">
                       <Heart className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Favored Pros</span>
-                      <span className="text-xl font-black text-slate-900">{favorites.length}</span>
+                      <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block">Favored Pros</span>
+                      <span className="text-xl font-extrabold text-slate-900">{favorites.length}</span>
                     </div>
                   </div>
                   {/* Reviews */}
-                  <div className="bg-white border border-slate-100 p-5 rounded-2xl flex items-center gap-4 hover:-translate-y-0.5 hover:shadow-md hover:border-amber-200 transition-all duration-300 shadow-sm">
-                    <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 border border-amber-100">
+                  <div className="bg-white border border-slate-200/80 p-5 rounded-2xl flex items-center gap-4 hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-300 transition-all duration-180 ease-in-out shadow-sm">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100/80">
                       <Star className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Reviews Written</span>
-                      <span className="text-xl font-black text-slate-900">{userReviews.length}</span>
+                      <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block">Reviews Written</span>
+                      <span className="text-xl font-extrabold text-slate-900">{userReviews.length}</span>
                     </div>
                   </div>
                 </div>
@@ -756,24 +756,24 @@ export default function CustomerDashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                   {/* Workers */}
-                  <div className="bg-white/80 backdrop-blur-xl border border-slate-200/50 p-6 rounded-3xl shadow-card space-y-4">
-                    <h3 className="font-extrabold text-sm uppercase tracking-wider border-b border-slate-100 pb-2.5">
+                  <div className="bg-white border border-slate-200/80 p-6 rounded-2xl shadow-sm space-y-4">
+                    <h3 className="font-extrabold text-xs text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-3">
                       Recently Viewed Services
                     </h3>
                     {recentWorkers.length === 0 ? (
                       <p className="text-slate-400 text-xs font-semibold py-4">No recently viewed professionals.</p>
                     ) : (
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {recentWorkers.map(w => (
-                          <Link key={w.id} href={`/${w.slug || w.id}`} className="flex items-center justify-between p-2.5 hover:bg-slate-50/50 rounded-2xl transition border border-transparent hover:border-slate-200">
+                          <Link key={w.id} href={`/${w.slug || w.id}`} className="flex items-center justify-between p-2.5 hover:bg-slate-50 rounded-xl transition-all duration-180 border border-transparent hover:border-slate-200/70">
                             <div className="flex items-center gap-3">
-                              <img src={w.avatar} className="w-9 h-9 rounded-lg object-cover border" alt="" />
+                              <img src={w.avatar} className="w-9 h-9 rounded-lg object-cover border border-slate-200" alt="" />
                               <div>
                                 <span className="font-bold text-xs text-slate-900 block">{w.name}</span>
                                 <span className="text-[10px] text-slate-400 font-semibold">{w.category}</span>
                               </div>
                             </div>
-                            <span className="text-gold font-extrabold text-xs">★ {w.stars}</span>
+                            <span className="text-amber-500 font-extrabold text-xs">★ {w.stars}</span>
                           </Link>
                         ))}
                       </div>
@@ -781,24 +781,24 @@ export default function CustomerDashboardPage() {
                   </div>
 
                   {/* Rentals */}
-                  <div className="bg-white/80 backdrop-blur-xl border border-slate-200/50 p-6 rounded-3xl shadow-card space-y-4">
-                    <h3 className="font-extrabold text-sm uppercase tracking-wider border-b border-slate-100 pb-2.5">
+                  <div className="bg-white border border-slate-200/80 p-6 rounded-2xl shadow-sm space-y-4">
+                    <h3 className="font-extrabold text-xs text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-3">
                       Recently Viewed Rentals
                     </h3>
                     {recentRentals.length === 0 ? (
                       <p className="text-slate-400 text-xs font-semibold py-4">No recently viewed properties.</p>
                     ) : (
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {recentRentals.map(r => (
-                          <Link key={r.id} href={`/rent/${r.id}`} className="flex items-center justify-between p-2.5 hover:bg-slate-50/50 rounded-2xl transition border border-transparent hover:border-slate-200">
+                          <Link key={r.id} href={`/rent/${r.id}`} className="flex items-center justify-between p-2.5 hover:bg-slate-50 rounded-xl transition-all duration-180 border border-transparent hover:border-slate-200/70">
                             <div className="flex items-center gap-3">
-                              <img src={r.images?.[0]} className="w-9 h-9 rounded-lg object-cover border" alt="" />
+                              <img src={r.images?.[0]} className="w-9 h-9 rounded-lg object-cover border border-slate-200" alt="" />
                               <div>
                                 <span className="font-bold text-xs text-slate-900 block truncate max-w-[140px]">{r.title}</span>
                                 <span className="text-[10px] text-slate-400 font-semibold">{r.location}</span>
                               </div>
                             </div>
-                            <span className="font-black text-xs text-slate-800">₹{r.price}</span>
+                            <span className="font-extrabold text-xs text-slate-900">₹{r.price}</span>
                           </Link>
                         ))}
                       </div>
@@ -841,68 +841,68 @@ export default function CustomerDashboardPage() {
                         ) : (
                           <div className="space-y-4">
                             {activeBookingsList.map((book) => (
-                              <div key={book.id} className="bg-gradient-to-b from-white to-slate-50/50 border border-slate-200/80 p-6 rounded-2xl flex flex-col gap-5 shadow-[0_4px_20px_rgba(0,0,0,0.015)] hover:shadow-[0_20px_40px_rgba(37,99,235,0.06)] hover:border-blue-500 transition-all duration-300 group">
+                              <div key={book.id} className="bg-white border border-slate-200/80 p-6 rounded-2xl flex flex-col gap-5 shadow-sm hover:border-slate-300 transition-all duration-180 ease-in-out group">
                                 {/* Summary Header */}
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                   <div className="flex gap-4">
-                                    <div className="relative w-14 h-14 rounded-2xl overflow-hidden shrink-0 border border-slate-200/80 shadow-md bg-slate-100 flex items-center justify-center group-hover:border-blue-500 transition-colors duration-300">
-                                      <img src={book.workerAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=100&h=100&q=80"} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="" />
+                                    <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-slate-200 bg-slate-50 flex items-center justify-center">
+                                      <img src={book.workerAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=100&h=100&q=80"} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt="" />
                                     </div>
                                     <div className="space-y-1">
                                       <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="font-extrabold text-[15px] text-slate-855 group-hover:text-blue-600 transition-colors">{book.workerName || book.propertyTitle}</span>
-                                        <span className={`inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${book.status === "Pending" ? "bg-amber-500/10 border-amber-500/20 text-amber-600" :
-                                          book.status === "Accepted" ? "bg-blue-500/10 border-blue-500/20 text-blue-600" :
-                                            book.status === "OnTheWay" ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-600" :
-                                              book.status === "Started" ? "bg-purple-500/10 border-purple-500/20 text-purple-600" :
-                                                "bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
+                                        <span className="font-extrabold text-[15px] text-slate-900 group-hover:text-emerald-700 transition-colors duration-180">{book.workerName || book.propertyTitle}</span>
+                                        <span className={`inline-flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${book.status === "Pending" ? "bg-amber-50 text-amber-700 border-amber-200/60" :
+                                          book.status === "Accepted" ? "bg-blue-50 text-blue-700 border-blue-200/60" :
+                                            book.status === "OnTheWay" ? "bg-indigo-50 text-indigo-700 border-indigo-200/60" :
+                                              book.status === "Started" ? "bg-purple-50 text-purple-700 border-purple-200/60" :
+                                                "bg-emerald-50 text-emerald-700 border-emerald-200/60"
                                           }`}>
                                           <span className={`w-1.5 h-1.5 rounded-full ${book.status === "Pending" ? "bg-amber-500 animate-pulse" :
                                             book.status === "Accepted" ? "bg-blue-500 animate-pulse" :
                                               book.status === "OnTheWay" ? "bg-indigo-500 animate-pulse" :
-                                                "bg-purple-500 animate-pulse"
+                                                "bg-emerald-500"
                                             }`}></span>
                                           {book.status === "OnTheWay" ? "On The Way" : book.status === "Job Done" ? "Pending Approval" : book.status}
                                         </span>
                                       </div>
-                                      <span className="text-[11px] text-slate-400 font-bold block">
+                                      <span className="text-[11px] text-slate-500 font-semibold block">
                                         {book.workerCategory || "Rental Inquiry"} · {book.date} at {book.time}
                                       </span>
                                       {book.invoiceNumber && (
-                                        <span className="text-[9.5px] text-slate-500 font-mono block">ID: {book.invoiceNumber}</span>
+                                        <span className="text-[9.5px] text-slate-400 font-mono block">ID: {book.invoiceNumber}</span>
                                       )}
                                     </div>
                                   </div>
                                   <div className="text-right sm:text-right w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100 flex sm:flex-col justify-between sm:justify-start items-center sm:items-end gap-1">
-                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest block">{book.paymentMethod || "COD"}</span>
-                                    <span className="text-[16.5px] font-black text-slate-900 bg-slate-50 px-3.5 py-1 rounded-xl border border-slate-100 block shadow-inner">₹{book.price || 0}</span>
+                                    <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">{book.paymentMethod || "COD"}</span>
+                                    <span className="text-[16px] font-extrabold text-slate-900 bg-slate-50 px-3 py-1 rounded-xl border border-slate-200/60 block">₹{book.price || 0}</span>
                                   </div>
                                 </div>
 
                                 {/* Tracker Visual */}
                                 {book.type !== "Rental Inquire" && (
-                                  <div className="border-t border-b border-slate-100/60 py-3 my-0.5">
+                                  <div className="border-t border-b border-slate-100 py-3 my-0.5">
                                     <BookingTracker status={book.status} />
                                   </div>
                                 )}
 
                                 {/* Job completion verification block */}
                                 {book.status === "Job Done" && (
-                                  <div className="bg-emerald-50/30 border border-emerald-200/40 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                                  <div className="bg-emerald-50/50 border border-emerald-200/60 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                                     <div>
-                                      <p className="text-xs font-extrabold text-slate-855">The professional finished the task!</p>
-                                      <p className="text-[10.5px] text-slate-500 font-semibold mt-0.5">Confirm job verification to release standard payouts.</p>
+                                      <p className="text-xs font-bold text-slate-900">The professional finished the task!</p>
+                                      <p className="text-[10.5px] text-slate-500 font-medium mt-0.5">Confirm job verification to release standard payouts.</p>
                                     </div>
                                     <div className="flex gap-2 w-full md:w-auto">
                                       <button
                                         onClick={() => handleOpenComplaintModal(book)}
-                                        className="flex-1 md:flex-initial bg-red-50 hover:bg-red-100/80 text-red-500 border border-red-200/40 px-3.5 py-2 rounded-xl text-xs font-bold transition duration-205 cursor-pointer"
+                                        className="flex-1 md:flex-initial bg-white hover:bg-red-50 text-red-600 border border-red-200/70 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-180 cursor-pointer"
                                       >
                                         Raise Complaint
                                       </button>
                                       <button
                                         onClick={() => handleVerifyWork(book.id, book.workerId)}
-                                        className="flex-1 md:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition duration-205 shadow-sm cursor-pointer animate-pulse"
+                                        className="flex-1 md:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all duration-180 shadow-sm cursor-pointer"
                                       >
                                         Verify & Close
                                       </button>
@@ -915,9 +915,9 @@ export default function CustomerDashboardPage() {
                                   {["Accepted", "OnTheWay", "Started", "Job Done"].includes(book.status) && (
                                     <button
                                       onClick={() => setActiveChatBooking(book)}
-                                      className="bg-slate-50 hover:bg-slate-100 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition duration-205 flex items-center gap-1.5 cursor-pointer shadow-sm text-slate-700"
+                                      className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-180 flex items-center gap-1.5 cursor-pointer shadow-sm text-slate-700"
                                     >
-                                      <MessageSquare className="w-3.5 h-3.5 text-slate-450" /> Chat with Pro
+                                      <MessageSquare className="w-3.5 h-3.5 text-slate-400" /> Chat with Pro
                                     </button>
                                   )}
                                 </div>
@@ -1144,12 +1144,12 @@ export default function CustomerDashboardPage() {
             {activeTab === "profile" && (
               <div className="space-y-6 animate-fade-up">
                 {/* Header */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
                   <div className="flex items-center gap-3 mb-1">
-                    <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/80">
                       <Settings className="w-4 h-4" />
                     </div>
-                    <h2 className="text-base font-black text-slate-900 tracking-tight">Profile Settings</h2>
+                    <h2 className="text-base font-extrabold text-slate-900 tracking-tight">Profile Settings</h2>
                   </div>
                   <p className="text-slate-400 text-xs font-semibold ml-11">Manage your public identity, contact info, and bio.</p>
                 </div>
@@ -1158,24 +1158,24 @@ export default function CustomerDashboardPage() {
 
                   {/* LEFT: Profile Preview Card */}
                   <div className="lg:col-span-1">
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                       {/* Banner */}
-                      <div className="h-20 bg-gradient-to-br from-indigo-500 via-indigo-400 to-violet-400 relative">
-                        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'repeating-linear-gradient(45deg, white 0, white 1px, transparent 0, transparent 50%)', backgroundSize: '10px 10px' }} />
+                      <div className="h-16 bg-slate-900 relative">
+                        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:12px_12px]" />
                       </div>
                       {/* Avatar */}
                       <div className="flex flex-col items-center px-6 pb-6">
-                        <div className="relative -mt-10 mb-3 group">
-                          <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-white shadow-lg">
+                        <div className="relative -mt-9 mb-3 group">
+                          <div className="w-18 h-18 rounded-2xl overflow-hidden ring-4 ring-white shadow-md border border-slate-200">
                             <img
                               src={profAvatar || userData?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80"}
-                              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                              className="w-full h-full object-cover transition-transform duration-180 group-hover:scale-105"
                               alt="Profile Photo"
                             />
                           </div>
                           <label
                             htmlFor="avatarUploadSettings"
-                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-300"
+                            className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-180"
                           >
                             <Upload className="w-4 h-4 text-white" />
                             <span className="text-[8px] text-white font-bold">Change</span>
@@ -1183,22 +1183,22 @@ export default function CustomerDashboardPage() {
                           <input id="avatarUploadSettings" type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                           <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" />
                         </div>
-                        <p className="font-black text-sm text-slate-900 text-center">{profName || userData?.name || "Your Name"}</p>
+                        <p className="font-extrabold text-sm text-slate-900 text-center">{profName || userData?.name || "Your Name"}</p>
                         <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{user?.email}</p>
                         {profBio && <p className="text-[10px] text-slate-500 text-center mt-2 leading-relaxed italic">&ldquo;{profBio.slice(0, 80)}{profBio.length > 80 ? '…' : ''}&rdquo;</p>}
                         <div className="w-full mt-4 pt-4 border-t border-slate-100 space-y-2">
                           <div className="flex items-center gap-2 text-[10px] text-slate-500 font-semibold">
-                            <span className="w-6 h-6 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">📱</span>
+                            <span className="w-6 h-6 rounded-lg bg-slate-50 border border-slate-200/60 flex items-center justify-center shrink-0">📱</span>
                             {profPhone || userData?.phone || "No phone set"}
                           </div>
                           <div className="flex items-center gap-2 text-[10px] text-slate-500 font-semibold">
-                            <span className="w-6 h-6 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0 text-indigo-500">
+                            <span className="w-6 h-6 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 text-emerald-600">
                               <ShieldCheck className="w-3 h-3" />
                             </span>
                             Verified Customer Account
                           </div>
                           <div className="flex items-center gap-2 text-[10px] text-slate-500 font-semibold">
-                            <span className="w-6 h-6 rounded-lg bg-amber-50 flex items-center justify-center shrink-0 text-amber-500">
+                            <span className="w-6 h-6 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0 text-amber-500">
                               <Star className="w-3 h-3" />
                             </span>
                             {bookings.filter(b => b.status === "Completed").length} bookings completed
@@ -1211,10 +1211,10 @@ export default function CustomerDashboardPage() {
                   {/* RIGHT: Edit Form */}
                   <div className="lg:col-span-2 space-y-4">
                     {/* Personal Info */}
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
                       <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-                        <User className="w-3.5 h-3.5 text-indigo-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Personal Information</span>
+                        <User className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Personal Information</span>
                       </div>
                       <form onSubmit={handleSaveProfile} className="space-y-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1228,7 +1228,7 @@ export default function CustomerDashboardPage() {
                               value={profName}
                               onChange={(e) => setProfName(e.target.value)}
                               placeholder="Your full name"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all duration-180 placeholder:text-slate-300"
                             />
                           </div>
                           <div className="space-y-1.5">
@@ -1241,7 +1241,7 @@ export default function CustomerDashboardPage() {
                               value={profPhone}
                               onChange={(e) => setProfPhone(e.target.value)}
                               placeholder="+91 98765 43210"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all duration-180 placeholder:text-slate-300"
                             />
                           </div>
                         </div>
@@ -1266,14 +1266,14 @@ export default function CustomerDashboardPage() {
                             value={profBio}
                             onChange={(e) => setProfBio(e.target.value)}
                             placeholder="Share a short description about yourself — your interests, preferences, or anything helpful for service professionals."
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none resize-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none resize-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all duration-180 placeholder:text-slate-300"
                           />
                         </div>
                         <div className="flex items-center gap-3 pt-1">
                           <button
                             type="submit"
                             disabled={savingProfile}
-                            className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 shadow-md shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-px"
+                            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-xl font-bold text-xs transition-all duration-180 shadow-sm hover:-translate-y-px"
                           >
                             <Save className="w-3.5 h-3.5" />
                             {savingProfile ? "Saving..." : "Save Changes"}

@@ -1421,12 +1421,12 @@ export default function ProviderDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
           <aside className="lg:col-span-1 space-y-3">
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
               <div className="px-4 pt-4 pb-3 border-b border-slate-100">
-                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 mb-0.5">Navigation</p>
+                <p className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-700 mb-0.5">Navigation</p>
                 <p className="text-[10px] text-slate-400 font-semibold">Admin Control Panel</p>
               </div>
-              <div className="p-3 flex flex-col gap-1">
+              <div className="p-2 flex flex-col gap-1">
               {[
                 { id: "analytics", label: "Analytics & Charts", icon: TrendingUp },
                 { id: "enquiries", label: "Project Inquiries", icon: FileText, badge: enquiries.length },
@@ -1444,17 +1444,17 @@ export default function ProviderDashboardPage() {
                   <button
                     key={tab.id}
                     onClick={() => { setActiveTab(tab.id as Tab); setIsPreviewMode(false); }}
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 cursor-pointer ${
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-xs transition-all duration-180 ease-in-out cursor-pointer ${
                       isActive
-                        ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/30"
-                        : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700"
+                        ? "bg-emerald-600 text-white shadow-sm font-bold"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium"
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5 shrink-0" />
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
                     <span className="flex-1 text-left">{tab.label}</span>
                     {tab.badge && tab.badge > 0 ? (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${
-                        isActive ? "bg-white/30 text-white" : "bg-red-500 text-white"
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                        isActive ? "bg-white/25 text-white" : "bg-red-500 text-white"
                       }`}>
                         {tab.badge}
                       </span>
@@ -1466,13 +1466,13 @@ export default function ProviderDashboardPage() {
             </div>
             <Link
               href="/worker/verification"
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-xs transition-all duration-200 cursor-pointer text-slate-100 bg-slate-900 hover:bg-slate-800 border border-slate-700 shadow-md mb-2"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-xs transition-all duration-180 ease-in-out cursor-pointer text-slate-100 bg-slate-900 hover:bg-slate-800 border border-slate-700 shadow-sm mb-2"
             >
-              <ShieldCheck className="w-4 h-4 text-blue-400" /> Verification Center Page
+              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Verification Center Page
             </Link>
             <button
               onClick={logout}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-xs transition-all duration-200 cursor-pointer text-red-500 hover:text-white hover:bg-red-500 bg-red-50 border border-red-100 hover:shadow-lg hover:shadow-red-500/20"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-xs transition-all duration-180 ease-in-out cursor-pointer text-slate-700 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 shadow-sm"
             >
               Logout Session
             </button>
@@ -1483,53 +1483,63 @@ export default function ProviderDashboardPage() {
 
             {/* TAB: ANALYTICS (SVG Charts) */}
             {activeTab === "analytics" && (
-              <div className="space-y-8 animate-fade-up">
+              <div className="space-y-6 animate-fade-up">
 
                 {/* SVG Performance Charts */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Earnings Line Chart */}
-                  <div className="bg-white/80 backdrop-blur-xl border border-slate-200/50 p-6 rounded-3xl shadow-card hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-300 space-y-4 group">
-                    <h3 className="font-extrabold text-[13px] text-slate-850 uppercase tracking-wider border-b pb-3.5">
-                      Weekly Earnings Profile
-                    </h3>
-                    <div className="w-full h-48 flex items-center justify-center relative">
-                      {/* Simple Responsive SVG Line Chart */}
+                  <div className="bg-white border border-slate-200/80 p-6 rounded-2xl shadow-sm hover:border-slate-300 transition-all duration-180 ease-in-out space-y-4 group">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="font-extrabold text-xs text-slate-700 uppercase tracking-wider">
+                        Weekly Earnings Profile
+                      </h3>
+                      <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">+14.2% vs last week</span>
+                    </div>
+                    <div className="w-full h-48 flex items-center justify-center relative pt-2">
+                      {/* Responsive Smooth Spline SVG Line Chart */}
                       <svg viewBox="0 0 300 120" className="w-full h-full overflow-visible">
                         <defs>
-                          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.15" />
+                          <linearGradient id="emeraldChartGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.16" />
                             <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
                           </linearGradient>
                         </defs>
-                        <g className="stroke-slate-100" strokeWidth="0.5">
-                          <line x1="0" y1="30" x2="300" y2="30" />
-                          <line x1="0" y1="60" x2="300" y2="60" />
+                        {/* Grid lines */}
+                        <g className="stroke-slate-100" strokeWidth="1" strokeDasharray="3 3">
+                          <line x1="0" y1="20" x2="300" y2="20" />
+                          <line x1="0" y1="55" x2="300" y2="55" />
                           <line x1="0" y1="90" x2="300" y2="90" />
                         </g>
-                        {/* Area Gradient */}
-                        <path d="M 0 120 L 0 90 L 50 75 L 100 95 L 150 40 L 200 65 L 250 20 L 300 50 L 300 120 Z" fill="url(#chartGrad)" />
-                        {/* Line path */}
-                        <path d="M 0 90 L 50 75 L 100 95 L 150 40 L 200 65 L 250 20 L 300 50" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
-                        {/* Dots */}
+                        {/* Area Gradient with smooth cubic spline */}
+                        <path d="M 0 90 C 25 80, 25 75, 50 75 C 75 75, 75 95, 100 95 C 125 95, 125 40, 150 40 C 175 40, 175 65, 200 65 C 225 65, 225 20, 250 20 C 275 20, 275 50, 300 50 L 300 120 L 0 120 Z" fill="url(#emeraldChartGrad)" />
+                        {/* Smooth Spline Line path */}
+                        <path d="M 0 90 C 25 80, 25 75, 50 75 C 75 75, 75 95, 100 95 C 125 95, 125 40, 150 40 C 175 40, 175 65, 200 65 C 225 65, 225 20, 250 20 C 275 20, 275 50, 300 50" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" />
+                        {/* Interactive Data Dots */}
                         {[
-                          { x: 0, y: 90 }, { x: 50, y: 75 }, { x: 100, y: 95 }, { x: 150, y: 40 }, { x: 200, y: 65 }, { x: 250, y: 20 }, { x: 300, y: 50 }
+                          { x: 0, y: 90, val: "₹1,200" }, { x: 50, y: 75, val: "₹1,800" }, { x: 100, y: 95, val: "₹950" },
+                          { x: 150, y: 40, val: "₹3,400" }, { x: 200, y: 65, val: "₹2,200" }, { x: 250, y: 20, val: "₹4,500" }, { x: 300, y: 50, val: "₹2,900" }
                         ].map((d, idx) => (
-                          <circle key={idx} cx={d.x} cy={d.y} r="3.5" fill="#10b981" stroke="#ffffff" strokeWidth="1.5" className="hover:scale-125 transition-transform duration-200" />
+                          <g key={idx} className="group/dot cursor-pointer">
+                            <circle cx={d.x} cy={d.y} r="4" fill="#059669" stroke="#ffffff" strokeWidth="2" className="transition-transform duration-180 group-hover/dot:scale-150" />
+                          </g>
                         ))}
                       </svg>
                     </div>
-                    <div className="flex justify-between text-[9px] text-slate-400 font-extrabold uppercase px-1">
+                    <div className="flex justify-between text-[10px] text-slate-400 font-semibold uppercase tracking-wider px-1 pt-1">
                       <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                     </div>
                   </div>
 
                   {/* Bookings Bar Chart */}
-                  <div className="bg-white/80 backdrop-blur-xl border border-slate-200/50 p-6 rounded-3xl shadow-card hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-300 space-y-4 group">
-                    <h3 className="font-extrabold text-[13px] text-slate-850 uppercase tracking-wider border-b pb-3.5">
-                      Daily Booking Volume
-                    </h3>
-                    <div className="w-full h-48 flex items-end justify-between relative px-2 pb-1">
-                      {/* CSS/SVG Bar Chart */}
+                  <div className="bg-white border border-slate-200/80 p-6 rounded-2xl shadow-sm hover:border-slate-300 transition-all duration-180 ease-in-out space-y-4 group">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="font-extrabold text-xs text-slate-700 uppercase tracking-wider">
+                        Daily Booking Volume
+                      </h3>
+                      <span className="text-[10px] text-slate-500 font-bold bg-slate-50 border border-slate-200/60 px-2 py-0.5 rounded-md">20 total jobs</span>
+                    </div>
+                    <div className="w-full h-48 flex items-end justify-between relative px-3 pb-1 pt-2">
+                      {/* Responsive SVG/CSS Bar Chart */}
                       {[
                         { day: "Mon", count: 2, height: "40%" },
                         { day: "Tue", count: 1, height: "20%" },
@@ -1539,12 +1549,12 @@ export default function ProviderDashboardPage() {
                         { day: "Sat", count: 2, height: "40%" },
                         { day: "Sun", count: 3, height: "60%" }
                       ].map((item, idx) => (
-                        <div key={idx} className="flex-1 flex flex-col items-center gap-2 group cursor-pointer">
-                          <span className="text-[10px] font-black text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div key={idx} className="flex-1 flex flex-col items-center gap-2 group/bar cursor-pointer">
+                          <span className="text-[10px] font-extrabold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded opacity-0 group-hover/bar:opacity-100 transition-all duration-180 ease-in-out">
                             {item.count}
                           </span>
-                          <div className="w-6 bg-emerald-600/90 rounded-t-lg transition-all duration-300 hover:bg-emerald-500 shadow-sm" style={{ height: item.height, minHeight: "10px" }} />
-                          <span className="text-[9px] text-slate-400 font-bold uppercase">{item.day}</span>
+                          <div className="w-5 bg-emerald-600 rounded-t-md transition-all duration-180 ease-in-out hover:bg-emerald-500 shadow-sm" style={{ height: item.height, minHeight: "12px" }} />
+                          <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{item.day}</span>
                         </div>
                       ))}
                     </div>
@@ -1558,10 +1568,10 @@ export default function ProviderDashboardPage() {
               <div className="space-y-6 animate-fade-up">
                 
                 {/* CRM Kanban Header & Quick Actions */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/70 backdrop-blur-md border border-slate-200/50 p-5 rounded-3xl shadow-card">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                       <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-900">CRM Lead Pipeline & Inquiries ({enquiries.length})</h3>
                     </div>
                     <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Drag/move project leads through stages, build custom quotes, and track conversions.</p>
@@ -1584,7 +1594,7 @@ export default function ProviderDashboardPage() {
                         link.click();
                         document.body.removeChild(link);
                       }}
-                      className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer transition shadow-sm"
+                      className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-all duration-180 shadow-sm"
                     >
                       Download CSV Report
                     </button>
@@ -1594,21 +1604,21 @@ export default function ProviderDashboardPage() {
                 {/* Stage Counters Bar */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
                   {[
-                    { id: "New", label: "New Leads", color: "bg-blue-500 text-white", border: "border-blue-200" },
-                    { id: "Contacted", label: "Contacted", color: "bg-amber-500 text-white", border: "border-amber-200" },
-                    { id: "Quoted", label: "Quoted", color: "bg-purple-500 text-white", border: "border-purple-200" },
-                    { id: "Negotiating", label: "Negotiating", color: "bg-orange-500 text-white", border: "border-orange-200" },
-                    { id: "Won", label: "Won Deals", color: "bg-emerald-500 text-white", border: "border-emerald-200" },
-                    { id: "Lost", label: "Lost", color: "bg-rose-500 text-white", border: "border-rose-200" },
+                    { id: "New", label: "New Leads", color: "bg-blue-500 text-white", border: "border-slate-200/80" },
+                    { id: "Contacted", label: "Contacted", color: "bg-amber-500 text-white", border: "border-slate-200/80" },
+                    { id: "Quoted", label: "Quoted", color: "bg-purple-500 text-white", border: "border-slate-200/80" },
+                    { id: "Negotiating", label: "Negotiating", color: "bg-orange-500 text-white", border: "border-slate-200/80" },
+                    { id: "Won", label: "Won Deals", color: "bg-emerald-600 text-white", border: "border-slate-200/80" },
+                    { id: "Lost", label: "Lost", color: "bg-rose-500 text-white", border: "border-slate-200/80" },
                   ].map(stage => {
                     const count = enquiries.filter(e => (e.status || "New") === stage.id).length;
                     return (
-                      <div key={stage.id} className={`bg-white/80 border ${stage.border} p-3 rounded-2xl flex items-center justify-between shadow-sm`}>
+                      <div key={stage.id} className={`bg-white border ${stage.border} p-3.5 rounded-xl flex items-center justify-between shadow-sm`}>
                         <div>
-                          <span className="text-[9px] font-black uppercase text-slate-400 block tracking-wider">{stage.label}</span>
-                          <span className="text-sm font-black text-slate-800 mt-0.5 block">{count}</span>
+                          <span className="text-[9px] font-extrabold uppercase text-slate-400 block tracking-wider">{stage.label}</span>
+                          <span className="text-sm font-extrabold text-slate-900 mt-0.5 block">{count}</span>
                         </div>
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${stage.color}`}>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${stage.color}`}>
                           {count}
                         </span>
                       </div>
@@ -1619,12 +1629,12 @@ export default function ProviderDashboardPage() {
                 {/* KANBAN COLUMNS BOARD */}
                 <div className="flex gap-4 overflow-x-auto pb-4 pt-1 items-start min-h-[500px]">
                   {[
-                    { id: "New", title: "New Enquiries", color: "bg-blue-50 text-blue-700 border-blue-200", badge: "bg-blue-600" },
-                    { id: "Contacted", title: "Contacted", color: "bg-amber-50 text-amber-700 border-amber-200", badge: "bg-amber-600" },
-                    { id: "Quoted", title: "Quote Sent", color: "bg-purple-50 text-purple-700 border-purple-200", badge: "bg-purple-600" },
-                    { id: "Negotiating", title: "Negotiating", color: "bg-orange-50 text-orange-700 border-orange-200", badge: "bg-orange-600" },
-                    { id: "Won", title: "Won / Approved", color: "bg-emerald-50 text-emerald-700 border-emerald-200", badge: "bg-emerald-600" },
-                    { id: "Lost", title: "Lost", color: "bg-rose-50 text-rose-700 border-rose-200", badge: "bg-rose-600" },
+                    { id: "New", title: "New Enquiries", color: "bg-blue-50 text-blue-700 border-blue-200/60", badge: "bg-blue-600" },
+                    { id: "Contacted", title: "Contacted", color: "bg-amber-50 text-amber-700 border-amber-200/60", badge: "bg-amber-600" },
+                    { id: "Quoted", title: "Quote Sent", color: "bg-purple-50 text-purple-700 border-purple-200/60", badge: "bg-purple-600" },
+                    { id: "Negotiating", title: "Negotiating", color: "bg-orange-50 text-orange-700 border-orange-200/60", badge: "bg-orange-600" },
+                    { id: "Won", title: "Won / Approved", color: "bg-emerald-50 text-emerald-700 border-emerald-200/60", badge: "bg-emerald-600" },
+                    { id: "Lost", title: "Lost", color: "bg-rose-50 text-rose-700 border-rose-200/60", badge: "bg-rose-600" },
                   ].map(column => {
                     const columnEnquiries = enquiries.filter(e => {
                       const st = e.status || "New";
@@ -1632,11 +1642,11 @@ export default function ProviderDashboardPage() {
                     });
 
                     return (
-                      <div key={column.id} className="w-[300px] shrink-0 bg-slate-100/70 border border-slate-200/60 rounded-3xl p-3.5 space-y-3 shadow-inner">
+                      <div key={column.id} className="w-[300px] shrink-0 bg-slate-50 border border-slate-200/70 rounded-2xl p-3.5 space-y-3">
                         {/* Column Header */}
-                        <div className={`p-3 rounded-2xl border ${column.color} flex justify-between items-center shadow-xs`}>
+                        <div className={`p-3 rounded-xl border ${column.color} flex justify-between items-center shadow-xs`}>
                           <span className="font-extrabold text-xs uppercase tracking-wider">{column.title}</span>
-                          <span className={`${column.badge} text-white font-black text-[10px] px-2 py-0.5 rounded-full`}>
+                          <span className={`${column.badge} text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full`}>
                             {columnEnquiries.length}
                           </span>
                         </div>

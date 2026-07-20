@@ -70,7 +70,7 @@ export default function BookingTracker({ status }: BookingTrackerProps) {
         
         {/* Active Progress Filler Line */}
         <div
-          className="absolute top-[28px] left-[10%] h-[3px] bg-gradient-to-r from-blue-500 to-indigo-500 z-0 transition-all duration-700 ease-out rounded-full"
+          className="absolute top-[28px] left-[10%] h-[3px] bg-emerald-600 z-0 transition-all duration-500 ease-out rounded-full"
           style={{ width: `${currentStep === 0 ? 0 : (currentStep / (steps.length - 1)) * 80}%` }}
         />
 
@@ -84,16 +84,16 @@ export default function BookingTracker({ status }: BookingTrackerProps) {
             <div key={idx} className="flex flex-col items-center relative z-10 text-center flex-1">
               {/* Step Circle/Box */}
               <div
-                className={`w-[54px] h-[54px] rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm ${
+                className={`w-[50px] h-[50px] rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm ${
                   isCompleted
-                    ? "bg-gradient-to-br from-blue-500 to-indigo-650 text-white shadow-md shadow-blue-500/20"
+                    ? "bg-emerald-600 text-white shadow-sm"
                     : isActive
-                    ? "bg-white text-blue-600 border-2 border-blue-500 ring-4 ring-blue-500/10 scale-105"
+                    ? "bg-white text-emerald-600 border-2 border-emerald-600 ring-4 ring-emerald-500/10 scale-105"
                     : "bg-slate-50 border border-slate-200 text-slate-400"
                 }`}
               >
                 {isCompleted ? (
-                  <Check className="w-5.5 h-5.5 stroke-[3]" />
+                  <Check className="w-5 h-5 stroke-[3]" />
                 ) : (
                   <Icon className={`w-5 h-5 ${isActive ? "animate-pulse" : ""}`} />
                 )}
@@ -101,9 +101,9 @@ export default function BookingTracker({ status }: BookingTrackerProps) {
               
               {/* Step Label */}
               <span
-                className={`text-[12.5px] font-black mt-3.5 tracking-tight transition-colors duration-300 ${
+                className={`text-[12px] font-bold mt-3 tracking-tight transition-colors duration-200 ${
                   isActive
-                    ? "text-blue-600"
+                    ? "text-emerald-700 font-extrabold"
                     : isCompleted
                     ? "text-slate-800 font-bold"
                     : "text-slate-400"
@@ -113,8 +113,8 @@ export default function BookingTracker({ status }: BookingTrackerProps) {
               </span>
               
               {/* Step Description */}
-              <span className={`text-[10px] font-medium mt-1 max-w-[125px] leading-tight transition-colors duration-300 ${
-                isActive ? "text-slate-500" : "text-slate-405"
+              <span className={`text-[10px] font-medium mt-0.5 max-w-[125px] leading-tight transition-colors duration-200 ${
+                isActive ? "text-slate-500" : "text-slate-400"
               }`}>
                 {step.description}
               </span>
@@ -130,7 +130,7 @@ export default function BookingTracker({ status }: BookingTrackerProps) {
         
         {/* Active Progress Filler Line */}
         <div
-          className="absolute left-[23px] top-4 w-[3px] bg-gradient-to-b from-blue-500 to-indigo-500 z-0 transition-all duration-700 ease-out rounded-full"
+          className="absolute left-[23px] top-4 w-[3px] bg-emerald-600 z-0 transition-all duration-500 ease-out rounded-full"
           style={{ height: `${currentStep === 0 ? 0 : (currentStep / (steps.length - 1)) * 88}%` }}
         />
 
@@ -143,26 +143,26 @@ export default function BookingTracker({ status }: BookingTrackerProps) {
             <div key={idx} className="flex items-center gap-4 relative z-10">
               {/* Step Circle */}
               <div
-                className={`w-[44px] h-[44px] rounded-xl flex items-center justify-center shrink-0 transition-all duration-500 shadow-sm ${
+                className={`w-[40px] h-[40px] rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 shadow-sm ${
                   isCompleted
-                    ? "bg-gradient-to-br from-blue-500 to-indigo-650 text-white"
+                    ? "bg-emerald-600 text-white"
                     : isActive
-                    ? "bg-white text-blue-600 border-2 border-blue-500 ring-4 ring-blue-500/10"
+                    ? "bg-white text-emerald-600 border-2 border-emerald-600 ring-4 ring-emerald-500/10"
                     : "bg-slate-50 border border-slate-200 text-slate-400"
                 }`}
               >
-                {isCompleted ? <Check className="w-4.5 h-4.5 stroke-[3]" /> : <Icon className="w-4 h-4" />}
+                {isCompleted ? <Check className="w-4 h-4 stroke-[3]" /> : <Icon className="w-4 h-4" />}
               </div>
               
               <div className="flex flex-col">
                 <span
-                  className={`text-xs font-black tracking-tight ${
-                    isActive ? "text-blue-600" : isCompleted ? "text-slate-800" : "text-slate-400"
+                  className={`text-xs font-bold tracking-tight ${
+                    isActive ? "text-emerald-700 font-extrabold" : isCompleted ? "text-slate-800" : "text-slate-400"
                   }`}
                 >
                   {step.label}
                 </span>
-                <span className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-400 font-medium mt-0.5">
                   {step.description}
                 </span>
               </div>

@@ -889,3 +889,54 @@ html {
   transform: translate(-50%, -50%) scale(1.2);
   opacity: 1;
 }
+
+/* ─────────────────────── MODERN SAAS DESIGN SYSTEM UTILITIES ─────────────────────── */
+.saas-card {
+  background-color: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 1.125rem; /* ~18px */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.saas-card-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+}
+
+.saas-nav-item {
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 0.75rem; /* 12px */
+}
+
+.saas-nav-item-active {
+  background-color: #059669;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
+}
+
+.saas-badge-emerald {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.saas-badge-amber {
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.saas-badge-blue {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.saas-badge-slate {
+  background-color: #f8fafc;
+  color: #475569;
+  border: 1px solid rgba(203, 213, 225, 0.6);
+}
+
