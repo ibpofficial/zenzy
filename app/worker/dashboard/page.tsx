@@ -443,14 +443,13 @@ export default function ProviderDashboardPage() {
     }
   }, []);
 
-  // Load Data
+  const userDataRef = useRef(userData);
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    userDataRef.current = userData;
+  }, [userData]);
 
-    // Bind worker profile fields only once to prevent overwriting user input in real-time
+  // Bind worker profile fields from userData when it updates or arrives
+  useEffect(() => {
     if (userData && role === "worker") {
       if (!hasInitialized.current) {
         setPName(userData.name || "");
@@ -508,7 +507,6 @@ export default function ProviderDashboardPage() {
 
         const isComp = userData.profileCompleted === true;
         setProfileCompletedState(isComp);
-        // Onboarding popup disabled as per request, redirect to verification page takes precedence
 
         hasInitialized.current = true;
       }
@@ -516,6 +514,14 @@ export default function ProviderDashboardPage() {
       setPAvatar(userData.avatar || "");
       setPCover(userData.coverImage || "");
       setPPortfolio(userData.portfolio || []);
+    }
+  }, [userData, role]);
+
+  // Load Data (Subscriptions depend ONLY on user?.uid & role to prevent listener tear-down loops)
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
     }
 
     // 1. Sync Categories
@@ -580,7 +586,7 @@ export default function ProviderDashboardPage() {
       unsubShopOrders();
       unsubEnquiries();
     };
-  }, [user, userData, role]);
+  }, [user?.uid, role]);
 
   // Load chat messages in real time
   useEffect(() => {
@@ -833,8 +839,22 @@ export default function ProviderDashboardPage() {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("Please select a valid image file (PNG, JPG, WebP).");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("File size exceeds 5MB limit.");
+      e.target.value = "";
+      return;
+    }
+
     setAvatarUploading(true);
     try {
+      showToast("Uploading profile avatar...");
       const avatarUrl = await updateProfileImage(file);
       setPAvatar(avatarUrl);
       showToast("Profile avatar updated!");
@@ -843,14 +863,29 @@ export default function ProviderDashboardPage() {
       showToast(`Upload failed: ${errMsg}`);
     } finally {
       setAvatarUploading(false);
+      e.target.value = "";
     }
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("Please select a valid image file (PNG, JPG, WebP).");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("File size exceeds 5MB limit.");
+      e.target.value = "";
+      return;
+    }
+
     setCoverUploading(true);
     try {
+      showToast("Uploading cover banner...");
       const b64 = await compressImageToBase64(file, 1200, 0.75);
       setPCover(b64);
       await updateDoc(doc(db, "workers", user.uid), { coverImage: b64 });
@@ -859,6 +894,7 @@ export default function ProviderDashboardPage() {
       showToast("Image size too large.");
     } finally {
       setCoverUploading(false);
+      e.target.value = "";
     }
   };
 

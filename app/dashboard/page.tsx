@@ -166,14 +166,14 @@ export default function CustomerDashboardPage() {
     }
   }, [user, role, router]);
 
-  // Load Data
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const userDataRef = useRef(userData);
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    userDataRef.current = userData;
+  }, [userData]);
 
-    // Set initial profile states only once to prevent overwriting user input in real-time
+  // Sync profile fields from userData when it arrives or updates
+  useEffect(() => {
     if (userData) {
       if (!hasInitialized.current) {
         setProfName(userData.name || "");
@@ -182,6 +182,14 @@ export default function CustomerDashboardPage() {
         hasInitialized.current = true;
       }
       setProfAvatar(userData.avatar || "");
+    }
+  }, [userData]);
+
+  // Load Data (Subscriptions depend ONLY on user?.uid to prevent listener tear-down loops)
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
     }
 
     // 1. Sync Customer Bookings
@@ -229,7 +237,7 @@ export default function CustomerDashboardPage() {
       const list: any[] = [];
       snap.forEach((d) => {
         const rData = d.data();
-        if (rData.userName === userData?.name || rData.customerId === user.uid) {
+        if (rData.userName === userDataRef.current?.name || rData.customerId === user.uid) {
           list.push({ id: d.id, ...rData });
         }
       });
@@ -278,7 +286,7 @@ export default function CustomerDashboardPage() {
       unsubReviews();
       unsubShopOrders();
     };
-  }, [user, userData]);
+  }, [user?.uid]);
 
   // Load chat messages in real time
   useEffect(() => {
@@ -335,6 +343,20 @@ export default function CustomerDashboardPage() {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("Please select a valid image file (PNG, JPG, WebP).");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("File size exceeds 5MB limit.");
+      e.target.value = "";
+      return;
+    }
+
+    setAvatarUploading(true);
     try {
       showToast("Uploading profile photo...");
       const avatarUrl = await updateProfileImage(file);
@@ -344,6 +366,9 @@ export default function CustomerDashboardPage() {
       console.error("Avatar upload error:", err);
       const errMsg = err instanceof Error ? err.message : String(err);
       showToast(`Upload failed: ${errMsg}`);
+    } finally {
+      setAvatarUploading(false);
+      e.target.value = "";
     }
   };
 
@@ -1305,29 +1330,9 @@ export default function CustomerDashboardPage() {
                       </div>
                     </div>
 
-                    {/* Photo Upload Card */}
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-                        <Upload className="w-3.5 h-3.5 text-violet-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Profile Photo</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-xl overflow-hidden ring-2 ring-slate-100 shrink-0">
-                          <img src={profAvatar || userData?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80"} className="w-full h-full object-cover" alt="" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-slate-900 mb-1">Update your profile picture</p>
-                          <p className="text-[10px] text-slate-400 font-medium mb-2">PNG, JPG or WebP. Max 5MB recommended.</p>
-                          <label htmlFor="avatarUploadSettings2" className="inline-flex items-center gap-1.5 bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-xl text-[10px] font-bold cursor-pointer transition-all shadow-md shadow-violet-500/25">
-                            <Upload className="w-3 h-3" /> Upload New Photo
-                          </label>
-                          <input id="avatarUploadSettings2" type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
             )}
 
             {/* TAB: REVIEWS WRITTEN */}
