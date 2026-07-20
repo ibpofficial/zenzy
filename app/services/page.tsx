@@ -111,9 +111,9 @@ function ServicesContent() {
       if (w.category?.toLowerCase().includes(term) || fuzzySearch(w.category || '', term)) {
         suggestions.add(w.category);
       }
-      if (w.serviceArea?.toLowerCase().includes(term) || fuzzySearch(w.serviceArea || '', term)) {
-        const area = w.serviceArea.split(',')[0].trim();
-        suggestions.add(area);
+      if (w.serviceArea && (w.serviceArea.toLowerCase().includes(term) || fuzzySearch(w.serviceArea, term))) {
+        const area = w.serviceArea.split(',')[0]?.trim();
+        if (area) suggestions.add(area);
       }
       if (w.name?.toLowerCase().includes(term) || fuzzySearch(w.name || '', term)) {
         suggestions.add(w.name);

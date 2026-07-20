@@ -11,6 +11,9 @@ import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
 import { reverseGeocode } from "@/lib/locationUtils";
 
+import { performFuzzySearch, recordSearchClick, SearchIndexItem, SpellingSuggestion } from "@/lib/search";
+import { processTrendingWorkers, WorkerDocument } from "@/lib/trending";
+
 // Category icon color mapping for premium gradient icons
 const CAT_COLORS: Record<string, string> = {
   "AC Service": "cat-icon-blue",
@@ -79,33 +82,6 @@ function parseStyleString(styleStr: string): React.CSSProperties {
   return styles;
 }
 
-// Levenshtein distance helper for spelling correction
-function getLevenshteinDistance(a: string, b: string): number {
-  if (a.length === 0) return b.length;
-  if (b.length === 0) return a.length;
-  const matrix: number[][] = [];
-  for (let i = 0; i <= b.length; i++) {
-    matrix[i] = [i];
-  }
-  for (let j = 0; j <= a.length; j++) {
-    matrix[0][j] = j;
-  }
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1, // substitution
-          matrix[i][j - 1] + 1,     // insertion
-          matrix[i - 1][j] + 1      // deletion
-        );
-      }
-    }
-  }
-  return matrix[b.length][a.length];
-}
-
 const SEARCHABLE_ITEMS = [
   { name: "AC Service", category: "AC Service", type: "service", icon: "fa-snowflake text-sky-500", keywords: ["ac", "air conditioner", "split ac", "window ac", "cooling", "filter", "compressor", "ac service", "ac repair", "ac installation"] },
   { name: "Plumbing", category: "Plumbing", type: "service", icon: "fa-wrench text-amber-500", keywords: ["plumber", "plumbing", "leak", "pipe", "tap", "bathroom", "water tank", "drain", "sink", "toilet"] },
@@ -117,6 +93,53 @@ const SEARCHABLE_ITEMS = [
   { name: "Property Sale", category: "Property Sale", type: "rent", icon: "fa-building text-blue-500", keywords: ["sale", "buy property", "plot", "house sale", "villa", "property sale"] },
   { name: "Architect", category: "Architect", type: "service", icon: "fa-draw-polygon text-indigo-500", keywords: ["architect", "design", "layout", "plan", "interior design", "3d design", "blueprint"] },
   { name: "House Worker", category: "House Worker", type: "service", icon: "fa-broom text-teal-500", keywords: ["house worker", "maid", "cleaning", "dusting", "utensil", "laundry", "domestic helper"] }
+];
+
+const FEATURED_PROPERTIES = [
+  {
+    label: "Studio Lofts",
+    price: "₹15,000/mo",
+    beds: "1 BHK",
+    area: "450 sq.ft",
+    icon: (
+      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+    )
+  },
+  {
+    label: "2 BHK Apts",
+    price: "₹28,000/mo",
+    beds: "2 BHK",
+    area: "850 sq.ft",
+    icon: (
+      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+    )
+  },
+  {
+    label: "Luxury Villas",
+    price: "₹65,000/mo",
+    beds: "4 BHK",
+    area: "2,200 sq.ft",
+    icon: (
+      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    )
+  },
+  {
+    label: "Girls PG",
+    price: "₹8,500/mo",
+    beds: "Shared",
+    area: "200 sq.ft",
+    icon: (
+      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+    )
+  }
 ];
 
 export default function HomePage() {
@@ -132,8 +155,6 @@ export default function HomePage() {
     return () => unsub();
   }, []);
 
-
-
   // Category scroll container ref
   const categoriesScrollRef = useRef<HTMLDivElement>(null);
 
@@ -146,12 +167,56 @@ export default function HomePage() {
 
   // Search & Categories State
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [typedPlaceholder, setTypedPlaceholder] = useState("");
   const [isUserTyping, setIsUserTyping] = useState(false);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [spellingSuggestion, setSpellingSuggestion] = useState<any | null>(null);
+  const [suggestions, setSuggestions] = useState<SearchIndexItem[]>([]);
+  const [spellingSuggestion, setSpellingSuggestion] = useState<SpellingSuggestion | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [userLocation, setUserLocation] = useState("Delhi NCR");
+  const [workers, setWorkers] = useState<any[]>([]);
+
+  // Build combined searchable index (Static Categories + Live Firestore Workers)
+  const searchIndex = React.useMemo<SearchIndexItem[]>(() => {
+    const staticItems: SearchIndexItem[] = SEARCHABLE_ITEMS.map((item, idx) => ({
+      id: `static-${idx}`,
+      name: item.name,
+      category: item.category,
+      type: item.type as "service" | "rent",
+      keywords: item.keywords,
+      icon: item.icon,
+    }));
+
+    const workerItems: SearchIndexItem[] = workers.map((w) => ({
+      id: `worker-${w.id || w.uid}`,
+      name: w.name || "Zenzy Service Provider",
+      category: w.category || "General Service",
+      type: "worker" as const,
+      keywords: [
+        w.name,
+        w.category,
+        ...(w.serviceArea ? [w.serviceArea] : []),
+        ...(Array.isArray(w.skills) ? w.skills : []),
+      ].filter(Boolean),
+      serviceArea: w.serviceArea || "",
+      avatar: w.avatar || "",
+      slug: w.slug || "",
+      workerId: w.id || w.uid,
+      rating: w.stars || 4.5,
+      servicesGiven: w.servicesGiven || 0,
+    }));
+
+    return [...staticItems, ...workerItems];
+  }, [workers]);
+
+  // Debounce search input (200ms) to avoid re-calculating on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -174,71 +239,39 @@ export default function HomePage() {
     }
   };
 
-  // Suggestions and spelling correction logic
+  // Perform weighted Fuse.js fuzzy search with blended scoring
   useEffect(() => {
-    if (!searchQuery.trim()) {
+    if (!debouncedSearchQuery.trim()) {
       setSuggestions([]);
       setSpellingSuggestion(null);
       return;
     }
 
-    const queryClean = searchQuery.toLowerCase().trim();
+    const { suggestions: searchResults, spellingSuggestion: spellSuggest } = performFuzzySearch(
+      debouncedSearchQuery,
+      searchIndex,
+      userLocation,
+      recentSearches
+    );
 
-    // 1. Predictive Matching (Inclusion or prefix match)
-    const exactMatches = SEARCHABLE_ITEMS.filter((item) => {
-      const matchName = item.name.toLowerCase().includes(queryClean);
-      const matchKeywords = item.keywords.some((kw) => kw.toLowerCase().includes(queryClean));
-      return matchName || matchKeywords;
-    });
+    setSuggestions(searchResults);
+    setSpellingSuggestion(spellSuggest);
+  }, [debouncedSearchQuery, searchIndex, userLocation, recentSearches]);
 
-    if (exactMatches.length > 0) {
-      setSuggestions(exactMatches);
-      setSpellingSuggestion(null);
-    } else {
-      // 2. Fuzzy spelling checking (if no exact matches found)
-      let minDistance = 999;
-      let closestItem: any = null;
-      let closestKeyword = "";
-
-      const queryWords = queryClean.split(/\s+/);
-      for (const item of SEARCHABLE_ITEMS) {
-        for (const kw of item.keywords) {
-          const kwWords = kw.toLowerCase().split(/\s+/);
-          for (const qw of queryWords) {
-            for (const kww of kwWords) {
-              if (qw.length < 3 || kww.length < 3) continue;
-              const dist = getLevenshteinDistance(qw, kww);
-              const maxDist = qw.length <= 4 ? 1 : qw.length <= 7 ? 2 : 3;
-              if (dist <= maxDist && dist < minDistance) {
-                minDistance = dist;
-                closestItem = item;
-                closestKeyword = kw;
-              }
-            }
-          }
-        }
-      }
-
-      if (closestItem && minDistance <= 3) {
-        setSpellingSuggestion({
-          item: closestItem,
-          query: closestItem.name,
-          correctedWord: closestKeyword,
-        });
-        setSuggestions([closestItem]);
-      } else {
-        setSpellingSuggestion(null);
-        setSuggestions([]);
-      }
-    }
-  }, [searchQuery]);
-
-  const handleSuggestionClick = (item: any) => {
+  const handleSuggestionClick = (item: SearchIndexItem) => {
+    recordSearchClick(searchQuery, item);
     saveSearchTerm(item.name);
     setSearchQuery(item.name);
     setShowSuggestions(false);
+
     if (item.type === "rent") {
       router.push(`/rent?q=${encodeURIComponent(item.name)}`);
+    } else if (item.type === "worker") {
+      if (item.slug) {
+        router.push(`/${item.slug}`);
+      } else {
+        router.push(`/services?q=${encodeURIComponent(item.name)}&category=${encodeURIComponent(item.category)}`);
+      }
     } else {
       router.push(`/services?category=${encodeURIComponent(item.category)}`);
     }
@@ -290,7 +323,6 @@ export default function HomePage() {
     return () => clearTimeout(timeout);
   }, [isUserTyping]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [workers, setWorkers] = useState<any[]>([]);
   const [promos, setPromos] = useState<any[]>([]);
 
   // Dynamically dismiss skeleton loader once all vital content lists are populated, or fallback after 1000ms safety limit
@@ -311,7 +343,6 @@ export default function HomePage() {
   const [siteSettings, setSiteSettings] = useState<any>(null);
 
   // User Location Selection State
-  const [userLocation, setUserLocation] = useState("Delhi NCR");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [detectingLoc, setDetectingLoc] = useState(false);
   const [customLocInput, setCustomLocInput] = useState("");
@@ -656,47 +687,17 @@ export default function HomePage() {
     const qWorkers = query(
       collection(db, "workers"),
       where("documentStatus", "==", "approved"),
-      limit(6)
+      limit(50)
     );
     const unsubscribeWorkers = onSnapshot(qWorkers, (snap) => {
-      const items: any[] = [];
-      snap.forEach((doc) => items.push({ id: doc.id, ...doc.data() }));
+      const items: WorkerDocument[] = [];
+      snap.forEach((doc) => items.push({ id: doc.id, ...doc.data() } as WorkerDocument));
 
-      // Check if all workers' stats have been static (no rating/booking update) for over 24 hours
-      const allStaticFor24h = items.every((w) => {
-        const lastUpdate = w.lastScoreUpdate || w.createdAt;
-        if (!lastUpdate) return true;
-        const ageMs = Date.now() - new Date(lastUpdate).getTime();
-        return ageMs > 24 * 60 * 60 * 1000;
-      });
-
-      // Advanced Dynamic Trending Scoring Algorithm
-      const scoredItems = items.map((w) => {
-        const rating = w.stars || 0.0;
-        const servicesGiven = w.servicesGiven || w.reviewsCount || 0;
-        const isPremium = w.premium || false;
-        const isTopRated = w.topRated || false;
-
-        // Core score based on rating and services given
-        let trendingScore = (rating * 25) + (servicesGiven * 0.8) + (isPremium ? 15 : 0) + (isTopRated ? 10 : 0);
-
-        // Fallback: If all workers are static for 24h, apply tie-breaker weights based on availability and status changes
-        if (allStaticFor24h) {
-          const lastChange = w.lastStatusChange ? new Date(w.lastStatusChange).getTime() : 0;
-          const statusBoost = w.status === "Available" ? 40 : 0;
-          // Subtly weight by how recently they updated their availability status
-          const recencyStatusBoost = lastChange ? (lastChange / 1e12) * 5 : 0;
-          trendingScore += statusBoost + recencyStatusBoost;
-        }
-
-        return { ...w, trendingScore };
-      });
-
-      // Sort by trending score descending
-      scoredItems.sort((a, b) => b.trendingScore - a.trendingScore);
-      setWorkers(scoredItems);
+      // Compute recency-decay trending scores & apply category diversity filtering
+      const processedTrending = processTrendingWorkers(items, 3);
+      setWorkers(processedTrending);
     }, (err) => {
-      console.error("Failed to fetch trending workers in chunks:", err);
+      console.error("Failed to fetch trending workers in candidate pool:", err);
     });
 
     const unsubscribePromos = onSnapshot(collection(db, "promos"), (snap) => {
@@ -782,7 +783,6 @@ export default function HomePage() {
 
   return (
     <>
-      {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
       <div className="flex flex-col min-h-screen bg-slate-50 text-slate-850 font-sans transition-colors">
         <Navbar />
 
@@ -1117,15 +1117,19 @@ export default function HomePage() {
                         onClick={() => handleSuggestionClick(item)}
                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-55 text-left transition-colors cursor-pointer group"
                       >
-                        <div className="w-8 h-8 rounded-lg bg-slate-50 border flex items-center justify-center text-[13px] group-hover:scale-105 transition-transform shrink-0">
-                          <i className={`fas ${item.icon}`}></i>
+                        <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center justify-center text-[13px] group-hover:scale-105 transition-transform shrink-0 overflow-hidden">
+                          {item.avatar ? (
+                            <img src={item.avatar} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <i className={`fas ${item.icon || 'fa-concierge-bell text-blue-500'}`}></i>
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <span className="block text-[13.5px] font-extrabold text-slate-900 group-hover:text-primary-600 transition-colors truncate">
                             {item.name}
                           </span>
                           <span className="block text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">
-                            {item.type === "rent" ? "Properties & Rental" : "Verified Services"}
+                            {item.type === "rent" ? "Properties & Rental" : item.type === "worker" ? `Verified Pro • ${item.category}` : "Verified Service"}
                           </span>
                         </div>
                         <ArrowRight className="w-3.5 h-3.5 text-slate-350 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0" />
@@ -1236,28 +1240,37 @@ export default function HomePage() {
             ref={categoriesScrollRef}
             className="relative z-10 flex overflow-x-auto sm:grid sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2.5 sm:gap-3 justify-items-center hide-scrollbar scroll-smooth pt-3 pb-6 sm:py-4 px-1"
           >
-            {categories.map((cat, idx) => {
-              const tag = getCategoryTag(cat.name);
+            {categories.length === 0 ? (
+              [1, 2, 3, 4, 5, 6, 7].map((n) => (
+                <div key={n} className="w-[145px] h-[145px] sm:w-[165px] sm:h-[165px] rounded-2xl bg-white border border-slate-200/80 p-5 flex flex-col items-center justify-center shrink-0">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 animate-pulse mb-3" />
+                  <div className="w-20 h-4 rounded-md bg-slate-100 animate-pulse" />
+                </div>
+              ))
+            ) : (
+              categories.map((cat, idx) => {
+                const tag = getCategoryTag(cat.name);
 
-              return (
-                <Link
-                  key={cat.id}
-                  href={cat.link || `/services?category=${encodeURIComponent(cat.name || "")}`}
-                  className="relative z-10 hover:z-30 bg-white/90 backdrop-blur-sm border border-slate-200/80 p-5 rounded-2xl text-center flex flex-col items-center justify-center w-[145px] h-[145px] sm:w-[165px] sm:h-[165px] shrink-0 hover:-translate-y-1.5 hover:shadow-lg hover:border-indigo-500/30 transition-all duration-300 ease-out cursor-pointer group animate-fade-up"
-                  style={{
-                    animationDelay: `${idx * 0.04}s`
-                  }}
-                >
-                  {/* Icon block with soft background glow on hover */}
-                  <div className="relative mb-3.5 flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-50 border border-slate-100 group-hover:bg-indigo-50/50 group-hover:border-indigo-100 transition-all duration-300 group-hover:scale-105 shadow-inner">
-                    <i className={`fas ${cat.icon} text-3xl sm:text-4xl text-slate-700 group-hover:text-indigo-650 transition-colors`}></i>
-                  </div>
+                return (
+                  <Link
+                    key={cat.id}
+                    href={cat.link || `/services?category=${encodeURIComponent(cat.name || "")}`}
+                    className="relative z-10 hover:z-30 bg-white/90 backdrop-blur-sm border border-slate-200/80 p-5 rounded-2xl text-center flex flex-col items-center justify-center w-[145px] h-[145px] sm:w-[165px] sm:h-[165px] shrink-0 hover:-translate-y-1.5 hover:shadow-lg hover:border-indigo-500/30 transition-all duration-300 ease-out cursor-pointer group animate-fade-up"
+                    style={{
+                      animationDelay: `${idx * 0.04}s`
+                    }}
+                  >
+                    {/* Icon block with soft background glow on hover */}
+                    <div className="relative mb-3.5 flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-50 border border-slate-100 group-hover:bg-indigo-50/50 group-hover:border-indigo-100 transition-all duration-300 group-hover:scale-105 shadow-inner">
+                      <i className={`fas ${cat.icon} text-3xl sm:text-4xl text-slate-700 group-hover:text-indigo-650 transition-colors`}></i>
+                    </div>
 
-                  {/* Text and clean metadata */}
-                  <h3 className="font-extrabold text-[12.5px] sm:text-[14.5px] text-slate-850 tracking-tight leading-tight mt-1 truncate max-w-full px-1 group-hover:text-indigo-650 transition-colors">{cat.name}</h3>
-                </Link>
-              );
-            })}
+                    {/* Text and clean metadata */}
+                    <h3 className="font-extrabold text-[12.5px] sm:text-[14.5px] text-slate-850 tracking-tight leading-tight mt-1 truncate max-w-full px-1 group-hover:text-indigo-650 transition-colors">{cat.name}</h3>
+                  </Link>
+                );
+              })
+            )}
           </div>
         </section>
 
@@ -1278,7 +1291,21 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {workers.filter(w => w.documentStatus === "approved").slice(0, 3).map((pro, idx) => (
+            {workers.length === 0 ? (
+              [1, 2, 3].map((n) => (
+                <div key={n} className="bg-white rounded-3xl border border-slate-200/80 overflow-hidden flex flex-col p-5 space-y-4">
+                  <div className="w-full h-44 rounded-2xl bg-slate-100 animate-pulse" />
+                  <div className="space-y-2.5">
+                    <div className="w-3/4 h-5 rounded-lg bg-slate-100 animate-pulse" />
+                    <div className="w-1/2 h-4 rounded-md bg-slate-100 animate-pulse" />
+                    <div className="w-full h-3 rounded-md bg-slate-100 animate-pulse" />
+                    <div className="w-4/5 h-3 rounded-md bg-slate-100 animate-pulse" />
+                  </div>
+                  <div className="w-full h-11 rounded-xl bg-slate-100 animate-pulse mt-auto" />
+                </div>
+              ))
+            ) : (
+              workers.filter(w => (w.documentStatus || "approved") === "approved").slice(0, 3).map((pro, idx) => (
               <article
                 key={pro.id}
                 className="bg-white rounded-3xl border border-slate-200/80 overflow-hidden flex flex-col hover:-translate-y-2 transition-all duration-300 ease-out shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(59,130,246,0.08)] hover:border-indigo-500/40 group animate-scale-in"
@@ -1378,7 +1405,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </article>
-            ))}
+            )))}
           </div>
         </section>
 
@@ -1690,103 +1717,36 @@ export default function HomePage() {
 
                   {/* Property Grid - Clean with Icons */}
                   <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:gap-x-10 sm:gap-y-8 w-full xl:w-auto flex-shrink-0">
-                    {(() => {
-                      const getProperties = () => {
-                        try {
-                          return [
-                            {
-                              label: "Studio Lofts",
-                              price: "₹15,000/mo",
-                              beds: "1 BHK",
-                              area: "450 sq.ft",
-                              icon: (
-                                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                </svg>
-                              )
-                            },
-                            {
-                              label: "2 BHK Apts",
-                              price: "₹28,000/mo",
-                              beds: "2 BHK",
-                              area: "850 sq.ft",
-                              icon: (
-                                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                </svg>
-                              )
-                            },
-                            {
-                              label: "Luxury Villas",
-                              price: "₹65,000/mo",
-                              beds: "4 BHK",
-                              area: "2,200 sq.ft",
-                              icon: (
-                                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                </svg>
-                              )
-                            },
-                            {
-                              label: "Girls PG",
-                              price: "₹8,500/mo",
-                              beds: "Shared",
-                              area: "200 sq.ft",
-                              icon: (
-                                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                              )
-                            },
-                          ];
-                        } catch (error) {
-                          console.error('Error loading properties:', error);
-                          return [
-                            { label: "Studio Lofts", price: "₹15,000/mo", beds: "1 BHK", area: "450 sq.ft", icon: null },
-                            { label: "2 BHK Apts", price: "₹28,000/mo", beds: "2 BHK", area: "850 sq.ft", icon: null },
-                            { label: "Luxury Villas", price: "₹65,000/mo", beds: "4 BHK", area: "2,200 sq.ft", icon: null },
-                            { label: "Girls PG", price: "₹8,500/mo", beds: "Shared", area: "200 sq.ft", icon: null },
-                          ];
-                        }
-                      };
-
-                      const properties = getProperties();
-
-                      return properties.map((p, i) => (
-                        <Link
-                          key={i}
-                          href="/rent"
-                          className="group/item block cursor-pointer transition-all duration-300 hover:translate-x-1"
-                        >
-                          <div>
-                            {/* Icon */}
-                            <div className="text-emerald-400/60 mb-2 group-hover/item:text-emerald-400 transition-colors">
-                              {p.icon || (
-                                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                </svg>
-                              )}
-                            </div>
-
-                            <p className="text-white font-extrabold text-[15px] sm:text-[17px] group-hover/item:text-emerald-300 transition-colors">
-                              {p.label}
-                            </p>
-                            <p className="text-white font-black text-[16px] sm:text-[18px] mt-0.5">
-                              {p.price}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1.5">
-                              <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">
-                                {p.beds}
-                              </span>
-                              <span className="w-0.5 h-0.5 rounded-full bg-slate-600"></span>
-                              <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">
-                                {p.area}
-                              </span>
-                            </div>
+                    {FEATURED_PROPERTIES.map((p, i) => (
+                      <Link
+                        key={i}
+                        href="/rent"
+                        className="group/item block cursor-pointer transition-all duration-300 hover:translate-x-1"
+                      >
+                        <div>
+                          {/* Icon */}
+                          <div className="text-emerald-400/60 mb-2 group-hover/item:text-emerald-400 transition-colors">
+                            {p.icon}
                           </div>
-                        </Link>
-                      ));
-                    })()}
+
+                          <p className="text-white font-extrabold text-[15px] sm:text-[17px] group-hover/item:text-emerald-300 transition-colors">
+                            {p.label}
+                          </p>
+                          <p className="text-white font-black text-[16px] sm:text-[18px] mt-0.5">
+                            {p.price}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">
+                              {p.beds}
+                            </span>
+                            <span className="w-0.5 h-0.5 rounded-full bg-slate-600"></span>
+                            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">
+                              {p.area}
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -1902,34 +1862,38 @@ export default function HomePage() {
         </section>
         {/* ═══════════════════════════════════ SUPPORT / HELP DESK BANNER ═══════════════════════════════════ */}
         <section className="max-w-4xl mx-auto w-full px-5 sm:px-8 py-8 pb-16 animate-fade-up">
-          <div className="relative bg-white rounded-2xl border border-slate-200/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] transition-all duration-500 group">
+          <div className="relative bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_8px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_1px_4px_rgba(0,0,0,0.03),0_12px_48px_rgba(0,0,0,0.07)] transition-all duration-500 group overflow-hidden">
 
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 sm:p-8">
+            {/* Subtle accent gradient */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary-50/40 via-transparent to-transparent rounded-full blur-2xl -translate-y-1/2 translate-x-1/4 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8 p-6 sm:p-8 relative">
 
               {/* Left Content */}
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-1.5 bg-slate-50 rounded-lg border border-slate-200/50 transition-all duration-300 group-hover:border-primary-200 group-hover:bg-primary-50">
+              <div className="flex-1 space-y-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-primary-50 to-slate-50 rounded-xl border border-primary-100/60 shadow-[0_2px_8px_rgba(99,102,241,0.06)] transition-all duration-300 group-hover:border-primary-200/80 group-hover:shadow-[0_4px_12px_rgba(99,102,241,0.10)]">
                     <svg
-                      className="w-4 h-4 text-slate-600 group-hover:text-primary-600 transition-colors duration-300"
+                      className="w-4.5 h-4.5 text-primary-600 group-hover:text-primary-700 transition-colors duration-300"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      strokeWidth="1.8"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] transition-colors duration-300 group-hover:text-slate-600">
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.2em] transition-colors duration-300 group-hover:text-slate-500">
                     Support Center
                   </span>
                 </div>
 
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight leading-snug">
-                  Need professional assistance?
+                <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight leading-snug">
+                  Get professional assistance
                 </h3>
 
-                <p className="text-slate-500 text-[13px] sm:text-[14px] font-medium leading-relaxed max-w-md">
-                  Submit support queries, track incident tickets, or connect with our team in real-time.
+                <p className="text-slate-500 text-[14px] leading-relaxed max-w-md font-normal">
+                  Submit support tickets, track incident updates, or connect with our team in real-time.
                 </p>
               </div>
 
@@ -1937,16 +1901,17 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new CustomEvent("open-support-desk"))}
-                className="group/btn relative shrink-0 inline-flex items-center gap-2.5 bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-lg font-semibold text-[13px] transition-all duration-300 shadow-sm hover:shadow-md active:scale-[0.97] cursor-pointer border-none"
+                className="group/btn relative shrink-0 inline-flex items-center gap-3 bg-slate-900 hover:bg-slate-800 text-white px-7 py-3.5 rounded-xl font-medium text-[14px] transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)] active:scale-[0.97] cursor-pointer border-none"
               >
                 <span>Open Help Desk</span>
                 <svg
-                  className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1"
+                  className="w-4.5 h-4.5 transition-transform duration-300 group-hover/btn:translate-x-1.5 group-hover/btn:-translate-y-0.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  strokeWidth="2"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </button>
             </div>
