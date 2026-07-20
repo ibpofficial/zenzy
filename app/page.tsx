@@ -824,7 +824,7 @@ export default function HomePage() {
                 />
 
                 {/* Sophisticated gradient overlays */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-transparent" />
 
@@ -839,31 +839,31 @@ export default function HomePage() {
                     </span>
                   </div>
 
-                  {/* Heading */}
-                  <h2 className={`text-4xl sm:text-5xl md:text-[3.75rem] font-bold tracking-tight leading-[1.05] drop-shadow-xl transition-all duration-700 delay-200 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+                  {/* Heading - removed subtitle text */}
+                  <h2 className={`text-3xl sm:text-4xl md:text-[3.5rem] font-bold tracking-tight leading-[1.05] drop-shadow-xl transition-all duration-700 delay-200 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
                     }`}>
                     {slide.title}
                   </h2>
 
                   {/* Description */}
-                  <p className={`text-white/75 font-light text-[15px] sm:text-[16px] leading-relaxed max-w-sm drop-shadow-lg transition-all duration-700 delay-300 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+                  <p className={`text-white/80 font-light text-[15px] sm:text-[16px] leading-relaxed max-w-sm drop-shadow-lg transition-all duration-700 delay-300 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
                     }`}>
                     {slide.desc}
                   </p>
 
-                  {/* Buttons */}
+                  {/* Premium Buttons */}
                   <div className={`flex flex-wrap items-center gap-4 pt-2 transition-all duration-700 delay-400 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
                     }`}>
                     <Link
                       href="/services"
-                      className="group relative inline-flex items-center gap-2.5 px-8 py-3.5 bg-white text-slate-900 rounded-xl font-medium text-[14px] transition-all duration-300 hover:bg-white/95 hover:scale-[1.03] active:scale-[0.97] shadow-xl shadow-black/30 hover:shadow-2xl hover:shadow-black/40 ring-1 ring-white/20"
+                      className="group relative inline-flex items-center gap-2.5 px-8 py-3.5 bg-white text-slate-900 rounded-full font-medium text-[14px] transition-all duration-300 hover:bg-white/95 hover:shadow-2xl hover:shadow-white/20 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/30"
                     >
                       Find Professionals
-                      <ArrowRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1.5 group-hover:-translate-y-0.5" />
+                      <ArrowRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1.5" />
                     </Link>
                     <Link
                       href="/rent"
-                      className="group inline-flex items-center gap-2.5 px-8 py-3.5 rounded-xl font-medium text-[14px] text-white/90 border border-white/20 hover:bg-white/10 hover:border-white/40 transition-all duration-300 active:scale-[0.97] backdrop-blur-sm hover:text-white"
+                      className="group inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full font-medium text-[14px] text-white transition-all duration-300 hover:bg-white/10 hover:scale-[1.02] active:scale-[0.98] border border-white/30 hover:border-white/60 backdrop-blur-sm"
                     >
                       Browse Rentals
                       <ArrowRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1" />
@@ -873,49 +873,31 @@ export default function HomePage() {
               </div>
             ))}
 
-            {/* Trust badges - refined */}
-            <div className="absolute top-4 right-4 sm:top-auto sm:bottom-14 sm:right-6 z-20 flex flex-col gap-2">
-              <div className="bg-black/20 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-xl flex items-center gap-2.5 shadow-lg shadow-black/10">
-                <div className="w-2 h-2 rounded-full bg-emerald-400/80 animate-pulse" />
-                <span className="text-[10px] font-medium text-white/90 tracking-wide">1,300+ Partners</span>
-              </div>
-              <div className="bg-black/20 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-xl flex items-center gap-2.5 shadow-lg shadow-black/10">
-                <div className="flex gap-0.5">
-                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                  <Star className="w-3 h-3 fill-amber-400/60 text-amber-400/60" />
-                </div>
-                <span className="text-[10px] font-medium text-white/90 tracking-wide">4.8★</span>
-              </div>
-            </div>
-
-            {/* Navigation arrows - enhanced */}
+            {/* Navigation arrows */}
             <button
               onClick={() => setActiveSlide((p) => (p - 1 + heroSlides.length) % heroSlides.length)}
-              className="absolute left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/15 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/30 hover:border-white/20 transition-all duration-300 active:scale-90 cursor-pointer group shadow-lg shadow-black/10"
+              className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/15 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/30 hover:border-white/20 transition-all duration-300 active:scale-90 cursor-pointer group shadow-lg shadow-black/10"
               aria-label="Previous slide"
             >
-              <ChevronLeft className="w-4.5 h-4.5 transition-transform duration-300 group-hover:-translate-x-0.5" strokeWidth={2} />
+              <ChevronLeft className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform duration-300 group-hover:-translate-x-0.5" strokeWidth={2} />
             </button>
             <button
               onClick={() => setActiveSlide((p) => (p + 1) % heroSlides.length)}
-              className="absolute right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/15 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/30 hover:border-white/20 transition-all duration-300 active:scale-90 cursor-pointer group shadow-lg shadow-black/10"
+              className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/15 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/30 hover:border-white/20 transition-all duration-300 active:scale-90 cursor-pointer group shadow-lg shadow-black/10"
               aria-label="Next slide"
             >
-              <ChevronRight className="w-4.5 h-4.5 transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2} />
+              <ChevronRight className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2} />
             </button>
 
-            {/* Dots indicator - refined */}
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+            {/* Dots indicator */}
+            <div className="absolute bottom-4 sm:bottom-12 left-1/2 -translate-x-1/2 flex gap-2 z-20">
               {heroSlides.map((_: any, idx: number) => (
                 <button
                   key={idx}
                   onClick={() => setActiveSlide(idx)}
                   className={`h-1.5 rounded-full transition-all duration-500 ease-out cursor-pointer ${idx === activeSlide
-                    ? "bg-white w-8 shadow-lg shadow-white/20"
-                    : "bg-white/25 w-1.5 hover:bg-white/50 hover:w-2.5"
+                      ? "bg-white w-8 shadow-lg shadow-white/20"
+                      : "bg-white/25 w-1.5 hover:bg-white/50 hover:w-2.5"
                     }`}
                 />
               ))}
