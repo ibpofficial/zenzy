@@ -807,93 +807,124 @@ export default function HomePage() {
 
         {/* ═══════════════════════════════════ HERO SLIDESHOW ═══════════════════════════════════ */}
         <section className="max-w-[1290px] mx-auto w-full px-[15px] sm:px-[27px] pt-28 pb-0">
-          <div className="relative h-[420px] sm:h-[460px] rounded-2xl overflow-hidden shadow-[0_24px_50px_rgba(0,0,0,0.06)]">
+          <div className="relative h-[420px] sm:h-[460px] rounded-2xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.06)]">
             {heroSlides.map((slide: any, idx: number) => (
               <div
                 key={idx}
-                className={`absolute inset-0 transition-all duration-1000 flex items-center p-7 md:p-14 ${idx === activeSlide ? "opacity-100 z-10" : "opacity-0 z-0"
+                className={`absolute inset-0 transition-all duration-[1200ms] ease-out flex items-center p-7 md:p-14 ${idx === activeSlide ? "opacity-100 z-10" : "opacity-0 z-0"
                   }`}
               >
-                {/* Background image — shown in actual color, no dulling overlay */}
+                {/* Background image with subtle zoom */}
                 <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-[8000ms] ease-linear"
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] ease-out"
                   style={{
                     backgroundImage: `url('${slide.bg}')`,
-                    transform: idx === activeSlide ? "scale(1.04)" : "scale(1)"
+                    transform: idx === activeSlide ? "scale(1.05)" : "scale(1)"
                   }}
                 />
-                {/* Light gradient only at left edge for text legibility — NOT darkening the whole image */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
 
-                <div className="max-w-xl text-white space-y-5 relative z-20">
-                  <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-white/15 backdrop-blur-md border border-white/20">
-                    <i className={`fas ${slide.icon} text-white/80`}></i>
-                    {slide.badge}
-                  </span>
-                  <h2 className={`text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.06] drop-shadow-lg transition-all duration-700 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+                {/* Sophisticated gradient overlays */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/25 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-transparent" />
+
+                {/* Content */}
+                <div className="max-w-xl text-white space-y-6 relative z-20">
+                  {/* Badge */}
+                  <div className={`transition-all duration-700 delay-100 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+                    }`}>
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-[0.15em] bg-white/10 backdrop-blur-md border border-white/10 shadow-lg shadow-black/10">
+                      <i className={`fas ${slide.icon} text-white/60`}></i>
+                      {slide.badge}
+                    </span>
+                  </div>
+
+                  {/* Heading */}
+                  <h2 className={`text-4xl sm:text-5xl md:text-[3.75rem] font-bold tracking-tight leading-[1.05] drop-shadow-xl transition-all duration-700 delay-200 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+                    }`}>
                     {slide.title}
                   </h2>
-                  <p className={`text-white/85 font-medium text-[14px] sm:text-[15px] leading-relaxed max-w-sm drop-shadow transition-all duration-700 delay-100 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+
+                  {/* Description */}
+                  <p className={`text-white/75 font-light text-[15px] sm:text-[16px] leading-relaxed max-w-sm drop-shadow-lg transition-all duration-700 delay-300 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+                    }`}>
                     {slide.desc}
                   </p>
-                  <div className={`flex items-center gap-3.5 pt-1.5 transition-all duration-700 delay-200 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
+
+                  {/* Buttons */}
+                  <div className={`flex flex-wrap items-center gap-4 pt-2 transition-all duration-700 delay-400 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+                    }`}>
                     <Link
                       href="/services"
-                      className="group relative overflow-hidden bg-white text-slate-950 px-7 py-3.5 rounded-xl font-black text-[12px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-md flex items-center gap-2.5 active:scale-95 hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(37,99,235,0.35)]"
+                      className="group relative inline-flex items-center gap-2.5 px-8 py-3.5 bg-white text-slate-900 rounded-xl font-medium text-[14px] transition-all duration-300 hover:bg-white/95 hover:scale-[1.03] active:scale-[0.97] shadow-xl shadow-black/30 hover:shadow-2xl hover:shadow-black/40 ring-1 ring-white/20"
                     >
                       Find Professionals
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                      <ArrowRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1.5 group-hover:-translate-y-0.5" />
                     </Link>
                     <Link
                       href="/rent"
-                      className="px-7 py-3.5 rounded-xl font-black text-[12px] uppercase tracking-widest text-white bg-white/10 border border-white/20 hover:bg-white hover:text-slate-950 transition-all duration-300 backdrop-blur-sm active:scale-95 hover:scale-[1.02] hover:shadow-[0_12px_28px_rgba(255,255,255,0.15)]"
+                      className="group inline-flex items-center gap-2.5 px-8 py-3.5 rounded-xl font-medium text-[14px] text-white/90 border border-white/20 hover:bg-white/10 hover:border-white/40 transition-all duration-300 active:scale-[0.97] backdrop-blur-sm hover:text-white"
                     >
                       Browse Rentals
+                      <ArrowRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1" />
                     </Link>
                   </div>
                 </div>
               </div>
             ))}
 
-            {/* Trust badges — transparent, compact, top-right on mobile, bottom-right on desktop */}
-            <div className="absolute top-4 right-4 sm:top-auto sm:bottom-14 sm:right-5 z-20 flex flex-col gap-1.5">
-              <div className="bg-black/25 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
-                <CheckCircle className="w-3 h-3 text-emerald-400" />
-                <span className="text-[10px] font-bold text-white/90">1,300+ Partners</span>
+            {/* Trust badges - refined */}
+            <div className="absolute top-4 right-4 sm:top-auto sm:bottom-14 sm:right-6 z-20 flex flex-col gap-2">
+              <div className="bg-black/20 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-xl flex items-center gap-2.5 shadow-lg shadow-black/10">
+                <div className="w-2 h-2 rounded-full bg-emerald-400/80 animate-pulse" />
+                <span className="text-[10px] font-medium text-white/90 tracking-wide">1,300+ Partners</span>
               </div>
-              <div className="bg-black/25 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
-                <Star className="w-3 h-3 text-amber-400" />
-                <span className="text-[10px] font-bold text-white/90">4.8★ Rating</span>
+              <div className="bg-black/20 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-xl flex items-center gap-2.5 shadow-lg shadow-black/10">
+                <div className="flex gap-0.5">
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  <Star className="w-3 h-3 fill-amber-400/60 text-amber-400/60" />
+                </div>
+                <span className="text-[10px] font-medium text-white/90 tracking-wide">4.8★</span>
               </div>
             </div>
 
-            {/* Prev/Next arrows */}
+            {/* Navigation arrows - enhanced */}
             <button
               onClick={() => setActiveSlide((p) => (p - 1 + heroSlides.length) % heroSlides.length)}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/25 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-black/40 transition active:scale-90 cursor-pointer"
+              className="absolute left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/15 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/30 hover:border-white/20 transition-all duration-300 active:scale-90 cursor-pointer group shadow-lg shadow-black/10"
               aria-label="Previous slide"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4.5 h-4.5 transition-transform duration-300 group-hover:-translate-x-0.5" strokeWidth={2} />
             </button>
             <button
               onClick={() => setActiveSlide((p) => (p + 1) % heroSlides.length)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/25 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-black/40 transition active:scale-90 cursor-pointer"
+              className="absolute right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/15 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/30 hover:border-white/20 transition-all duration-300 active:scale-90 cursor-pointer group shadow-lg shadow-black/10"
               aria-label="Next slide"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4.5 h-4.5 transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2} />
             </button>
 
-            {/* Dots Indicator */}
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+            {/* Dots indicator - refined */}
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-2 z-20">
               {heroSlides.map((_: any, idx: number) => (
                 <button
                   key={idx}
                   onClick={() => setActiveSlide(idx)}
-                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${idx === activeSlide ? "bg-white w-6" : "bg-white/40 w-1.5 hover:bg-white/70"
+                  className={`h-1.5 rounded-full transition-all duration-500 ease-out cursor-pointer ${idx === activeSlide
+                    ? "bg-white w-8 shadow-lg shadow-white/20"
+                    : "bg-white/25 w-1.5 hover:bg-white/50 hover:w-2.5"
                     }`}
-                ></button>
+                />
               ))}
+            </div>
+
+            {/* Subtle gradient edge accents */}
+            <div className="absolute inset-0 pointer-events-none z-10 rounded-2xl">
+              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
             </div>
           </div>
         </section>
@@ -1049,11 +1080,10 @@ export default function HomePage() {
                               key={loc}
                               type="button"
                               onClick={() => handleSelectLocation(loc)}
-                              className={`text-left px-2.5 py-1.5 rounded-xl text-[11.5px] font-extrabold transition flex items-center justify-between cursor-pointer ${
-                                isSelected
-                                  ? "text-blue-600 bg-blue-50/90 border border-blue-200/80 shadow-xs"
-                                  : "text-slate-700 bg-slate-50/70 hover:bg-slate-100/80 border border-transparent"
-                              }`}
+                              className={`text-left px-2.5 py-1.5 rounded-xl text-[11.5px] font-extrabold transition flex items-center justify-between cursor-pointer ${isSelected
+                                ? "text-blue-600 bg-blue-50/90 border border-blue-200/80 shadow-xs"
+                                : "text-slate-700 bg-slate-50/70 hover:bg-slate-100/80 border border-transparent"
+                                }`}
                             >
                               <span className="truncate">{loc}</span>
                               {isSelected && <CheckCircle className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
@@ -1369,12 +1399,11 @@ export default function HomePage() {
                         <span>·</span>
                         <span>{pro.experience || "2 years"}</span>
                         <span>·</span>
-                        <span className={`flex items-center gap-1 truncate max-w-[120px] ${
-                          userLocation && pro.serviceArea && (
-                            pro.serviceArea.toLowerCase().includes(userLocation.toLowerCase().split(',')[0]) ||
-                            userLocation.toLowerCase().includes(pro.serviceArea.toLowerCase().split(',')[0])
-                          ) ? "text-blue-600 font-extrabold" : "text-slate-400"
-                        }`}>
+                        <span className={`flex items-center gap-1 truncate max-w-[120px] ${userLocation && pro.serviceArea && (
+                          pro.serviceArea.toLowerCase().includes(userLocation.toLowerCase().split(',')[0]) ||
+                          userLocation.toLowerCase().includes(pro.serviceArea.toLowerCase().split(',')[0])
+                        ) ? "text-blue-600 font-extrabold" : "text-slate-400"
+                          }`}>
                           <MapPin className="w-3 h-3 text-blue-500 shrink-0" />
                           {pro.serviceArea?.split(',')[0] || "Jaipur"}
                         </span>
