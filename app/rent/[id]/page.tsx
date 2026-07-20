@@ -303,13 +303,13 @@ export default function PropertyDetailsPage() {
                   <>
                     <button
                       onClick={prevImage}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 text-slate-700 flex items-center justify-center hover:bg-white transition shadow-sm border border-slate-200/50 backdrop-blur-sm cursor-pointer"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-white/90 text-slate-700 flex items-center justify-center hover:bg-white transition shadow-sm border border-slate-200/50 backdrop-blur-sm cursor-pointer active:scale-90"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
                     <button
                       onClick={nextImage}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 text-slate-700 flex items-center justify-center hover:bg-white transition shadow-sm border border-slate-200/50 backdrop-blur-sm cursor-pointer"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-white/90 text-slate-700 flex items-center justify-center hover:bg-white transition shadow-sm border border-slate-200/50 backdrop-blur-sm cursor-pointer active:scale-90"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>

@@ -476,14 +476,23 @@ export default function HomePage() {
   ];
 
   const heroSlides = siteSettings?.slideshowImages?.length
-    ? siteSettings.slideshowImages.map((s: any, i: number) => ({
-      badge: s.badge || "Zenzy",
-      title: s.title || "Zenzy Services",
-      desc: s.subtitle || "India's best service marketplace.",
-      bg: s.url,
-      icon: s.icon || "fa-star",
-      accent: "#2563eb"
-    }))
+    ? siteSettings.slideshowImages.map((s: any, i: number) => {
+      const rawBadge = s.badge || "";
+      const rawTitle = s.title || "Quality Home Services";
+      const rawSub = s.subtitle || "India's best service marketplace.";
+      const cleanBadge = rawBadge.replace(/zenzy/gi, "").replace(/verified services/gi, "").trim();
+      const cleanTitle = rawTitle.replace(/zenzy/gi, "").trim() || "Quality Home Services";
+      const cleanSub = rawSub.replace(/zenzy/gi, "").trim() || "India's best service marketplace.";
+
+      return {
+        badge: cleanBadge,
+        title: cleanTitle,
+        desc: cleanSub,
+        bg: s.url,
+        icon: s.icon || "fa-star",
+        accent: "#2563eb"
+      };
+    })
     : defaultHeroSlides;
 
   // Auto scroll slideshow
@@ -806,12 +815,12 @@ export default function HomePage() {
         <Navbar />
 
         {/* ═══════════════════════════════════ HERO SLIDESHOW ═══════════════════════════════════ */}
-        <section className="max-w-[1290px] mx-auto w-full px-[15px] sm:px-[27px] pt-28 pb-0">
-          <div className="relative h-[420px] sm:h-[460px] rounded-2xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.06)]">
+        <section className="max-w-[1290px] mx-auto w-full px-[15px] sm:px-[27px] pt-24 sm:pt-28 pb-0">
+          <div className="relative h-[450px] sm:h-[470px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.12)]">
             {heroSlides.map((slide: any, idx: number) => (
               <div
                 key={idx}
-                className={`absolute inset-0 transition-all duration-[1200ms] ease-out flex items-center p-7 md:p-14 ${idx === activeSlide ? "opacity-100 z-10" : "opacity-0 z-0"
+                className={`absolute inset-0 transition-all duration-[1000ms] ease-out flex items-center p-6 sm:p-10 md:p-14 ${idx === activeSlide ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
                   }`}
               >
                 {/* Background image with subtle zoom */}
@@ -819,51 +828,52 @@ export default function HomePage() {
                   className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] ease-out"
                   style={{
                     backgroundImage: `url('${slide.bg}')`,
-                    transform: idx === activeSlide ? "scale(1.05)" : "scale(1)"
+                    transform: idx === activeSlide ? "scale(1.06)" : "scale(1)"
                   }}
                 />
 
-                {/* Sophisticated gradient overlays */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-transparent" />
+                {/* Gradient overlays for readability */}
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/65 to-slate-950/30" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/20" />
 
                 {/* Content */}
-                <div className="max-w-xl text-white space-y-6 relative z-20">
+                <div className="max-w-xl text-white space-y-4 sm:space-y-6 relative z-20">
                   {/* Badge */}
-                  <div className={`transition-all duration-700 delay-100 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
-                    }`}>
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-medium uppercase tracking-[0.15em] bg-white/10 backdrop-blur-md border border-white/10 shadow-lg shadow-black/10">
-                      <i className={`fas ${slide.icon} text-white/60`}></i>
-                      {slide.badge}
-                    </span>
-                  </div>
+                  {slide.badge ? (
+                    <div className={`transition-all duration-700 delay-100 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+                      }`}>
+                      <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] bg-white/15 backdrop-blur-md border border-white/20 shadow-md text-amber-300">
+                        <i className={`fas ${slide.icon} text-amber-400`}></i>
+                        {slide.badge}
+                      </span>
+                    </div>
+                  ) : null}
 
-                  {/* Heading - removed subtitle text */}
-                  <h2 className={`text-3xl sm:text-4xl md:text-[3.5rem] font-bold tracking-tight leading-[1.05] drop-shadow-xl transition-all duration-700 delay-200 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+                  {/* Heading */}
+                  <h2 className={`text-2xl sm:text-4xl md:text-[3.25rem] font-extrabold tracking-tight leading-[1.1] drop-shadow-xl transition-all duration-700 delay-200 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
                     }`}>
                     {slide.title}
                   </h2>
 
                   {/* Description */}
-                  <p className={`text-white/80 font-light text-[15px] sm:text-[16px] leading-relaxed max-w-sm drop-shadow-lg transition-all duration-700 delay-300 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+                  <p className={`text-slate-100 font-normal text-[13.5px] sm:text-[15.5px] leading-relaxed max-w-md drop-shadow-md transition-all duration-700 delay-300 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
                     }`}>
                     {slide.desc}
                   </p>
 
-                  {/* Premium Buttons */}
-                  <div className={`flex flex-wrap items-center gap-4 pt-2 transition-all duration-700 delay-400 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+                  {/* Premium Square Buttons */}
+                  <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1 sm:pt-2 transition-all duration-700 delay-400 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
                     }`}>
                     <Link
                       href="/services"
-                      className="group relative inline-flex items-center gap-2.5 px-8 py-3.5 bg-white text-slate-900 rounded-full font-medium text-[14px] transition-all duration-300 hover:bg-white/95 hover:shadow-2xl hover:shadow-white/20 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/30"
+                      className="group relative inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3 sm:py-3.5 bg-white text-slate-900 rounded-xl font-bold text-[13.5px] sm:text-[14px] transition-all duration-200 hover:bg-slate-100 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/20 w-full sm:w-auto"
                     >
                       Find Professionals
-                      <ArrowRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1.5" />
+                      <ArrowRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1" />
                     </Link>
                     <Link
                       href="/rent"
-                      className="group inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full font-medium text-[14px] text-white transition-all duration-300 hover:bg-white/10 hover:scale-[1.02] active:scale-[0.98] border border-white/30 hover:border-white/60 backdrop-blur-sm"
+                      className="group inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl font-bold text-[13.5px] sm:text-[14px] text-white transition-all duration-200 bg-white/15 hover:bg-white/25 active:scale-[0.98] border border-white/40 hover:border-white/70 backdrop-blur-md shadow-md w-full sm:w-auto"
                     >
                       Browse Rentals
                       <ArrowRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1" />
@@ -873,46 +883,43 @@ export default function HomePage() {
               </div>
             ))}
 
-            {/* Navigation arrows */}
+            {/* Navigation arrows (Square rounded-xl) */}
             <button
               onClick={() => setActiveSlide((p) => (p - 1 + heroSlides.length) % heroSlides.length)}
-              className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/15 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/30 hover:border-white/20 transition-all duration-300 active:scale-90 cursor-pointer group shadow-lg shadow-black/10"
+              className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-slate-950/60 sm:bg-black/40 backdrop-blur-md border border-white/25 flex items-center justify-center text-white hover:bg-slate-900 hover:border-white/50 transition-all duration-200 active:scale-90 cursor-pointer group shadow-lg"
               aria-label="Previous slide"
             >
-              <ChevronLeft className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform duration-300 group-hover:-translate-x-0.5" strokeWidth={2} />
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:-translate-x-0.5" strokeWidth={2.5} />
             </button>
             <button
               onClick={() => setActiveSlide((p) => (p + 1) % heroSlides.length)}
-              className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/15 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white hover:bg-black/30 hover:border-white/20 transition-all duration-300 active:scale-90 cursor-pointer group shadow-lg shadow-black/10"
+              className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-slate-950/60 sm:bg-black/40 backdrop-blur-md border border-white/25 flex items-center justify-center text-white hover:bg-slate-900 hover:border-white/50 transition-all duration-200 active:scale-90 cursor-pointer group shadow-lg"
               aria-label="Next slide"
             >
-              <ChevronRight className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2} />
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:translate-x-0.5" strokeWidth={2.5} />
             </button>
 
-            {/* Dots indicator */}
-            <div className="absolute bottom-4 sm:bottom-12 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+            {/* Square bar indicators */}
+            <div className="absolute bottom-3.5 sm:bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
               {heroSlides.map((_: any, idx: number) => (
                 <button
                   key={idx}
                   onClick={() => setActiveSlide(idx)}
-                  className={`h-1.5 rounded-full transition-all duration-500 ease-out cursor-pointer ${idx === activeSlide
-                      ? "bg-white w-8 shadow-lg shadow-white/20"
-                      : "bg-white/25 w-1.5 hover:bg-white/50 hover:w-2.5"
+                  className={`h-2 rounded-md transition-all duration-300 ease-out cursor-pointer ${idx === activeSlide
+                      ? "bg-white w-7 shadow-md"
+                      : "bg-white/35 w-2 hover:bg-white/60 hover:w-4"
                     }`}
                 />
               ))}
             </div>
 
-            {/* Subtle gradient edge accents */}
-            <div className="absolute inset-0 pointer-events-none z-10 rounded-2xl">
-              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-            </div>
+            {/* Subtle edge accents */}
+            <div className="absolute inset-0 pointer-events-none z-10 rounded-2xl sm:rounded-3xl border border-white/10" />
           </div>
         </section>
 
         {/* ═══════════════════════════════════ UNIVERSAL SEARCH BAR ═══════════════════════════════════ */}
-        <section className="relative z-40 max-w-4xl mx-auto w-full px-3.5 sm:px-8 -mt-10 sm:-mt-12 pb-6 animate-fade-up">
+        <section className="relative z-40 max-w-4xl mx-auto w-full px-3.5 sm:px-8 -mt-8 sm:-mt-10 pb-6 animate-fade-up">
           {/* Backdrop dimming effect when focused/suggestions open */}
           {showSuggestions && (suggestions.length > 0 || spellingSuggestion || (recentSearches.length > 0 && !searchQuery)) && (
             <div
@@ -922,9 +929,9 @@ export default function HomePage() {
           )}
 
           <form onSubmit={handleSearchSubmit} className="relative z-40">
-            <div className={`flex items-center bg-white rounded-3xl p-1.5 sm:p-2.5 border border-slate-200/90 shadow-[0_14px_38px_rgba(15,23,42,0.13)] hover:shadow-[0_18px_45px_rgba(37,99,235,0.18)] transition-all duration-300 group ${showSuggestions ? 'scale-[1.01] shadow-[0_20px_50px_rgba(37,99,235,0.22)]' : ''}`}>
+            <div className={`flex items-center bg-white rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 border border-slate-200/90 shadow-[0_16px_40px_rgba(15,23,42,0.14)] hover:shadow-[0_20px_48px_rgba(37,99,235,0.18)] transition-all duration-300 group ${showSuggestions ? 'scale-[1.01] shadow-[0_22px_55px_rgba(37,99,235,0.22)]' : ''}`}>
               <div className="pl-3 sm:pl-4 text-slate-400 shrink-0">
-                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 group-focus-within:rotate-12 transition-transform duration-300" />
+                <Search className="w-5 h-5 text-indigo-500 group-focus-within:rotate-12 transition-transform duration-300" />
               </div>
               <div className="relative flex-1 min-w-0">
                 <input
@@ -946,10 +953,10 @@ export default function HomePage() {
                     if (searchQuery.length === 0) setIsUserTyping(false);
                   }}
                   placeholder=""
-                  className="w-full bg-transparent border-none outline-none pl-2.5 sm:pl-4 pr-8 sm:pr-10 py-2.5 sm:py-3.5 text-slate-850 font-extrabold text-[13px] sm:text-[14.5px] relative z-10"
+                  className="w-full bg-transparent border-none outline-none pl-2.5 sm:pl-4 pr-8 sm:pr-10 py-3.5 sm:py-3.5 text-slate-850 font-extrabold text-[14px] sm:text-[14.5px] relative z-10"
                 />
                 {!searchQuery && (
-                  <div className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-[12px] sm:text-[14.5px] font-bold text-slate-400 z-0 truncate max-w-[90%]">
+                  <div className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-[13px] sm:text-[14.5px] font-bold text-slate-400 z-0 truncate max-w-[90%]">
                     <span className="truncate">{typedPlaceholder}</span>
                     <span className="typewriter-cursor">|</span>
                   </div>
@@ -964,7 +971,7 @@ export default function HomePage() {
                     }}
                     className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors p-1 cursor-pointer z-20"
                   >
-                    <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
@@ -974,11 +981,11 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={() => setShowLocationDropdown(!showLocationDropdown)}
-                  className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl bg-slate-100/90 text-slate-600 shadow-inner mr-1.5 sm:mr-2.5 select-none hover:bg-slate-200/80 transition cursor-pointer shrink-0"
+                  className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 sm:py-2 rounded-xl bg-slate-100/90 text-slate-600 shadow-inner mr-1.5 sm:mr-2.5 select-none hover:bg-slate-200/80 transition cursor-pointer shrink-0"
                 >
-                  <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-500 animate-pulse shrink-0" />
-                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider max-w-[60px] sm:max-w-[120px] truncate">{userLocation}</span>
-                  <ChevronDown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400 shrink-0" />
+                  <MapPin className="w-3.5 h-3.5 text-blue-500 animate-pulse shrink-0" />
+                  <span className="text-[10px] sm:text-[10px] font-black uppercase tracking-wider max-w-[65px] sm:max-w-[120px] truncate">{userLocation}</span>
+                  <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
                 </button>
 
                 {showLocationDropdown && (
@@ -1080,9 +1087,9 @@ export default function HomePage() {
 
               <button
                 type="submit"
-                className="search-btn-premium group flex items-center justify-center gap-1.5 sm:gap-2 text-white px-4 sm:px-7 py-2.5 sm:py-3.5 rounded-2xl sm:rounded-xl font-extrabold text-[12px] sm:text-[13.5px] shadow-md hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-150 whitespace-nowrap cursor-pointer shrink-0"
+                className="search-btn-premium group flex items-center justify-center gap-1.5 sm:gap-2 text-white px-4.5 sm:px-7 py-3 sm:py-3.5 rounded-xl font-extrabold text-[13px] sm:text-[13.5px] shadow-md hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-150 whitespace-nowrap cursor-pointer shrink-0"
               >
-                <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:rotate-12 transition-transform duration-300" />
+                <Search className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
                 <span>Search</span>
                 <ArrowRight className="w-3.5 h-3.5 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 hidden sm:inline-block" />
               </button>
