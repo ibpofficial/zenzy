@@ -83,7 +83,7 @@ export default function ZenAssistant() {
   const isUnlimitedUser = !!(user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase()));
   const [isOpen, setIsOpen] = useState(false);
   const [isChatInitialized, setIsChatInitialized] = useState(false);
-  
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -126,7 +126,7 @@ export default function ZenAssistant() {
         const timeout = setTimeout(() => {
           setDisplayedMessage(prev => prev + typingText[currentTypingIndex]);
           setCurrentTypingIndex(prev => prev + 1);
-        }, 8); // Slightly faster typing animation for better UX
+        }, 8);
         return () => clearTimeout(timeout);
       } else {
         setIsTyping(false);
@@ -229,22 +229,22 @@ export default function ZenAssistant() {
     // Format the content with better visual elements
     const formatted = content.split('\n').map((line, index) => {
       if (line.startsWith('✦') && line.endsWith('✦')) {
-        return <div key={index} className="text-center font-bold text-indigo-600 text-xs py-1 uppercase tracking-wider">{line}</div>;
+        return <div key={index} className="text-center font-medium text-indigo-600 text-[10px] py-1 uppercase tracking-[0.15em]">{line}</div>;
       }
       if (line.startsWith('▸') || line.startsWith('▪') || line.startsWith('•') || line.startsWith('◦') || line.startsWith('›')) {
-        return <div key={index} className="flex items-start gap-2 ml-1 py-1 text-slate-700 font-medium">
-          <span className="text-indigo-500 font-bold shrink-0">▸</span>
+        return <div key={index} className="flex items-start gap-2.5 ml-0.5 py-1 text-slate-700">
+          <span className="text-indigo-500 font-medium shrink-0 text-sm leading-5">▸</span>
           <span className="leading-relaxed">{line.replace(/^[▸▪•◦›]\s*/, '').trim()}</span>
         </div>;
       }
       if (line.includes('━')) {
-        return <div key={index} className="text-center text-slate-300 my-2.5">━ ━ ━ ━ ━ ━</div>;
+        return <div key={index} className="text-center text-slate-200 my-3">━ ━ ━ ━ ━ ━</div>;
       }
       if (line.startsWith('⚠️')) {
-        return <div key={index} className="text-amber-600 font-extrabold flex items-start gap-1.5 py-1.5 leading-relaxed">{line}</div>;
+        return <div key={index} className="text-amber-600 font-semibold flex items-start gap-2 py-1.5 leading-relaxed">{line}</div>;
       }
       if (line.trim() === '') return <br key={index} />;
-      return <div key={index} className="py-0.5 leading-relaxed text-slate-755 font-medium">{line}</div>;
+      return <div key={index} className="py-0.5 leading-relaxed text-slate-700">{line}</div>;
     });
 
     return <>{formatted}</>;
@@ -396,50 +396,61 @@ AI Assistant Rules:
 
   // Quick Suggestion Chips Config
   const SUGGESTIONS = [
-    { text: "🔍 Find Electrician", prompt: "Suggest verified Electricians in my location." },
-    { text: "📋 Booking History", prompt: "Show my current active bookings and their statuses." },
-    { text: "🏡 Rent Studio PG", prompt: "Suggest zero-brokerage rental apartments or PGs." },
-    { text: "💻 Creator Info", prompt: "Who built and designed the Zenzy platform?" }
+    { text: "Find Electrician", prompt: "Suggest verified Electricians in my location." },
+    { text: "Booking History", prompt: "Show my current active bookings and their statuses." },
+    { text: "Rent Studio PG", prompt: "Suggest zero-brokerage rental apartments or PGs." },
+    { text: "Creator Info", prompt: "Who built and designed the Zenzy platform?" }
   ];
 
   // Typing animation component with better visual
   const TypingIndicator = () => (
-    <div className="max-w-[85%] mr-auto p-3 bg-slate-100/70 rounded-2xl rounded-tl-none flex items-center gap-2.5">
-      <div className="flex gap-0.5 shrink-0">
-        <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-        <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-        <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+    <div className="max-w-[85%] mr-auto p-3.5 bg-slate-50 rounded-2xl rounded-tl-none flex items-center gap-3">
+      <div className="flex gap-1 shrink-0">
+        <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+        <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+        <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
       </div>
-      <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">thinking...</span>
+      <span className="text-[9px] text-slate-400 font-medium uppercase tracking-[0.12em]">Thinking</span>
     </div>
   );
 
   return createPortal(
     <div className="fixed bottom-20 right-5 md:bottom-6 md:right-6 z-[9999] font-sans">
-      
+
       {/* Custom Styles Injector for smooth bottom drawer animations */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes zen-pulse-glow {
-          0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.45); transform: scale(1); }
-          70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); transform: scale(1.05); }
-          100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); transform: scale(1); }
+          0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.3); transform: scale(1); }
+          70% { box-shadow: 0 0 0 12px rgba(79, 70, 229, 0); transform: scale(1.04); }
+          100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); transform: scale(1); }
         }
         @keyframes zen-slide-up-mobile {
-          from { transform: translateY(100%); opacity: 0.5; }
+          from { transform: translateY(100%); opacity: 0.4; }
           to { transform: translateY(0); opacity: 1; }
         }
         @keyframes zen-fade-in-desktop {
-          from { opacity: 0; transform: scale(0.96) translateY(10px); }
+          from { opacity: 0; transform: scale(0.96) translateY(8px); }
           to { opacity: 1; transform: scale(1) translateY(0); }
         }
         .zen-glow-action {
-          animation: zen-pulse-glow 2.5s infinite;
+          animation: zen-pulse-glow 2.8s infinite;
         }
         .zen-drawer-mobile {
-          animation: zen-slide-up-mobile 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: zen-slide-up-mobile 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .zen-drawer-desktop {
-          animation: zen-fade-in-desktop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: zen-fade-in-desktop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .scrollbar-thin::-webkit-scrollbar {
+          width: 4px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background: #e2e8f0;
+          border-radius: 20px;
         }
       `}} />
 
@@ -447,40 +458,40 @@ AI Assistant Rules:
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center justify-start w-12 hover:w-32 active:w-32 h-12 p-2.5 rounded-full bg-slate-950 border border-slate-800 text-white shadow-[0_12px_32px_rgba(99,102,241,0.22)] transition-all duration-300 relative group cursor-pointer backdrop-blur-md overflow-hidden zen-glow-action"
+          className="flex items-center justify-start w-12 hover:w-32 active:w-32 h-12 px-3 rounded-full bg-[#0f0f12] border border-[#1a1a1f] text-white shadow-[0_8px_28px_rgba(79,70,229,0.18)] transition-all duration-300 relative group cursor-pointer backdrop-blur-sm overflow-hidden zen-glow-action"
           title="Ask Zen AI Assistant"
         >
-          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-650 shadow-sm shrink-0">
-            <Brain className="w-4 h-4 text-white animate-pulse" />
+          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-500/90 shadow-sm shrink-0">
+            <Brain className="w-3.5 h-3.5 text-white" />
           </div>
 
           <div className="flex items-center gap-1.5 ml-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-            <span className="text-[10px] font-black tracking-widest text-slate-200 uppercase">ZEN AI</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+            <span className="text-[10px] font-medium tracking-[0.08em] text-slate-300 uppercase">Zen AI</span>
+            <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
           </div>
         </button>
       )}
 
       {/* Expanded AI Panel (Highly responsive bottom-sheet on mobile, layout drawer on desktop) */}
       {isOpen && (
-        <div className="fixed bottom-0 right-0 left-0 w-full h-[85vh] md:relative md:bottom-auto md:right-auto md:left-auto md:w-[380px] md:h-[550px] bg-white/95 border-t border-slate-200 md:border md:rounded-3xl shadow-[0_-12px_40px_rgba(0,0,0,0.12)] md:shadow-[0_24px_60px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden backdrop-blur-xl rounded-t-[28px] z-[9999] transition-all duration-300 zen-drawer-mobile md:zen-drawer-desktop">
+        <div className="fixed bottom-0 right-0 left-0 w-full h-[85vh] md:relative md:bottom-auto md:right-auto md:left-auto md:w-[380px] md:h-[560px] bg-white border-t border-slate-100 md:border md:rounded-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.06)] md:shadow-[0_20px_60px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden backdrop-blur-xl rounded-t-[24px] z-[9999] transition-all duration-300 zen-drawer-mobile md:zen-drawer-desktop">
 
           {/* Header */}
-          <div className="bg-slate-950 text-white p-4.5 flex items-center justify-between border-b border-slate-800 shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center shadow-md">
-                <Brain className="w-4.5 h-4.5 text-white" />
+          <div className="bg-[#0f0f12] text-white px-5 py-4 flex items-center justify-between border-b border-[#1a1a1f] shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-indigo-500/90 flex items-center justify-center shadow-sm">
+                <Brain className="w-4 h-4 text-white" />
               </div>
               <div className="text-left">
-                <h3 className="font-extrabold text-[14px] flex items-center gap-1.5">
-                  ZEN Assistant
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <h3 className="font-medium text-[13px] flex items-center gap-2">
+                  Zen Assistant
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                 </h3>
-                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Zenzy AI Bot</p>
+                <p className="text-[10px] text-slate-400 font-light mt-0.5 tracking-wide">AI-powered guidance</p>
               </div>
             </div>
-            
-            <div className="flex items-center gap-2">
+
+            <div className="flex items-center gap-1">
               {/* Reset chat button */}
               <button
                 onClick={() => {
@@ -493,47 +504,47 @@ AI Assistant Rules:
                     ]);
                   }
                 }}
-                className="text-slate-400 hover:text-white transition p-1.5 hover:bg-white/10 rounded-lg cursor-pointer"
+                className="text-slate-500 hover:text-white transition p-1.5 hover:bg-white/5 rounded-lg cursor-pointer"
                 title="Reset Conversation"
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-white transition p-1.5 hover:bg-white/10 rounded-lg cursor-pointer"
+                className="text-slate-500 hover:text-white transition p-1.5 hover:bg-white/5 rounded-lg cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4.5 h-4.5" />
               </button>
             </div>
           </div>
 
           {/* Queries limit stats */}
           {user && (
-            <div className="bg-slate-50 px-4.5 py-2 border-b text-[10px] font-extrabold text-slate-500 uppercase tracking-wide flex justify-between items-center shrink-0">
-              <span>Usage Stats</span>
-              <span className={queriesUsed >= aiUsageLimit && !isUnlimitedUser ? "text-red-500 font-black" : "text-indigo-600 font-black"}>
-                {queriesUsed} / {isUnlimitedUser ? "∞" : aiUsageLimit} Queries
+            <div className="bg-slate-50/80 px-5 py-2.5 border-b border-slate-100 text-[9px] font-medium text-slate-500 uppercase tracking-[0.08em] flex justify-between items-center shrink-0">
+              <span>Usage</span>
+              <span className={queriesUsed >= aiUsageLimit && !isUnlimitedUser ? "text-red-500 font-semibold" : "text-indigo-600 font-medium"}>
+                {queriesUsed} / {isUnlimitedUser ? "∞" : aiUsageLimit} queries
               </span>
             </div>
           )}
 
           {/* Messages list */}
-          <div className="flex-1 overflow-y-auto p-4.5 space-y-3.5 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 scrollbar-thin">
             {messages.map((m, idx) => (
               <div
                 key={idx}
-                className={`flex max-w-[82%] ${m.role === "user" ? "ml-auto" : "mr-auto"}`}
+                className={`flex max-w-[84%] ${m.role === "user" ? "ml-auto" : "mr-auto"}`}
               >
                 <div
-                  className={`p-3.5 rounded-2xl text-xs font-semibold leading-relaxed text-left ${m.role === "user"
-                    ? "bg-indigo-600 text-white rounded-tr-none shadow-sm"
-                    : "bg-slate-100/70 text-slate-800 rounded-tl-none"
-                  }`}
+                  className={`px-4 py-3 rounded-2xl text-[12.5px] leading-relaxed text-left ${m.role === "user"
+                      ? "bg-indigo-600 text-white rounded-tr-none shadow-sm"
+                      : "bg-slate-50 text-slate-800 rounded-tl-none"
+                    }`}
                 >
                   {m.role === "assistant" && m.content === "" && isTyping ? (
                     <div className="text-indigo-600 whitespace-pre-wrap">
                       {displayedMessage}
-                      <span className="inline-block w-0.5 h-3 bg-indigo-500 animate-pulse ml-0.5"></span>
+                      <span className="inline-block w-0.5 h-3.5 bg-indigo-500 animate-pulse ml-0.5"></span>
                     </div>
                   ) : (
                     <div className="whitespace-pre-wrap">
@@ -550,12 +561,12 @@ AI Assistant Rules:
 
           {/* Quick Suggestions Chips Carousel - Instant Interaction */}
           {user && !(queriesUsed >= aiUsageLimit && !isUnlimitedUser) && !loading && (
-            <div className="px-4.5 py-1.5 shrink-0 overflow-x-auto flex gap-1.5 scrollbar-none bg-white border-t border-slate-100">
+            <div className="px-5 py-2.5 shrink-0 overflow-x-auto flex gap-2 scrollbar-none border-t border-slate-100 bg-white">
               {SUGGESTIONS.map((chip, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleSendText(chip.prompt)}
-                  className="bg-slate-50 hover:bg-slate-100 text-indigo-650 border border-slate-200 text-[10px] font-bold px-3 py-1.5 rounded-xl transition cursor-pointer shrink-0"
+                  className="bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-medium px-3.5 py-1.5 rounded-full transition cursor-pointer shrink-0 whitespace-nowrap"
                 >
                   {chip.text}
                 </button>
@@ -564,40 +575,40 @@ AI Assistant Rules:
           )}
 
           {/* Footer input */}
-          <div className="p-4 border-t bg-slate-50 shrink-0">
+          <div className="px-5 py-4 border-t border-slate-100 bg-white shrink-0">
             {!user ? (
-              <div className="text-center space-y-2 py-1">
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Authenticate to consult ZEN AI</p>
+              <div className="text-center space-y-3 py-1.5">
+                <p className="text-[9px] font-medium uppercase text-slate-400 tracking-[0.1em]">Authenticate to consult Zen AI</p>
                 <button
                   onClick={() => openAuthModal("login")}
-                  className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition cursor-pointer border-none shadow-md shadow-indigo-600/10"
+                  className="bg-[#0f0f12] hover:bg-[#1a1a1f] text-white px-6 py-2.5 rounded-xl text-[10px] font-medium uppercase tracking-[0.06em] transition cursor-pointer border-none shadow-sm"
                 >
                   Log In
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSend} className="flex gap-2.5 items-center">
+              <form onSubmit={handleSend} className="flex gap-3 items-center">
                 <input
                   type="text"
                   placeholder={
                     (queriesUsed >= aiUsageLimit && !isUnlimitedUser)
                       ? "Query limit reached"
-                      : "Consult ZEN AI..."
+                      : "Ask Zen AI..."
                   }
                   disabled={(queriesUsed >= aiUsageLimit && !isUnlimitedUser) || loading}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  className="flex-grow px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-indigo-550 transition disabled:bg-slate-100 text-slate-800"
+                  className="flex-grow px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[12px] font-normal outline-none focus:border-indigo-400 transition disabled:bg-slate-100 text-slate-800 placeholder:text-slate-400"
                 />
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || loading || (queriesUsed >= aiUsageLimit && !isUnlimitedUser)}
-                  className="w-9 h-9 rounded-xl bg-slate-950 text-white flex items-center justify-center shrink-0 shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer border-none hover:opacity-90 active:scale-95"
+                  className="w-9 h-9 rounded-xl bg-[#0f0f12] text-white flex items-center justify-center shrink-0 shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer border-none hover:bg-[#1a1a1f] active:scale-95"
                 >
                   {loading ? (
                     <RefreshCw className="w-4 h-4 animate-spin text-inherit" />
                   ) : (
-                    <Send className="w-4 h-4 text-inherit" />
+                    <Send className="w-3.5 h-3.5 text-inherit" />
                   )}
                 </button>
               </form>
