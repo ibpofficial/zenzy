@@ -1293,116 +1293,96 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {workers.length === 0 ? (
               [1, 2, 3].map((n) => (
-                <div key={n} className="bg-white rounded-3xl border border-slate-200/80 overflow-hidden flex flex-col p-5 space-y-4">
-                  <div className="w-full h-44 rounded-2xl bg-slate-100 animate-pulse" />
+                <div key={n} className="bg-white rounded-xl border border-slate-200/60 overflow-hidden flex flex-col p-5 space-y-4">
+                  <div className="w-full h-48 rounded-lg bg-slate-100 animate-pulse" />
                   <div className="space-y-2.5">
-                    <div className="w-3/4 h-5 rounded-lg bg-slate-100 animate-pulse" />
+                    <div className="w-3/4 h-5 rounded-md bg-slate-100 animate-pulse" />
                     <div className="w-1/2 h-4 rounded-md bg-slate-100 animate-pulse" />
                     <div className="w-full h-3 rounded-md bg-slate-100 animate-pulse" />
-                    <div className="w-4/5 h-3 rounded-md bg-slate-100 animate-pulse" />
                   </div>
-                  <div className="w-full h-11 rounded-xl bg-slate-100 animate-pulse mt-auto" />
+                  <div className="w-full h-10 rounded-lg bg-slate-100 animate-pulse mt-auto" />
                 </div>
               ))
             ) : (
-              workers.filter(w => (w.documentStatus || "approved") === "approved").slice(0, 3).map((pro, idx) => (
+              workers.filter(w => (w.documentStatus || "approved") === "approved").slice(0, 3).map((pro, index) => (
                 <article
                   key={pro.id}
-                  className="bg-white rounded-3xl border border-slate-200/80 overflow-hidden flex flex-col hover:-translate-y-2 transition-all duration-300 ease-out shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(59,130,246,0.08)] hover:border-indigo-500/40 group animate-scale-in"
-                  style={{ animationDelay: `${idx * 0.1}s` }}
+                  className="group bg-white rounded-xl border border-slate-200/60 overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-300 shadow-sm hover:shadow-lg hover:border-blue-200/60"
+                  style={{ animationDelay: `${index * 0.04}s` }}
                 >
                   <div className="relative h-48 bg-slate-100 overflow-hidden">
                     <img
                       src={pro.coverImage || siteConfig?.defaultWorkerBanner || "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80"}
-                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       alt={pro.name}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/40 via-transparent to-transparent"></div>
 
-                    {/* Top-left Category Tag */}
-                    <span className="absolute top-4 left-4 bg-slate-900/65 backdrop-blur-md text-slate-100 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border border-white/10 z-10 flex items-center gap-1.5 shadow-sm">
-                      <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full shadow-[0_0_8px_#818cf8] animate-pulse"></span>
+                    <span className="absolute top-3 left-3 bg-[#0f172a]/70 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] font-semibold uppercase tracking-wider border border-white/10">
                       {pro.category}
                     </span>
 
-                    {/* Top-right Availability status */}
                     {pro.status === "Available" ? (
-                      <span className="absolute top-4 right-4 bg-slate-900/65 backdrop-blur-md text-slate-100 border border-white/10 text-[9px] px-2.5 py-1.5 rounded-xl font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm z-10">
-                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full shadow-[0_0_8px_#34d399] animate-pulse"></span> Available
+                      <span className="absolute top-3 right-3 bg-emerald-500/90 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] font-semibold uppercase tracking-wider">
+                        Available
                       </span>
                     ) : (
-                      <span className="absolute top-4 right-4 bg-slate-900/65 backdrop-blur-md text-slate-100 border border-white/10 text-[9px] px-2.5 py-1.5 rounded-xl font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm z-10">
-                        <span className="w-1.5 h-1.5 bg-rose-400 rounded-full shadow-[0_0_8px_#f87171]"></span> Busy
+                      <span className="absolute top-3 right-3 bg-rose-500/90 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] font-semibold uppercase tracking-wider">
+                        Busy
                       </span>
                     )}
 
-                    {/* Bottom-left Avatar overlap */}
-                    <div className="absolute bottom-3 left-4 w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg bg-slate-100 z-20 flex items-center justify-center">
+                    <div className="absolute bottom-3 left-3 w-12 h-12 rounded-lg overflow-hidden border-2 border-white shadow-md bg-white">
                       <img
                         src={pro.avatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=100&h=100&q=80"}
                         className="w-full h-full object-cover"
                         alt={pro.name}
                       />
                       {pro.verified && (
-                        <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 text-white rounded-full w-4.5 h-4.5 flex items-center justify-center border border-white shadow-sm z-30">
+                        <div className="absolute -bottom-0.5 -right-0.5 bg-blue-500 text-white rounded-full w-4 h-4 flex items-center justify-center border border-white shadow-sm">
                           <Check className="w-2.5 h-2.5 stroke-[3.5]" />
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="p-6 pt-5 flex-1 flex flex-col justify-between">
+                  <div className="p-5 flex-1 flex flex-col justify-between">
                     <div>
-                      {/* Title Row */}
-                      <div className="flex justify-between items-start mb-1.5">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <h4 className="font-extrabold text-slate-900 text-[16px] leading-tight truncate group-hover:text-indigo-600 transition-colors">
-                            {pro.name}
-                          </h4>
-                          {pro.verified && (
-                            <span className="inline-flex items-center justify-center w-[15px] h-[15px] rounded-full bg-blue-500 text-white shrink-0 shadow-sm" title="Verified Professional">
-                              <Check className="w-2.5 h-2.5 stroke-[3.5]" />
-                            </span>
-                          )}
-                        </div>
+                      <div className="flex items-start justify-between mb-1">
+                        <h3 className="font-bold text-[#0f172a] text-base group-hover:text-blue-600 transition-colors truncate">
+                          {pro.name}
+                        </h3>
                       </div>
 
-                      {/* Meta Row (Rating, Experience, Location) */}
-                      <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 mb-3.5 flex-wrap">
-                        <span className="flex items-center gap-0.5 text-amber-500 font-extrabold">★ {pro.stars || "5.0"}</span>
+                      <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2.5 flex-wrap">
+                        <span className="flex items-center gap-0.5 text-amber-500">★ {pro.stars || "5.0"}</span>
                         <span>({pro.reviewsCount || 0})</span>
                         <span>·</span>
-                        <span>{pro.experience || "2 years"} Experience</span>
+                        <span>{pro.experience || "2 years"}</span>
                         <span>·</span>
-                        <span className="flex items-center gap-1 text-slate-400 truncate max-w-[120px]">
+                        <span className="flex items-center gap-1 text-slate-400 truncate max-w-[100px]">
                           <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                           {pro.serviceArea?.split(',')[0] || "Jaipur"}
                         </span>
                       </div>
 
-                      {/* Bio Text */}
-                      <p className="text-[12.5px] text-slate-500 leading-relaxed line-clamp-2 mb-4 h-9">
-                        {pro.bio || "Hi, I am a skilled professional on Zenzy."}
+                      <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 mb-3">
+                        {pro.bio || "Professional services with proven expertise."}
                       </p>
 
-                      {/* Trust Badges */}
-                      <div className="flex items-center gap-3 pt-3.5 border-t border-slate-100 text-[10px] font-bold text-slate-400">
-                        <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Background Checked</span>
+                      <div className="flex items-center gap-3 pt-3 border-t border-slate-100 text-[10px] font-medium text-slate-400">
+                        <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Verified</span>
                         <span>•</span>
                         <span className="flex items-center gap-1"><Award className="w-3.5 h-3.5 text-indigo-500" /> Top Rated</span>
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="mt-4">
-                      <Link
-                        href={`/${pro.slug || pro.id}`}
-                        className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-2xl text-[13px] font-extrabold text-center transition-all duration-200 flex items-center justify-center gap-2 active:scale-98 shadow-md hover:shadow-lg border border-slate-700/50"
-                      >
-                        View Profile & Inquire <ArrowRight className="w-4 h-4 text-blue-400" />
-                      </Link>
-                    </div>
+                    <Link
+                      href={`/${pro.slug || pro.id}`}
+                      className="mt-4 w-full bg-[#0f172a] hover:bg-[#1e293b] text-white py-3 rounded-lg text-sm font-semibold text-center transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-md active:scale-[0.98]"
+                    >
+                      View Profile <ArrowRight className="w-3.5 h-3.5 text-blue-400" />
+                    </Link>
                   </div>
                 </article>
               )))}
