@@ -725,7 +725,7 @@ export default function HomePage() {
       finalQuery = spellingSuggestion.query;
       targetItem = spellingSuggestion.item;
     } else {
-      const directMatch = SEARCHABLE_ITEMS.find(
+      const directMatch = searchIndex.find(
         (item) => item.name.toLowerCase() === queryTerm.toLowerCase()
       );
       if (directMatch) targetItem = directMatch;
@@ -1060,7 +1060,7 @@ export default function HomePage() {
                         onClick={() => {
                           setSearchQuery(term);
                           setTimeout(() => {
-                            const directMatch = SEARCHABLE_ITEMS.find(
+                            const directMatch = searchIndex.find(
                               (item) => item.name.toLowerCase() === term.toLowerCase()
                             );
                             if (directMatch) {

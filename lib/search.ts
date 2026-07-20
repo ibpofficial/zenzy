@@ -1,4 +1,4 @@
-import Fuse from "fuse.js";
+import Fuse, { type IFuseOptions } from "fuse.js";
 
 export interface SearchIndexItem {
   id: string;
@@ -86,7 +86,7 @@ function getClickHistoryBoost(queryStr: string, item: SearchIndexItem): number {
 /**
  * Fuse.js fuzzy engine options with weighted fields.
  */
-const FUSE_OPTIONS: Fuse.IFuseOptions<SearchIndexItem> = {
+const FUSE_OPTIONS: IFuseOptions<SearchIndexItem> = {
   keys: [
     { name: "name", weight: 0.7 },
     { name: "category", weight: 0.3 },
