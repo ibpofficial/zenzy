@@ -1,0 +1,256 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: checks if the user is a dynamic admin or hardcoded founder
+    function isAdmin() {
+      return request.auth != null && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (request.auth.token.email != null && request.auth.token.email.toLowerCase() in [
+          "ishantpbupadhyay@gmail.com",
+          "25tec2cs089@vgu.ac.in",
+          "2tec2cs089@vgu.ac.in",
+          "ibpoffecial@gmail.com",
+          "ibpoffecial@gmai.com"
+        ])
+      );
+    }
+
+    // Helper: checks if the user is a Super Admin
+    function isSuperAdmin() {
+      return request.auth != null && (
+        (request.auth.token.email != null && request.auth.token.email.toLowerCase() in [
+          "ishantpbupadhyay@gmail.com",
+          "25tec2cs089@vgu.ac.in",
+          "2tec2cs089@vgu.ac.in",
+          "ibpoffecial@gmail.com",
+          "ibpoffecial@gmai.com"
+        ]) ||
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == "Super Admin")
+      );
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == adminId || 
+        (request.auth.token.email != null && request.auth.token.email.toLowerCase() == resource.data.email.toLowerCase()) || 
+        isAdmin()
+      );
+      allow create: if request.auth != null && (
+        (request.auth.token.email != null && request.auth.token.email.toLowerCase() in [
+          "ishantpbupadhyay@gmail.com",
+          "25tec2cs089@vgu.ac.in",
+          "2tec2cs089@vgu.ac.in",
+          "ibpoffecial@gmail.com",
+          "ibpoffecial@gmai.com"
+        ]) || 
+        isAdmin()
+      );
+      allow update, delete: if isAdmin();
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == userId && 
+        request.resource.data.walletBalance == 500 && 
+        request.resource.data.role == "user";
+      allow update: if request.auth != null && (
+        isAdmin() || (
+          request.auth.uid == userId && 
+          (!('walletBalance' in request.resource.data) || request.resource.data.walletBalance == resource.data.walletBalance) &&
+          (!('role' in request.resource.data) || request.resource.data.role == resource.data.role)
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Workers Collection (Public data)
+    match /workers/{workerId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == workerId &&
+        request.resource.data.verified == false &&
+        request.resource.data.premium == false &&
+        request.resource.data.topRated == false &&
+        request.resource.data.stars == 5.0 &&
+        request.resource.data.reviewsCount == 0 &&
+        request.resource.data.documentStatus == "pending" &&
+        request.resource.data.suspended == false;
+      allow update: if request.auth != null && (
+        isAdmin() || (
+          request.auth.uid == workerId &&
+          (!('verified' in request.resource.data) || request.resource.data.verified == resource.data.verified) &&
+          (!('premium' in request.resource.data) || request.resource.data.premium == resource.data.premium) &&
+          (!('topRated' in request.resource.data) || request.resource.data.topRated == resource.data.topRated) &&
+          (!('stars' in request.resource.data) || request.resource.data.stars == resource.data.stars) &&
+          (!('reviewsCount' in request.resource.data) || request.resource.data.reviewsCount == resource.data.reviewsCount) &&
+          (!('documentStatus' in request.resource.data) || request.resource.data.documentStatus == resource.data.documentStatus) &&
+          (!('suspended' in request.resource.data) || request.resource.data.suspended == resource.data.suspended)
+        )
+      );
+      allow delete: if isAdmin();
+
+      // Nested Private KYC Subcollection
+      match /private/kyc {
+        allow read, write: if request.auth != null && (request.auth.uid == workerId || isAdmin());
+      }
+    }
+
+    // Bookings Collection
+    match /bookings/{bookingId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.customerId || 
+        request.auth.uid == resource.data.workerId || 
+        isAdmin()
+      );
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.customerId &&
+        request.resource.data.status == "Pending";
+      allow update: if request.auth != null && (
+        isAdmin() || (
+          (request.auth.uid == resource.data.customerId || request.auth.uid == resource.data.workerId) &&
+          request.resource.data.price == resource.data.price &&
+          request.resource.data.originalPrice == resource.data.originalPrice &&
+          request.resource.data.discount == resource.data.discount &&
+          request.resource.data.couponCode == resource.data.couponCode &&
+          request.resource.data.customerId == resource.data.customerId &&
+          request.resource.data.workerId == resource.data.workerId
+        )
+      );
+      allow delete: if isAdmin();
+
+      // Messaging subcollection inside bookings
+      match /messages/{messageId} {
+        allow read: if request.auth != null && (
+          request.auth.uid == get(/databases/$(database)/documents/bookings/$(bookingId)).data.customerId ||
+          request.auth.uid == get(/databases/$(database)/documents/bookings/$(bookingId)).data.workerId ||
+          isAdmin()
+        );
+        allow create: if request.auth != null && (
+          request.auth.uid == request.resource.data.senderId && (
+            request.auth.uid == get(/databases/$(database)/documents/bookings/$(bookingId)).data.customerId ||
+            request.auth.uid == get(/databases/$(database)/documents/bookings/$(bookingId)).data.workerId ||
+            isAdmin()
+          )
+        );
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // Projects Collection
+    match /projects/{projectId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.clientId;
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.clientId || 
+        request.auth.uid == resource.data.businessId || 
+        request.auth.uid == resource.data.workerId ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+
+      // Messaging subcollection inside projects
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+
+    // Quotations Collection
+    match /quotations/{quotationId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.businessId || 
+        request.auth.uid == resource.data.workerId || 
+        request.auth.uid == resource.data.clientId || 
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Payments Collection
+    match /payments/{paymentId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.customerId || 
+        request.auth.uid == resource.data.workerId || 
+        isAdmin()
+      );
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.customerId &&
+        request.resource.data.status in ["COD Pending", "QR Pending Verification"];
+      allow update, delete: if isAdmin();
+    }
+
+    // Coupons Collection
+    match /coupons/{couponId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Support Tickets Collection
+    match /supportTickets/{ticketId} {
+      allow read: if request.auth != null && (request.auth.uid == resource.data.customerId || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.customerId;
+      allow update: if request.auth != null && (request.auth.uid == resource.data.customerId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Reviews and Property Reviews
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.customerId;
+      allow update: if request.auth != null && (request.auth.uid == resource.data.customerId || isAdmin());
+      allow delete: if isAdmin();
+    }
+    match /propertyReviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.customerId;
+      allow update: if request.auth != null && (request.auth.uid == resource.data.customerId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Static / Publicly Readable Settings & Content
+    match /rentals/{rentalId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /promos/{promoId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /team/{memberId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /settings/siteConfig {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Super Admin restricted documents & settings
+    match /settings/adminAccess {
+      allow read, write: if isSuperAdmin();
+    }
+
+    // System Logging, Broadcasts, and Notifications
+    match /broadcasts/{broadcastId} {
+      allow read, write: if isAdmin();
+    }
+    match /auditLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+    match /activityLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+    match /notifications/{notificationId} {
+      allow read, update, delete: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if request.auth != null;
+    }
+  }
+}

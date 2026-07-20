@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service — Zenzy Technologies Ltd.</title>
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        stone: {
+                            950: '#0c0a09'
+                        },
+                        amber: {
+                            500: '#d97706',
+                            950: '#451a03'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        serif: ['Playfair Display', 'Georgia', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts for Editorial Elegance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        .legal-serif {
+            font-family: 'Playfair Display', 'Georgia', serif;
+        }
+        .legal-sans {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom delicate focus scroll indicators */
+        .scroller-indicator::-webkit-scrollbar {
+            height: 4px;
+        }
+        .scroller-indicator::-webkit-scrollbar-thumb {
+            background-color: rgba(120, 113, 108, 0.3);
+            border-radius: 4px;
+        }
+        /* Custom highlight pills for defined capital legal terms */
+        .defined-term {
+            background-color: rgba(245, 245, 244, 0.9);
+            border: 1px solid rgba(231, 229, 228, 1);
+            color: #1c1917;
+            padding: 1px 5px;
+            font-size: 0.9em;
+            font-weight: 600;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .dark .defined-term {
+            background-color: rgba(41, 37, 36, 0.8);
+            border-color: rgba(68, 64, 60, 0.8);
+            color: #f5f5f4;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100 transition-colors duration-200 antialiased selection:bg-amber-100 dark:selection:bg-amber-950/40">
+
+    <!-- Document Container -->
+    <main class="max-w-4xl mx-auto px-6 py-20 md:py-32">
+        
+        <!-- Document Header (Traditional Legal Style) -->
+        <header class="border-b border-stone-300 dark:border-stone-800 pb-10 mb-16">
+            <div class="flex items-center justify-between gap-4 mb-4">
+                <p class="text-xs font-bold tracking-widest text-stone-500 uppercase legal-sans">OFFICIAL LEGAL REGULATION</p>
+                <!-- Inline Dark Mode Toggle -->
+                <button onclick="toggleTheme()" class="text-xs text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 border border-stone-300 dark:border-stone-800 rounded px-2.5 py-1 transition-colors">
+                    Toggle Mode
+                </button>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-stone-950 dark:text-white uppercase legal-serif leading-none mb-6">
+                Zenzy Terms of Service
+            </h1>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-stone-500 dark:text-stone-400 font-medium legal-sans">
+                <span>Effective Date: June 25, 2026</span>
+                <span>Document Version: V4.8-ENTERPRISE</span>
+                <span>Parent Corporation: Zenzy Technologies Ltd.</span>
+            </div>
+        </header>
+
+        <!-- Document Index Section (Pure Text Based Navigation) -->
+        <nav class="mb-16 p-6 rounded-xl bg-stone-100 dark:bg-stone-900/40 border border-stone-200 dark:border-stone-800/80">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-4 legal-sans">Document Index</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2.5 gap-x-6 text-sm font-medium text-stone-700 dark:text-stone-300 legal-sans">
+                <a href="#preamble" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">0. Preamble & Capacity</a>
+                <a href="#acceptance" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">1. Acceptance of Terms</a>
+                <a href="#definitions" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">2. Core Platform Definitions</a>
+                <a href="#onboarding" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">3. Onboarding & KYC Systems</a>
+                <a href="#escrow-rules" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">4. Escrow Milestone Rules</a>
+                <a href="#fee-schedules" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">5. Detailed Fee Schedules</a>
+                <a href="#ip-assignment" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">6. Intellectual Property Assignment</a>
+                <a href="#non-circumvention" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">7. Non-Circumvention Regulations</a>
+                <a href="#conduct-standards" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">8. User Conduct Standards</a>
+                <a href="#dispute-mediation" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">9. Mediation & Arbitration</a>
+                <a href="#suspension-remedy" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">10. Suspension Remedies</a>
+                <a href="#limitation-liability" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">11. Limitation of Liability</a>
+                <a href="#general-clauses" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">12. General Legal Provisions</a>
+            </div>
+        </nav>
+
+        <!-- Document Body -->
+        <div class="space-y-16 text-base md:text-[17px] text-stone-800 dark:text-stone-300 legal-serif leading-relaxed">
+            
+            <!-- Section 0: Preamble -->
+            <section id="preamble" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 0</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    0. Preamble & Contractual Capacity
+                </h2>
+                <p>
+                    This Document establishes the governing parameters for individual and enterprise users seeking interaction, consultation, matching, or software engineering coordination on Zenzy's digital infrastructure.
+                </p>
+                <div class="p-6 rounded-xl bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-stone-800 dark:text-stone-300 text-sm space-y-2.5">
+                    <p class="font-bold text-stone-950 dark:text-white uppercase tracking-wider text-xs legal-sans">⚠️ IMPORTANT NOTICE OF BINDING OBLIGATION:</p>
+                    <p>
+                        BY REGISTERING AN ACCOUNT, DISPATCHING INVOICES, FUNDING ESCROW ENTITIES, OR INITIATING PROJECT SPECIFICATIONS ON THE ZENZY PLATFORM, YOU ARE RECORDING A PERMANENT ELECTRONIC SIGNATURE VALIDATING YOUR TOTAL AND UNCONDITIONAL CONSENT TO BE BOUND BY EVERY SUB-PARAGRAPH CONTAINED IN THIS SYSTEM DECREE.
+                    </p>
+                </div>
+                <p>
+                    If you represent an LLC, partnership, corporate entity, or public organization, you represent and warrant that you hold full legal, financial, and regulatory authority to obligate your parent corporate network to these stipulations.
+                </p>
+            </section>
+
+            <!-- Section 1: Acceptance -->
+            <section id="acceptance" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 1</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    1. Acceptance of Terms & Structural Updates
+                </h2>
+                <p>
+                    The digital portals, databases, ledger structures, software communication APIs, and transaction execution engines owned and distributed by <span class="defined-term">Zenzy Technologies Ltd.</span> (collectively referred to as the <span class="defined-term">Platform</span>) are provided subject to your unwavering compliance with this Agreement.
+                </p>
+                <p>
+                    Zenzy reserves the absolute unilateral right to update, revise, supplement, or completely rewrite these terms at any given point. If a material alteration is made, Zenzy will announce the revision via the primary email registered to your account or modify the version timestamp at the top of this document. 
+                </p>
+                <p>
+                    Your continuous, ongoing engagement with Platform APIs, contract submissions, or payments post-revision signifies complete legal acceptance of the updated terms. If you reject any amendment, your sole and exclusive legal remedy is to terminate your account immediately and request final clearance of completed, un-breached escrow balances.
+                </p>
+            </section>
+
+            <!-- Section 2: Definitions -->
+            <section id="definitions" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 2</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    2. Core Platform Definitions
+                </h2>
+                <p>To prevent semantic ambiguity in disputes, the following capitalized terms hold exclusive meanings throughout this Agreement:</p>
+                
+                <ul class="space-y-4 pl-4 border-l-2 border-stone-200 dark:border-stone-800 text-sm">
+                    <li>
+                        <strong>"Client"</strong>: Any verified organization, developer partner, company representative, or individual using the Platform to source, commission, outline, hire, and fund software engineering or custom consultation deliverables.
+                    </li>
+                    <li>
+                        <strong>"Freelancer / Agency"</strong>: Any certified contractor, third-party engineer, software consultancy firm, or legal agency displaying technical capacity, bidding on proposals, or executing software engineering projects for clients on the Platform.
+                    </li>
+                    <li>
+                        <strong>"Escrow Account"</strong>: The localized digital ledger, clearinghouse system, or automated multi-signature smart contract network operated by Zenzy or its processing partners where milestone values are securely held.
+                    </li>
+                    <li>
+                        <strong>"Milestone"</strong>: A distinct, documented, verifiable phase of a project scope defining specific criteria, software features, and release dates, associated with a locked financial disbursement value.
+                    </li>
+                    <li>
+                        <strong>"Work Product"</strong>: Every artifact, design document, software architecture repository, script file, styling structure, graphic asset, and custom deployment package generated or delivered by a Freelancer in performance of a Service Contract.
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Section 3: Onboarding -->
+            <section id="onboarding" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 3</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    3. Onboarding, KYC, and Identity Verification Systems
+                </h2>
+                <p>
+                    Before you can host or bid on custom software engineering engagements, you must undergo Zenzy's unified registration process. You represent and warrant that all data supplied during onboarding is perfectly accurate, verifiable, and free of intent to mislead.
+                </p>
+                <p>
+                    <strong>AML & OFAC Compliance Checks:</strong>
+                </p>
+                <p>
+                    Zenzy is fully compliant with global Anti-Money Laundering (AML) mandates, Know Your Customer (KYC) statutes, and national Treasury sanctions. By creating an account, you explicitly authorize Zenzy to utilize third-party compliance registers, cross-reference identity documents with government databases, and execute periodic corporate validation audits.
+                </p>
+                <div class="p-6 rounded-xl bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-sm space-y-2">
+                    <p class="font-bold text-stone-950 dark:text-white">🛡️ CRITICAL VERIFICATION STATUTES:</p>
+                    <p>
+                        If Zenzy's compliance automated engines flags any anomalous behavior, corporate shell registers, or sanction mismatches under your account, we reserve the right to temporarily freeze API access, suspend active contract developments, and withhold escrow balances for up to 90 business days to coordinate review with financial clearing networks.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 4: Escrow Milestone Rules -->
+            <section id="escrow-rules" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 4</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    4. Escrow System & Automatic Release Timelines
+                </h2>
+                <p>
+                    To insulate both contracting parties from financial delinquency and deliverable abandonment, Zenzy implements a mandatory <span class="defined-term">Escrow Protection Framework</span>. All Service Contracts executed on the platform are structured by Milestones:
+                </p>
+                
+                <div class="space-y-6 my-6 pl-4 border-l-4 border-stone-400 dark:border-stone-700">
+                    <div>
+                        <h4 class="text-base font-bold text-stone-950 dark:text-white mb-1">Clause 4.1: The Pre-Funding Mandate</h4>
+                        <p class="text-sm">
+                            Prior to commencing any development, work, or code design for an established Milestone, the Client must deposit and lock the exact cash value of that Milestone into Zenzy's secure Escrow ledger. Freelancers are strictly advised to refuse any work requests until they receive an automated platform-secured validation confirming receipt and protection of funds.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 class="text-base font-bold text-stone-950 dark:text-white mb-1">Clause 4.2: Work Submission Criteria</h4>
+                        <p class="text-sm">
+                            Upon Milestone completion, the Freelancer must dispatch the deliverables via the platform’s unified submission pipeline. This dispatch registers a permanent cryptographic log and starts an inspection clock for the Client.
+                        </p>
+                    </div>
+                    
+                    <!-- HIGH-CONTRAST HIGHLIGHT FOR AUTO-RELEASE WARNING -->
+                    <div class="p-5 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-500/30 text-stone-900 dark:text-stone-100 text-sm">
+                        <p class="font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide text-xs mb-1.5">📢 THE 14-DAY AUTOMATIC SYSTEM RELEASE RULES:</p>
+                        <p>
+                            THE CLIENT HAS EXACTLY FOURTEEN (14) CALENDAR DAYS FROM THE SUBMISSION TIMESTAMP TO REVIEW, TEST, AND APPROVE DELIVERABLES, OR RECORD A DETAILED SUBMISSION OF A MODIFICATION/DISPUTE PROTOCOL. IF THE CLIENT REMAINS COMPLETELY SILENT OR FAILS TO ACT WITHIN THIS EXACT 14-DAY COMPLIANCE WINDOW, THE SYSTEM WILL AUTOMATICALLY RELEASE ALL SECURED MILESTONE FUNDS FROM ESCROW DIRECTLY TO THE FREELANCER.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 5: Detailed Fee Schedules -->
+            <section id="fee-schedules" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 5</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    5. Financial Terms & Comprehensive Fee Schedules
+                </h2>
+                <p>
+                    Zenzy calculates and assesses fees for hosting, payment settlement, security verification, and platform engineering. By utilizing our systems, you agree to the following mandatory schedules:
+                </p>
+
+                <div class="overflow-x-auto border border-stone-250 dark:border-stone-800 rounded-lg my-6">
+                    <table class="min-w-full divide-y divide-stone-200 dark:divide-stone-800 text-sm font-sans">
+                        <thead class="bg-stone-100 dark:bg-stone-900/60">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-bold text-stone-600 dark:text-stone-300">Transaction Fee Type</th>
+                                <th class="px-4 py-3 text-left font-bold text-stone-600 dark:text-stone-300">Rate / Amount</th>
+                                <th class="px-4 py-3 text-left font-bold text-stone-600 dark:text-stone-300">Liable Entity</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-stone-200 dark:divide-stone-800">
+                            <tr>
+                                <td class="px-4 py-3 font-semibold">Standard System Facilitation Fee</td>
+                                <td class="px-4 py-3">5.0% to 8.5% of absolute milestone payout</td>
+                                <td class="px-4 py-3">Freelancer / Agency</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-semibold">Merchant Settlement Charge</td>
+                                <td class="px-4 py-3">3.0% flat processing cost</td>
+                                <td class="px-4 py-3">Client</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-semibold">Legal Circumvention Buyout</td>
+                                <td class="px-4 py-3">Greater of $3,500 USD or 15% annual value</td>
+                                <td class="px-4 py-3">Client & Freelancer (Joint)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>
+                    <strong>Credit Card Chargebacks & Settlement Reversals:</strong>
+                </p>
+                <p>
+                    Clients agree that depositing funds into Escrow signifies a clear and legal intent to pay for qualified development. If a Client bypasses Zenzy’s arbitration panel to initiate an unauthorized chargeback with credit card processors or banks, Zenzy reserves the right to immediately suspend all associated accounts, declare those actions a breach of contract, and initiate civil collection claims for recovering the dispute value, plus an administrative recovery fee of $250.
+                </p>
+            </section>
+
+            <!-- Section 6: Intellectual Property -->
+            <section id="ip-assignment" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 6</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    6. Intellectual Property Assignment & Protection
+                </h2>
+                <p>
+                    Unless explicitly negotiated otherwise under a signed, secondary enterprise service agreement, the transmission of Intellectual Property (IP) shall follow this rule:
+                </p>
+                <div class="p-6 rounded-xl bg-stone-100 dark:bg-stone-900 border border-stone-250 dark:border-stone-800/80 my-6">
+                    <p class="italic">
+                        "The Freelancer agrees that all right, title, and interest in and to the Work Product, software code, custom configurations, architectural elements, and design assets developed under a Service Contract are fully transferred and assigned to the Client <strong>only upon the exact timestamp that the Client's matching milestone funds have cleared our escrow checks and have been successfully released from Escrow to the Freelancer.</strong>"
+                    </p>
+                </div>
+                <p>
+                    Until all funds have cleared out of the Escrow Account, all legal copyrights, design rights, patents, trade secrets, and ownership parameters remain the exclusive property of the Freelancer. 
+                </p>
+                <p>
+                    Any attempt by a Client to download, copy, deploy, compile, distribute, or exhibit unfinished, un-cleared, or un-payout-cleared Work Product outside of the platform’s localized staging environments constitutes an immediate copyright infringement and intellectual property theft.
+                </p>
+            </section>
+
+            <!-- Section 7: Non-Circumvention Regulations -->
+            <section id="non-circumvention" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 7</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    7. Non-Circumvention Policy & Payment Protections
+                </h2>
+                <p>
+                    To protect Zenzy's extensive investments in matchmaking, vetting, security escrow mechanisms, and dispute support, users agree to comply with this <strong>Anti-Circumvention Rule</strong>:
+                </p>
+                <p class="font-semibold text-stone-950 dark:text-white">
+                    The 24-Month Exclusive Relationship Obligation:
+                </p>
+                <p>
+                    For a period of <strong>twenty-four (24) continuous months</strong> starting from your initial introduction, identification, or search-match on Zenzy, you must run all communication, negotiations, contracts, milestones, and financial payments involving that matched user exclusively through Zenzy's system.
+                </p>
+                <p>
+                    Any attempt to bypass the platform (such as initiating contracts via private bank wires, cryptocurrency networks, or competitor platforms) represents a serious breach of contract. 
+                </p>
+                <div class="p-6 rounded-xl bg-red-50 dark:bg-red-950/20 border-l-4 border-red-500 text-stone-800 dark:text-stone-300 text-sm space-y-2">
+                    <p class="font-bold text-red-900 dark:text-red-400 uppercase tracking-wider text-xs legal-sans">❗ LEGAL ACTION AND LIQUIDATED DAMAGES:</p>
+                    <p>
+                        Violating users agree to be held jointly and severally liable to pay Zenzy an "Opt-Out Circumvention Buyout Fee". This liquidated damage is calculated as the greater of <strong>$3,500 USD</strong> or <strong>15% of the projected annual contract billing</strong> for that relationship. Zenzy reserves the right to employ collection agencies, run ledger audits, and file civil claims to enforce these terms.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 8: User Conduct Standards -->
+            <section id="conduct-standards" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 8</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    8. User Conduct Standards
+                </h2>
+                <p>
+                    Users must maintain a high level of professional integrity on the Platform. The following actions are strictly prohibited and constitute a material breach of this Agreement:
+                </p>
+                <ul class="list-disc pl-6 space-y-3">
+                    <li>
+                        <strong>Aggressive Behavior:</strong> Using profane, discriminatory, harassing, or hostile language when communicating with other users or Zenzy’s support representatives.
+                    </li>
+                    <li>
+                        <strong>Artificial Rating Manipulation:</strong> Running fake projects, buying reviews, coordinating false account matches, or utilizing alternative accounts to falsify ratings.
+                    </li>
+                    <li>
+                        <strong>Malware Submissions:</strong> Uploading files, scripts, or APIs containing hidden software scripts designed to capture data, launch attacks, or mine cryptocurrency on the Client's infrastructure.
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Section 9: Mediation & Arbitration -->
+            <section id="dispute-mediation" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 9</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    9. Dispute Mediation & JAMS Binding Arbitration
+                </h2>
+                <p>
+                    In the event of a disagreement regarding deliverable standards, functionality, or payment releases, both parties agree to follow this resolution process:
+                </p>
+                <ol class="list-decimal pl-6 space-y-3 text-sm">
+                    <li>
+                        <strong>Stage 1: Direct Professional Negotiation.</strong> The Client and Freelancer must engage in a documented, good-faith negotiation on Platform chat panels for at least seven (7) business days to settle the issue.
+                    </li>
+                    <li>
+                        <strong>Stage 2: Platform Mediation.</strong> If direct negotiations fail, either party may file a dispute. Zenzy's mediation team will review the contract scope, logs, and deliverable criteria to suggest a non-binding settlement compromise.
+                    </li>
+                    <li>
+                        <strong>Stage 3: JAMS Binding Arbitration.</strong> If the suggested settlement is rejected, the dispute shall be resolved through final, binding individual arbitration administered by JAMS under standard simplified rules.
+                    </li>
+                </ol>
+                
+                <div class="p-6 rounded-xl bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 text-stone-800 dark:text-stone-300 text-sm space-y-2">
+                    <p class="font-bold text-stone-950 dark:text-white uppercase tracking-wider text-xs legal-sans">⚖️ CLASS ACTION AND JURY TRIAL WAIVER:</p>
+                    <p>
+                        BOTH PARTIES EXPLICITLY AGREE TO WAIVE THEIR RIGHT TO A TRIAL BY JURY, AND WAIVE ANY CAPACITY TO COORDINATE OR PARTICIPATE IN CLASS-ACTION LITIGATION, CONSOLIDATED ARBITRATIONS, OR REPRESENTATIVE PROCEEDINGS OF ANY KIND.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Section 10: Suspension Remedies -->
+            <section id="suspension-remedy" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 10</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    10. Suspension Remedies & Fund Lockups
+                </h2>
+                <p>
+                    Zenzy reserves the unilateral right to suspend, lock, or permanently delete your account, access, and discoverability on the Platform if we establish reasonable grounds for a violation of these Terms.
+                </p>
+                <p>
+                    If an account is suspended due to fraud, fee avoidance, or conduct violations, Zenzy reserves the right to hold any active funds in our escrow system for up to 180 days to pay out verified worker balances, process legitimate refund claims, and offset chargeback costs.
+                </p>
+            </section>
+
+            <!-- Section 11: Limitation of Liability -->
+            <section id="limitation-liability" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 11</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    11. Limitation of Liability & Indemnity
+                </h2>
+                <p class="uppercase text-xs font-bold tracking-wider text-stone-600 dark:text-stone-400">
+                    THE PLATFORM AND SERVICES PROVIDED BY ZENZY ARE OFFERED STRICTLY ON AN "AS-IS" AND "AS-AVAILABLE" BASIS. ZENZY MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, SYSTEM UP-TIME, OR THE BEHAVIOR OF OTHER USERS.
+                </p>
+                <p class="uppercase text-xs font-bold tracking-wider text-stone-600 dark:text-stone-400">
+                    UNDER NO CIRCUMSTANCES SHALL ZENZY, ITS DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE FOR ANY CONSEQUENTIAL, INDIRECT, INCIDENTAL, SPECIAL, OR EXEMPLARY DAMAGES—INCLUDING LOSS OF PROFITS, DATA LOSS, OR SYSTEM FAILURES—ARISING FROM THE USE OF THE PLATFORM OR COMPLETED CLIENT-DEVELOPER CONTRACTS.
+                </p>
+                <p>
+                    You agree to defend, indemnify, and hold Zenzy Technologies Ltd. harmless from any claims, liabilities, damages, losses, or legal costs (including reasonable attorney fees) resulting from your breach of this agreement, your project deliverables, or copyright violations.
+                </p>
+            </section>
+
+            <!-- Section 12: General Provisions -->
+            <section id="general-clauses" class="space-y-5 scroll-mt-10">
+                <span class="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-500 legal-sans">Section 12</span>
+                <h2 class="text-2xl font-bold tracking-tight text-stone-950 dark:text-white uppercase border-b border-stone-200 dark:border-stone-800 pb-3">
+                    12. General Legal Provisions & Boilerplate
+                </h2>
+                <p>
+                    <strong>Governing Jurisdiction:</strong> This Agreement, along with any related claims or disputes, shall be governed by and interpreted under the laws of Delaware, USA, without regard to conflict of law principles.
+                </p>
+                <p>
+                    <strong>Severability:</strong> If any provision of these Terms is deemed invalid or unenforceable by a court of competent jurisdiction, the remaining provisions of the Agreement shall remain in full force and effect.
+                </p>
+                <p>
+                    <strong>Force Majeure:</strong> Zenzy shall not be held liable for any delay or failure in performance resulting from causes beyond its reasonable control, including acts of God, war, terrorism, riots, embargos, acts of civil or military authorities, fire, floods, accidents, strikes, or network infrastructure failures.
+                </p>
+            </section>
+
+        </div>
+
+        <!-- Footer (Clean text with only one link) -->
+        <footer class="mt-24 pt-10 border-t border-stone-300 dark:border-stone-800 text-center text-xs text-stone-500 dark:text-stone-600 space-y-4">
+            <p>&copy; 2026 Zenzy Technologies Ltd. All rights reserved globally.</p>
+            <div>
+                <a href="https://zenzy.vercel.app/" class="font-semibold text-stone-700 dark:text-stone-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors duration-150 inline-flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                    <span>Back to Home</span>
+                </a>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- JavaScript logic for inline interactions -->
+    <script>
+        // System Theme Initialization
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        // Toggle Theme Action
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+    </script>
+</body>
+</html>

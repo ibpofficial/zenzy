@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>zenzy · Contact Protocol</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter & JetBrains Mono for Easter Egg -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #0f172a;
+            --accent: #10b981;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius-lg: 20px;
+            --radius-xl: 32px;
+            --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.08);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.3);
+            --error: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-overflow-scrolling: touch; 
+        }
+
+        /* Ambient Background Orbs */
+        .ambient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.4;
+            animation: floatOrb 10s infinite alternate ease-in-out;
+            pointer-events: none;
+        }
+        .orb-1 { top: -10%; left: -5%; width: 400px; height: 400px; background: rgba(37, 99, 235, 0.3); }
+        .orb-2 { bottom: 10%; right: -5%; width: 500px; height: 500px; background: rgba(16, 185, 129, 0.2); animation-delay: -5s; }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        /* ----- Reveal Animations ----- */
+        html { scroll-behavior: smooth; }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ----- REDESIGNED HEADER ----- */
+        .header {
+            background: transparent;
+            padding: 0.9rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(100, 116, 139, 0.0); 
+        }
+        .header.scrolled {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(100, 116, 139, 0.12);
+        }
+
+        .header-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .brand-wrapper {
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            z-index: 1001; /* Stay above mobile menu */
+        }
+        .brand {
+            font-weight: 800;
+            font-size: 2rem;
+            letter-spacing: -0.05em;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            transition: transform 0.2s ease;
+            position: relative;
+        }
+        .brand:hover { transform: scale(1.02); }
+        .brand-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            margin-left: 3px;
+            box-shadow: 0 0 12px var(--primary);
+            animation: pulseDot 2s infinite;
+            cursor: crosshair;
+            position: relative;
+            z-index: 10;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 5px var(--primary); }
+            50% { transform: scale(1.5); opacity: 1; box-shadow: 0 0 15px var(--primary); }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.2rem;
+            align-items: center;
+            background: white;
+            padding: 0.3rem;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.5rem 1.2rem;
+            border-radius: 100px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-links a:hover { color: var(--secondary); background: #f1f5f9; }
+        .nav-links a.active { color: var(--primary); background: #eef2ff; }
+
+        .user-actions { 
+            display: flex; 
+            gap: 8px; 
+            z-index: 1001;
+        }
+        .icon-btn {
+            width: 44px;
+            height: 44px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--secondary);
+            box-shadow: var(--shadow-sm);
+        }
+        .icon-btn:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .mobile-toggle {
+            display: none;
+        }
+
+        /* ----- CONTACT HERO ----- */
+        .contact-hero {
+            padding: 5rem 2rem 3rem;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .contact-tag {
+            background: #eef2ff;
+            color: var(--primary);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            border: 1px solid #dbeafe;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .contact-title {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.05;
+        }
+        .contact-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ----- CONTACT GRID ----- */
+        .contact-container {
+            max-width: 1200px;
+            margin: 2rem auto 5rem;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 4rem;
+        }
+
+        /* Info Cards */
+        .info-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            perspective: 1000px;
+        }
+        .info-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 2.5rem;
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            will-change: transform;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--primary);
+            transform: scaleY(0);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: bottom;
+        }
+        .info-card:hover {
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+            border-color: #cbd5e1;
+            background: #ffffff;
+        }
+        .info-card:hover::before { transform: scaleY(1); }
+        
+        .info-icon {
+            width: 56px;
+            height: 56px;
+            background: #eef2ff;
+            color: var(--primary);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateZ(20px);
+        }
+        .info-card:hover .info-icon {
+            transform: translateZ(30px) scale(1.1) rotate(5deg);
+        }
+        .info-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--secondary);
+            transform: translateZ(10px);
+        }
+        .info-card p, .info-card a {
+            color: var(--text-muted);
+            font-size: 1rem;
+            text-decoration: none;
+            line-height: 1.6;
+            transition: color 0.2s;
+            transform: translateZ(5px);
+        }
+        .info-card a:hover { color: var(--primary); font-weight: 600; }
+
+        /* Modern Form Styles */
+        .form-col {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 3.5rem;
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Magic Mouse Tracker Glow */
+        .form-glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: 0;
+        }
+        .form-col:hover .form-glow { opacity: 1; }
+        
+        .form-content { position: relative; z-index: 1; }
+
+        /* Animated Progress Bar */
+        .form-progress-wrap {
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 100px;
+            margin-bottom: 2.5rem;
+            overflow: hidden;
+            position: relative;
+        }
+        .form-progress-bar {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 100px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Floating Labels CSS */
+        .input-group {
+            position: relative;
+            margin-bottom: 2.5rem;
+        }
+        .input-group input, 
+        .input-group textarea, 
+        .input-group select {
+            width: 100%;
+            padding: 1.2rem 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            background: rgba(255,255,255,0.7);
+            font-size: 1rem;
+            color: var(--text-main);
+            transition: all 0.3s ease;
+            outline: none;
+            /* Prevent iOS zoom by ensuring 16px font size */
+            font-size: 16px; 
+        }
+        .input-group textarea {
+            min-height: 160px;
+            resize: vertical;
+        }
+        .input-group label {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            padding: 0 0.5rem;
+            color: var(--text-muted);
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+        .input-group textarea ~ label {
+            top: 1.5rem;
+            transform: translateY(0);
+        }
+
+        .input-group input:focus, 
+        .input-group textarea:focus,
+        .input-group select:focus,
+        .input-group input:not(:placeholder-shown),
+        .input-group textarea:not(:placeholder-shown) {
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.05);
+        }
+        .input-group input:focus ~ label, 
+        .input-group textarea:focus ~ label,
+        .input-group input:not(:placeholder-shown) ~ label,
+        .input-group textarea:not(:placeholder-shown) ~ label {
+            top: -12px;
+            background: #ffffff;
+            font-size: 0.8rem;
+            color: var(--primary);
+            font-weight: 700;
+            border-radius: 4px;
+        }
+
+        .input-group.success input, .input-group.success textarea { border-color: var(--success); }
+        .input-group.success label { color: var(--success); }
+        .input-group.error input, .input-group.error textarea { border-color: var(--error); animation: shake 0.4s; }
+        .input-group.error label { color: var(--error); }
+        .error-msg {
+            position: absolute;
+            bottom: -22px;
+            left: 10px;
+            font-size: 0.75rem;
+            color: var(--error);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-weight: 600;
+        }
+        .input-group.error .error-msg { opacity: 1; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 1.2rem;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.3);
+        }
+        .submit-btn i { transition: transform 0.3s ease; }
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.5s ease;
+        }
+        .submit-btn:hover {
+            background: var(--primary);
+            box-shadow: 0 15px 25px -5px rgba(37, 99, 235, 0.4);
+            transform: translateY(-3px);
+        }
+        .submit-btn:hover i { transform: translateX(5px) rotate(-10deg); }
+        .submit-btn:hover::before { left: 100%; }
+        .submit-btn:active { transform: scale(0.98); }
+
+        /* --- Easter Egg Toasts & Overlays --- */
+        .easter-egg-toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #10b981, #2563eb);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 700;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 9999;
+            transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .easter-egg-toast.show { bottom: 40px; } 
+        
+        .zen-mode-active {
+            animation: zenMode 5s infinite;
+        }
+        @keyframes zenMode {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        /* Hacker Terminal Easter Egg Overlay */
+        .terminal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 15, 20, 0.98);
+            z-index: 100000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #10b981;
+            font-family: 'JetBrains Mono', monospace;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        .terminal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .terminal-content {
+            text-align: left;
+            max-width: 600px;
+            width: 90%;
+            font-size: 1.1rem;
+        }
+        .terminal-content p { margin: 10px 0; border-right: 2px solid transparent; white-space: nowrap; overflow: hidden;}
+        .typewriter-text {
+            animation: typing 2s steps(40, end), blink-caret .75s step-end infinite;
+        }
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: #10b981; } }
+        
+        .close-terminal {
+            margin-top: 30px;
+            background: transparent;
+            color: #10b981;
+            border: 1px solid #10b981;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+        .close-terminal:hover { background: #10b981; color: #000; }
+
+        /* Footer */
+        .footer {
+            background: #0f212f;
+            color: #d4e0ec;
+            padding: 5rem 2rem 2rem;
+            border-radius: 50px 50px 0 0;
+            margin-top: 2rem;
+        }
+        .footer-grid {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.5fr repeat(3, 1fr);
+            gap: 4rem;
+            margin-bottom: 3rem;
+        }
+        .footer-logo-col h2 { font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 1rem; }
+        .footer-logo-col .dot { display: inline-block; width: 12px; height: 12px; background: var(--primary); border-radius: 50%; margin-left: 5px; }
+        .social-links { display: flex; gap: 1rem; margin: 1.5rem 0; }
+        .social-icon {
+            width: 44px; height: 44px; background: #1d3a50; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; text-decoration: none; transition: all 0.3s;
+        }
+        .social-icon:hover { background: var(--primary); transform: translateY(-5px); }
+        .footer-col h4 { color: white; margin-bottom: 1.5rem; font-size: 1.1rem; border-bottom: 2px solid #2f5577; display: inline-block; padding-bottom: 5px; }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 0.8rem; }
+        .footer-col a { color: #bed6ec; text-decoration: none; transition: all 0.2s; }
+        .footer-col a:hover { color: white; padding-left: 10px; }
+        .footer-bottom {
+            max-width: 1440px; margin: 0 auto; padding-top: 2rem; border-top: 1px solid #264a63;
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; opacity: 0.7;
+        }
+
+        /* --- RESPONSIVENESS: CLEAN & USABLE --- */
+        @media (max-width: 900px) {
+            .contact-container { grid-template-columns: 1fr; gap: 3rem; }
+            .contact-title { font-size: 3rem; }
+            .header { padding: 0.8rem 1rem; }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+            
+            /* Enable Hamburger Button */
+            .mobile-toggle { display: flex; }
+            
+            /* Sleek Mobile Slide-Down Menu */
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: rgba(255, 255, 255, 0.98);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                flex-direction: column;
+                padding: 2rem;
+                gap: 1rem;
+                border-radius: 0 0 24px 24px;
+                box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+                opacity: 0;
+                transform: translateY(-20px);
+                pointer-events: none;
+                border: none;
+                border-top: 1px solid var(--border);
+            }
+            .nav-links.active {
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+            .nav-links a {
+                width: 100%;
+                justify-content: center;
+                padding: 1rem;
+                font-size: 1rem;
+                background: transparent;
+            }
+            .nav-links a:hover, .nav-links a.active {
+                background: #f1f5f9;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .contact-hero { padding: 3rem 1.5rem 1rem; }
+            .contact-title { font-size: 2.4rem; }
+            .footer-grid { grid-template-columns: 1fr; }
+            
+            /* Fix form legibility on mobile */
+            .form-col { 
+                padding: 2rem 1.5rem; 
+                background: #ffffff; /* Solid white for perfect legibility */
+                border-radius: 24px;
+                box-shadow: var(--shadow-md);
+                border: 1px solid var(--border);
+            }
+            .info-card { padding: 1.5rem; background: #ffffff; }
+            
+            /* Inputs need solid backgrounds on mobile */
+            .input-group input, .input-group textarea, .input-group select { 
+                background: #f8fafc; 
+                border-color: #cbd5e1;
+            }
+            .input-group label { background: transparent; }
+            .input-group input:focus ~ label, 
+            .input-group textarea:focus ~ label,
+            .input-group input:not(:placeholder-shown) ~ label,
+            .input-group textarea:not(:placeholder-shown) ~ label {
+                background: #ffffff; /* match form background */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Terminal Easter Egg Overlay -->
+   
+
+    <!-- Ambient Background -->
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <a href="index.html" class="brand-wrapper">
+                    <!-- The dot here triggers the visual Easter Egg via JS -->
+                    <span class="brand">zenzy<span class="brand-dot" id="easterEggTrigger" title="Don't poke me!"></span></span>
+                </a>
+            </div>
+
+            <!-- Responsive Navigation -->
+             <nav class="nav-links">
+                <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                <a href="index.html#services"><i class="fas fa-th-large"></i> Services</a>
+                <a href="about.html"><i class="fas fa-info-circle"></i> About</a>
+                <a href="contact.html" class="active"><i class="fas fa-envelope"></i> Contact</a>
+                <a href="#" class="special" style="background: var(--secondary); color: white;"><i class="fas fa-crown"></i> Subscriptions</a>
+            </nav>
+
+            <div class="user-actions">
+                <span class="icon-btn"><i class="fas fa-search"></i></span>
+                <span class="icon-btn"><i class="fas fa-user-circle"></i></span>
+                <!-- Hamburger Toggle for Mobile -->
+                <span class="icon-btn mobile-toggle" id="mobileMenuBtn"><i class="fas fa-bars"></i></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contact Hero -->
+    <section class="contact-hero reveal">
+        <span class="contact-tag"><i class="fas fa-headset"></i> Protocol Support</span>
+        <h1 class="contact-title">Let's build<br>something great.</h1>
+        <p class="contact-subtitle">Have a question about our protocols? Need immediate emergency assistance? Drop us a line and our dispatch team will respond instantly.</p>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-container reveal">
+        
+        <!-- Info Cards -->
+        <div class="info-col">
+            <div class="info-card reveal tilt-card">
+                <div class="info-icon"><i class="fas fa-map-marked-alt"></i></div>
+                <h3>Headquarters</h3>
+                <p>Zenzy Protocol Tower, Block 4<br>Tech Park Avenue, Jaipur<br>Rajasthan, India 302001</p>
+            </div>
+            
+            <div class="info-card reveal tilt-card" style="transition-delay: 0.1s;">
+                <div class="info-icon" style="background: #ecfdf5; color: #10b981;"><i class="fas fa-phone-alt"></i></div>
+                <h3>Direct Lines</h3>
+                <p><strong>Emergency:</strong> <a href="tel:+919876543210">+91 98765 43210</a></p>
+                <p><strong>Support:</strong> <a href="tel:+911800123456">1800-ZENZY-HELP</a></p>
+            </div>
+
+            <div class="info-card reveal tilt-card" style="transition-delay: 0.2s;">
+                <div class="info-icon" style="background: #fff1f2; color: #e11d48;"><i class="fas fa-envelope-open-text"></i></div>
+                <h3>Digital Inbox</h3>
+                <p><strong>General:</strong> <a href="mailto:hello@zenzy.com">hello@zenzy.com</a></p>
+                <p><strong>Careers:</strong> <a href="mailto:join@zenzy.com">join@zenzy.com</a></p>
+            </div>
+        </div>
+
+        <!-- Contact Form using FormSubmit (No Server Required) -->
+        <div class="form-col reveal" style="transition-delay: 0.3s;" id="formContainer">
+            <!-- Dynamic mouse glow injected here by JS -->
+            
+            <div class="form-content">
+                <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--secondary);">Send a Message</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem;">Fill out the protocol form below to proceed.</p>
+                
+                <!-- Progress Tracker -->
+                <div class="form-progress-wrap">
+                    <div class="form-progress-bar" id="formProgress"></div>
+                </div>
+
+                <!-- Replace YOUR_EMAIL@DOMAIN.COM with your actual email address -->
+                <form id="contactForm" action="https://formsubmit.co/ibpoffecial@gmail.com" method="POST">
+                    
+                    <input type="hidden" name="_captcha" value="false">
+                    <input type="hidden" name="_subject" value="New Submission from Zenzy Contact Form!">
+
+                    <div class="input-group">
+                        <input type="text" id="fullName" name="Name" placeholder=" " required>
+                        <label for="fullName">Full Name</label>
+                        <span class="error-msg">Please enter your full name.</span>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="email" id="email" name="Email" placeholder=" " required>
+                        <label for="email">Email Address</label>
+                        <span class="error-msg">Please enter a valid email address.</span>
+                    </div>
+
+                    <div class="input-group">
+                        <input type="tel" id="phone" name="Phone" placeholder=" " required>
+                        <label for="phone">Phone Number</label>
+                        <span class="error-msg">Please enter a valid 10-digit number.</span>
+                    </div>
+
+                    <div class="input-group">
+                        <select id="service" name="Service" required style="padding-top: 1.5rem; padding-bottom: 0.9rem;">
+                            <option value="" disabled selected></option>
+                            <option value="plumbing">Plumbing Protocol</option>
+                            <option value="electrical">Electrical Audit</option>
+                            <option value="painting">Painting & Masonry</option>
+                            <option value="property">Property Listing</option>
+                            <option value="other">Other Inquiry</option>
+                        </select>
+                        <label for="service" style="top: -10px; font-size: 0.8rem; color: var(--primary); font-weight: 700; background: white; border-radius:4px;">Service Required</label>
+                    </div>
+
+                    <div class="input-group">
+                        <textarea id="message" name="Message" placeholder=" " required></textarea>
+                        <label for="message">Your Message</label>
+                        <span class="error-msg">Message cannot be empty.</span>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        Initiate Protocol <i class="fas fa-rocket"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Easter Egg Toast Notification -->
+  
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-logo-col">
+                <h2>zenzy<span class="dot"></span></h2>
+                <p style="font-size: 0.9rem; margin-bottom: 20px;">Bridging the access gap · since 2026. Reliable local skilled labor protocolized for the modern home.</p>
+                <div class="social-links">
+                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">About us</a></li>
+                    <li><a href="#">Subscriptions</a></li>
+                    <li><a href="#">Branch / Block</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Services</h4>
+                <ul>
+                    <li><a href="#">Plumbers</a></li>
+                    <li><a href="#">Electricians</a></li>
+                    <li><a href="#">Painting</a></li>
+                    <li><a href="#">Stone Work</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Help</h4>
+                <ul>
+                    <li><a href="#">FAQ</a></li>
+                    <li><a href="#">Contact Support</a></li>
+                    <li><a href="#">Privacy Protocol</a></li>
+                    <li><a href="#">Admin Login</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>© 2026 Zenzy Technologies </div>
+            <div>© All rights reserved </div>
+            <div style="display: flex; gap: 10px; align-items: center; background: #153145; padding: 5px 20px; border-radius: 40px; border: 1px solid #3b6385;">
+                <i class="fas fa-diagram-project"></i> Designed and developed by ISHANT UPADHYAY
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /* --- Console Easter Egg --- */
+        console.log("%c Welcome to Zenzy Protocol! 🚀", "color: #2563eb; font-size: 24px; font-weight: bold;");
+        console.log("%c Psst... try typing 'zenzy' anywhere on this page.", "color: #10b981; font-size: 14px;");
+
+        /* --- Mobile Menu Logic --- */
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+        const menuIcon = mobileMenuBtn.querySelector('i');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            if (navLinks.classList.contains('active')) {
+                menuIcon.classList.remove('fa-bars');
+                menuIcon.classList.add('fa-times');
+            } else {
+                menuIcon.classList.remove('fa-times');
+                menuIcon.classList.add('fa-bars');
+            }
+        });
+
+        /* --- Scroll Reveal Logic --- */
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealOnScroll = () => {
+            for (let i = 0; i < revealElements.length; i++) {
+                const windowHeight = window.innerHeight;
+                const elementTop = revealElements[i].getBoundingClientRect().top;
+                if (elementTop < windowHeight - 50) {
+                    revealElements[i].classList.add('active');
+                }
+            }
+        };
+        window.addEventListener('scroll', revealOnScroll);
+        window.onload = revealOnScroll;
+
+        /* --- Header Blur Effect --- */
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 20) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        /* --- Magic Glow Effect for Form Container (Desktop only) --- */
+        const formContainer = document.getElementById('formContainer');
+        const glow = document.createElement('div');
+        glow.classList.add('form-glow');
+        
+        if (window.matchMedia("(pointer: fine)").matches) {
+            formContainer.appendChild(glow);
+            formContainer.addEventListener('mousemove', (e) => {
+                const rect = formContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                glow.style.left = `${x}px`;
+                glow.style.top = `${y}px`;
+            });
+        }
+
+        /* --- Custom 3D Tilt Effect for Info Cards --- */
+        const tiltCards = document.querySelectorAll('.tilt-card');
+        tiltCards.forEach(card => {
+            if (window.matchMedia("(pointer: fine)").matches) {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left; 
+                    const y = e.clientY - rect.top;  
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = ((y - centerY) / centerY) * -10; 
+                    const rotateY = ((x - centerX) / centerX) * 10;
+                    
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                });
+            }
+        });
+
+        /* --- Custom Form Validation & Progress Tracker --- */
+        const form = document.getElementById('contactForm');
+        const inputs = form.querySelectorAll('input, textarea, select');
+        const progressBar = document.getElementById('formProgress');
+
+        const patterns = {
+            email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            phone: /^\d{10}$/
+        };
+
+        function updateProgress() {
+            let validCount = 0;
+            inputs.forEach(input => {
+                if (input.value.trim() !== '') {
+                    if (input.name === 'Email' && patterns.email.test(input.value)) validCount++;
+                    else if (input.name === 'Phone' && patterns.phone.test(input.value.replace(/[\s-]/g, ''))) validCount++;
+                    else if (input.name !== 'Email' && input.name !== 'Phone') validCount++;
+                }
+            });
+            const percentage = (validCount / inputs.length) * 100;
+            progressBar.style.width = `${percentage}%`;
+            
+            if (percentage === 100) {
+                progressBar.style.background = 'var(--success)';
+            } else {
+                progressBar.style.background = 'linear-gradient(90deg, var(--primary), var(--accent))';
+            }
+        }
+
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                validateInput(input);
+                updateProgress();
+            });
+            input.addEventListener('blur', () => {
+                validateInput(input, true);
+            });
+        });
+
+        function validateInput(field, forceErrorShow = false) {
+            const group = field.parentElement;
+            let isValid = true;
+
+            if (field.value.trim() === '') isValid = false;
+            else if (field.name === 'Email' && !patterns.email.test(field.value)) isValid = false;
+            else if (field.name === 'Phone' && !patterns.phone.test(field.value.replace(/[\s-]/g, ''))) isValid = false;
+
+            if (isValid) {
+                group.classList.remove('error');
+                group.classList.add('success');
+            } else {
+                group.classList.remove('success');
+                if(forceErrorShow || field.value.length > 0) {
+                    group.classList.add('error');
+                }
+            }
+            return isValid;
+        }
+
+        form.addEventListener('submit', (e) => {
+            let formValid = true;
+            inputs.forEach(input => {
+                if (!validateInput(input, true)) formValid = false;
+            });
+
+            if (!formValid) {
+                e.preventDefault(); 
+                const btn = document.getElementById('submitBtn');
+                btn.style.animation = 'shake 0.4s';
+                setTimeout(() => btn.style.animation = '', 400);
+            } else {
+                const btn = document.getElementById('submitBtn');
+                btn.innerHTML = 'Initiating... <i class="fas fa-circle-notch fa-spin"></i>';
+                btn.style.opacity = '0.8';
+            }
+        });
+
+        /* --- Interactive Easter Egg 1 (The Zen Dot) --- */
+        let dotClicks = 0;
+        let lastClickTime = 0;
+        const trigger = document.getElementById('easterEggTrigger');
+        const toast = document.getElementById('easterToast');
+
+        trigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            const currentTime = new Date().getTime();
+            
+            if (currentTime - lastClickTime > 2000) dotClicks = 0;
+            lastClickTime = currentTime;
+            dotClicks++;
+
+            trigger.style.transform = `scale(${1 + (dotClicks * 0.2)})`;
+            setTimeout(() => trigger.style.transform = 'scale(1)', 150);
+
+            if (dotClicks === 5) {
+                document.body.classList.add('zen-mode-active');
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    document.body.classList.remove('zen-mode-active');
+                    toast.classList.remove('show');
+                    dotClicks = 0;
+                }, 5000);
+            }
+        });
+
+        /* --- Interactive Easter Egg 2 (Hacker Terminal via Typing "zenzy") --- */
+        let secretCode = "zenzy";
+        let inputSequence = "";
+        const terminalOverlay = document.getElementById('terminalOverlay');
+        const closeTerminal = document.getElementById('closeTerminal');
+
+        window.addEventListener('keydown', (e) => {
+            if(document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA" || document.activeElement.tagName === "SELECT") return;
+            
+            inputSequence += e.key.toLowerCase();
+            
+            if (inputSequence.length > secretCode.length) {
+                inputSequence = inputSequence.substring(inputSequence.length - secretCode.length);
+            }
+
+            if (inputSequence === secretCode) {
+                terminalOverlay.classList.add('active');
+                inputSequence = ""; 
+            }
+        });
+
+        closeTerminal.addEventListener('click', () => {
+            terminalOverlay.classList.remove('active');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zenzy · modern service hub · chamaeleon</title>
+    <!-- Font Awesome 6 (free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #171717;
+            line-height: 1.5;
+            transition: background-color 0.8s ease, color 0.8s ease;
+        }
+
+        a, button, .card, .nav-link {
+            transition: all 0.2s ease;
+        }
+
+        /* ----- CHAMELEON VARIABLES (default warm neutral) ----- */
+        :root {
+            --primary: #9a8c7b;        /* soft taupe */
+            --primary-light: #b9ab99;
+            --primary-dark: #6b5e50;
+            --primary-soft-bg: #f0ebe5;
+            --accent-badge: #eab308;
+            --gradient-start: #7c6a5a;
+            --gradient-end: #a48e7a;
+            --header-brand-start: #5f5245;
+            --header-brand-end: #827262;
+            --stat-bubble-bg: white;
+            --card-bg: white;
+            --text-on-primary: white;
+        }
+
+        /* chamaeleon active: infinite smooth cycle – 20 seconds full loop, very subtle */
+        body.chamaeleon-active {
+            animation: chamaeleonShift 20s infinite alternate ease-in-out;
+        }
+
+        @keyframes chamaeleonShift {
+            /* ultra‑soft earthy palette: taupe → misty sage → warm sandstone → heather → dusk */
+            0% {
+                --primary: #9a8c7b; --primary-light: #b9ab99; --primary-dark: #6b5e50; --primary-soft-bg: #f0ebe5;
+                --gradient-start: #7c6a5a; --gradient-end: #a48e7a; --header-brand-start: #5f5245; --header-brand-end: #827262;
+            }
+            20% {
+                --primary: #8b9a86; --primary-light: #abb8a4; --primary-dark: #5f6f5a; --primary-soft-bg: #e7f0e5;
+                --gradient-start: #627559; --gradient-end: #8ba089; --header-brand-start: #445a40; --header-brand-end: #607558;
+            }
+            40% {
+                --primary: #b6947c; --primary-light: #d6b39d; --primary-dark: #8e6e5a; --primary-soft-bg: #faeade;
+                --gradient-start: #9b765f; --gradient-end: #c09d84; --header-brand-start: #735845; --header-brand-end: #9b765f;
+            }
+            60% {
+                --primary: #a89b85; --primary-light: #c9bba6; --primary-dark: #7a6b58; --primary-soft-bg: #f5f0e6;
+                --gradient-start: #867761; --gradient-end: #b1a187; --header-brand-start: #635645; --header-brand-end: #877861;
+            }
+            80% {
+                --primary: #9f8c9a; --primary-light: #c1aebb; --primary-dark: #705f6b; --primary-soft-bg: #f3ebf2;
+                --gradient-start: #796476; --gradient-end: #a1899b; --header-brand-start: #584954; --header-brand-end: #796476;
+            }
+            100% {
+                --primary: #9a8c7b; --primary-light: #b9ab99; --primary-dark: #6b5e50; --primary-soft-bg: #f0ebe5;
+                --gradient-start: #7c6a5a; --gradient-end: #a48e7a; --header-brand-start: #5f5245; --header-brand-end: #827262;
+            }
+        }
+
+        /* ----- dynamic variables applied throughout (every element with transition) ----- */
+        .header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+            padding: 0.6rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 8px 20px -10px rgba(0,20,40,0.08);
+        }
+
+        .brand {
+            font-weight: 700;
+            font-size: 2rem;
+            letter-spacing: -0.03em;
+            background: linear-gradient(145deg, var(--header-brand-start), var(--header-brand-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: background 0.8s ease;
+        }
+        .brand-dot {
+            background: var(--primary);
+            width: 8px;
+            height: 8px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-left: 2px;
+            animation: pulseDot 2s infinite;
+            transition: background 0.8s ease;
+        }
+        @keyframes pulseDot {
+            0% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.4); background-color: var(--primary-light); }
+            100% { opacity: 0.6; transform: scale(1); }
+        }
+
+        .nav-links a {
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .nav-links a::after {
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            transition: width 0.3s ease, left 0.3s ease, background 0.8s;
+        }
+
+        .user-actions .icon-btn:hover {
+            color: var(--primary-dark);
+            border-color: var(--primary-light);
+        }
+
+        .filter-chip.active {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .category-card:hover {
+            border-color: var(--primary-light);
+        }
+        .category-icon {
+            color: var(--primary-dark);
+        }
+
+        .branch-blocks {
+            background: color-mix(in srgb, var(--primary-soft-bg) 70%, white);
+            transition: background 0.8s;
+        }
+        .branch-item i {
+            color: var(--primary-dark);
+        }
+
+        /* trending cards */
+        .trend-card {
+            background: var(--card-bg);
+            border: 1px solid color-mix(in srgb, var(--primary-soft-bg), #edf2f7 80%);
+            transition: background 0.8s, border 0.8s, box-shadow 0.3s, transform 0.3s;
+        }
+        .trend-card:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 24px 36px -16px color-mix(in srgb, var(--primary-dark) 40%, transparent);
+        }
+        .trend-title .verified {
+            background: var(--primary-soft-bg);
+            color: var(--primary-dark);
+            transition: background 0.8s, color 0.8s;
+        }
+        .price {
+            background: color-mix(in srgb, var(--primary-soft-bg), #e0f0ea 70%);
+            color: var(--primary-dark);
+            transition: background 0.8s, color 0.8s;
+        }
+        .distance {
+            background: color-mix(in srgb, var(--primary-soft-bg), #edf4fc 70%);
+        }
+        .book-btn {
+            background: var(--primary-dark);
+            border: 1px solid var(--primary-light);
+            transition: background 0.8s, border 0.8s, transform 0.2s, gap 0.2s;
+        }
+        .book-btn:hover {
+            background: var(--primary);
+        }
+
+        /* motive section */
+        .motive-modern {
+            background: linear-gradient(135deg, var(--primary-soft-bg) 0%, #ffffff 80%);
+            border: 1px solid var(--primary-light);
+            transition: background 0.8s, border 0.8s;
+        }
+        .motive-modern::before {
+            background: radial-gradient(circle at 0% 30%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%);
+            transition: background 0.8s;
+        }
+        .motive-text h3 {
+            background: linear-gradient(155deg, var(--primary-dark), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: background 0.8s;
+        }
+        .stat-bubble {
+            border: 1px solid var(--primary-light);
+            transition: border 0.8s;
+        }
+        .badge-row span {
+            border: 1px solid var(--primary-light);
+        }
+
+        .subscription-banner {
+            background: linear-gradient(98deg, var(--primary-dark), var(--primary));
+            transition: background 0.8s;
+        }
+        .contact-bar {
+            background: var(--primary-soft-bg);
+            transition: background 0.8s;
+        }
+
+        .creative-footer {
+            background: var(--header-brand-end);
+            transition: background 0.8s;
+        }
+        .brand-lg span.dot {
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary-light);
+            transition: background 0.8s;
+        }
+        .social-icon:hover {
+            background: var(--primary);
+        }
+
+        /* toggle switch */
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-left: 0.8rem;
+        }
+        .toggle-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1d2b3a;
+            white-space: nowrap;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            background: #d1d9e6;
+            border-radius: 30px;
+            transition: 0.3s;
+            cursor: pointer;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .switch .slider {
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 2px 6px rgba(0,20,40,0.2);
+        }
+        input.chk-toggle {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        input.chk-toggle:checked + .switch {
+            background: var(--primary);
+        }
+        input.chk-toggle:checked + .switch .slider {
+            transform: translateX(26px);
+        }
+        .user-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* ----- rest of layout (identical to previous, but with smooth transitions on slides) ----- */
+        .slideshow-section { padding: 1.4rem 2rem 0.8rem 2rem; max-width: 1440px; margin: 0 auto; }
+        .slideshow-container { width: 100%; height: 200px; border-radius: 40px; overflow: hidden; background: #eef2f6; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.08); position: relative; }
+        .slide-track { display: flex; width: 300%; height: 100%; animation: slideAuto 16s cubic-bezier(0.25, 0.1, 0.25, 1) infinite; }
+        .slide { flex: 1; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: flex-start; padding: 2rem 3rem; color: white; font-size: 1.8rem; font-weight: 460; text-shadow: 0 2px 10px rgba(0,20,30,0.4); }
+        .slide1 { background: linear-gradient(112deg, var(--gradient-start), var(--gradient-end)), url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMwYjJhNDAiLz48L3N2Zz4='); background-blend-mode: overlay; transition: background 0.8s; }
+        .slide2 { background: linear-gradient(125deg, var(--gradient-start), var(--gradient-end)), url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMxYjNiNGYiLz48L3N2Zz4='); background-blend-mode: overlay; }
+        .slide3 { background: linear-gradient(105deg, var(--gradient-start), var(--gradient-end)), url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMyYzRhM2UiLz48L3N2Zz4='); background-blend-mode: overlay; }
+        @keyframes slideAuto { 0%,22% { transform: translateX(0); } 30%,52% { transform: translateX(-33.333%); } 60%,82% { transform: translateX(-66.666%); } 90%,100% { transform: translateX(0); } }
+        .slide-content { background: rgba(10, 20, 30, 0.3); backdrop-filter: blur(12px); padding: 0.8rem 2rem; border-radius: 60px; border: 1px solid rgba(255,255,255,0.2); font-size: 1.3rem; }
+        .main-container { max-width: 1440px; margin: 0 auto; padding: 1rem 2rem 4rem; }
+        .section-head { font-size: 1.7rem; font-weight: 600; letter-spacing: -0.02em; margin: 2.2rem 0 1.4rem; display: flex; align-items: center; gap: 1rem; }
+        .section-head i { background: #e9ecf0; padding: 0.6rem; border-radius: 18px; color: #1e3a5f; font-size: 1.3rem; }
+        .filter-row { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 2rem; }
+        .filter-chip { background: white; border: 1px solid #e2e8f0; border-radius: 40px; padding: 0.5rem 1.4rem; font-size: 0.9rem; color: #334155; cursor: default; box-shadow: 0 2px 6px rgba(0,0,0,0.01); }
+        .filter-chip i { margin-right: 6px; color: #4f6f8f; }
+        .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
+        .category-card { background: #ffffff; border: 1px solid #f0f2f5; border-radius: 28px; padding: 1.5rem 0.8rem 1.2rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.01); transition: transform 0.15s, border 0.2s; }
+        .trending-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.8rem; margin: 2rem 0 3rem; }
+        @media (max-width: 1000px) { .trending-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 700px) { .trending-grid { grid-template-columns: repeat(2,1fr); } }
+        .trend-card { border-radius: 32px; padding: 1rem 1rem 1.2rem; box-shadow: 0 8px 24px -10px rgba(34, 54, 84, 0.12); display: flex; flex-direction: column; backdrop-filter: blur(4px); }
+        .trend-img { width: 100%; height: 150px; border-radius: 24px; background-size: cover; background-position: center; margin-bottom: 1rem; display: flex; align-items: flex-end; justify-content: space-between; padding: 0.5rem; }
+        .trend-img span.work-badge { background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); color: white; padding: 0.2rem 1rem; border-radius: 40px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.2); }
+        .trend-img span.image-count { background: rgba(255,255,255,0.9); color: #0a1c2c; border-radius: 40px; padding: 0.2rem 0.9rem; font-size: 0.75rem; font-weight: 600; }
+        .trend-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem; }
+        .trend-title h4 { font-weight: 700; font-size: 1.2rem; color: #13293d; }
+        .stars-row { display: flex; align-items: center; gap: 0.5rem; margin: 0.3rem 0; }
+        .stars { color: #eab308; letter-spacing: 2px; font-size: 0.95rem; }
+        .reviews { color: #5f748b; font-size: 0.8rem; font-weight: 500; }
+        .price-distance { display: flex; justify-content: space-between; margin: 0.6rem 0; font-weight: 500; }
+        .badge-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0 0.8rem; }
+        .badge { background: #eef2f6; border-radius: 40px; padding: 0.2rem 1rem; font-size: 0.7rem; font-weight: 600; color: #2f4052; }
+        .badge.emergency { background: #ffe4e2; color: #aa302a; }
+        .book-btn { font-weight: 600; padding: 0.9rem 0.5rem; border-radius: 60px; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-top: 0.4rem; box-shadow: 0 6px 12px -8px #0b1f2f; width: 100%; border: none; color: white; text-decoration: none; }
+        a.book-btn { color: white; text-decoration: none; }
+        .motive-modern { border-radius: 56px; padding: 2.8rem 3rem; margin: 3.2rem 0 2.5rem; box-shadow: 0 22px 46px -22px #0f3555; display: flex; flex-wrap: wrap; gap: 3.5rem; position: relative; isolation: isolate; }
+        .floating-stats { display: flex; gap: 2rem; flex-wrap: wrap; }
+        .stat-bubble { background: var(--stat-bubble-bg); border-radius: 100px; padding: 1.2rem 2rem; box-shadow: 0 14px 28px -14px #193e5e; display: flex; flex-direction: column; align-items: center; animation: float 6s infinite ease-in-out; }
+        .stat-bubble .stat-number { font-size: 2.5rem; font-weight: 700; color: #134074; line-height: 1; }
+        .badge-row { display: flex; gap: 1.2rem; margin-top: 1.8rem; }
+        .badge-row span { background: #ffffffd6; backdrop-filter: blur(4px); border-radius: 60px; padding: 0.6rem 1.6rem; font-weight: 500; color: #1e3e64; box-shadow: 0 4px 14px -4px #abd0ff; }
+        .subscription-banner { border-radius: 80px; padding: 1rem 2rem 1rem 2.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; color: white; margin: 2rem 0 2rem; }
+        .contact-bar { display: flex; flex-wrap: wrap; gap: 2rem; justify-content: space-between; border-radius: 48px; padding: 1.2rem 2.2rem; margin: 2.5rem 0 1rem; }
+        .creative-footer { max-width: 1440px; margin: 3rem auto 0; padding: 2.8rem 2rem 2.5rem; border-radius: 48px 48px 24px 24px; color: #d4e0ec; border: 1px solid #2d4357; }
+        .footer-grid { display: grid; grid-template-columns: 1.2fr 1fr 1.4fr 1fr; gap: 2rem; margin-bottom: 2.5rem; }
+        @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+        .footer-logo-col .logo-big { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        .logo-big .brand-lg { font-size: 3rem; font-weight: 700; background: linear-gradient(135deg, #bcd6f0, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.02em; }
+        .social-row { display: flex; gap: 1rem; margin: 1rem 0; }
+        .social-icon { background: #1d3a50; width: 44px; height: 44px; border-radius: 30px; display: flex; align-items: center; justify-content: center; color: #e7f0fd; font-size: 1.3rem; transition: all 0.25s; border: 1px solid #38658b; }
+        .footer-col p { font-weight: 500; margin-bottom: 1.2rem; color: white; border-bottom: 2px solid #2f5577; display: inline-block; padding-bottom: 5px; }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 0.7rem; }
+        .footer-col a { color: #bed6ec; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s; }
+        .footer-col a:hover { color: white; transform: translateX(8px); }
+        .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding-top: 2rem; border-top: 1px solid #264a63; }
+        .footer-bottom .admin-badge { background: #153145; padding: 0.3rem 1.4rem; border-radius: 40px; border: 1px solid #3b6385; display: flex; align-items: center; gap: 0.5rem; }
+        .admin-micro { background: #f0f4fe; border-radius: 100px; padding: 0.3rem 1.2rem; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; border: 1px solid #dee7f0; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-group">
+                <span class="brand">zenzy<span class="brand-dot"></span></span>
+                <span class="admin-micro"><i class="fas fa-code-branch"></i> branch/block · admin id</span>
+            </div>
+            <nav class="nav-links">
+                <a href="#">HOME</a><a href="#">ABOUT</a><a href="#">CONTACT</a><a href="#">SUBSCRIPTIONS</a>
+            </nav>
+            <div class="user-actions">
+                <!-- Chamaeleon toggle (subtle & smooth) -->
+                <div class="toggle-switch">
+                    <span class="toggle-label"><i class="fas fa-palette"></i> Chamaeleon</span>
+                    <input type="checkbox" id="chk" class="chk-toggle">
+                    <label for="chk" class="switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <span class="icon-btn"><i class="fas fa-search"></i></span>
+                <span class="icon-btn"><i class="fas fa-sliders-h"></i></span>
+                <span class="icon-btn"><i class="fas fa-user-circle"></i></span>
+            </div>
+        </div>
+    </header>
+
+    <section class="slideshow-section">
+        <div class="slideshow-container">
+            <div class="slide-track">
+                <div class="slide slide1"><div class="slide-content"><i class="fas fa-bolt"></i> 24/7 electricians, plumbers — 900+ pros</div></div>
+                <div class="slide slide2"><div class="slide-content"><i class="fas fa-home"></i> rent / sale · contractor · thekedar</div></div>
+                <div class="slide slide3"><div class="slide-content"><i class="fas fa-snowflake"></i> AC, stone work, painting · doorstep</div></div>
+            </div>
+        </div>
+        <div style="display:flex; gap:0.4rem; justify-content:center; margin-top:0.6rem;">
+            <span style="width:26px; height:6px; background:var(--primary); border-radius:4px; transition:background 0.8s;"></span>
+            <span style="width:10px; height:6px; background:#cbd5e1; border-radius:4px;"></span>
+            <span style="width:10px; height:6px; background:#cbd5e1; border-radius:4px;"></span>
+        </div>
+    </section>
+
+    <main class="main-container">
+        <div class="filter-row">
+            <span class="filter-chip active"><i class="fas fa-map-marker-alt"></i> near me</span>
+            <span class="filter-chip"><i class="fas fa-star"></i> top rated</span>
+            <span class="filter-chip"><i class="fas fa-rupee-sign"></i> budget</span>
+            <span class="filter-chip"><i class="fas fa-clock"></i> available now</span>
+            <span class="filter-chip"><i class="fas fa-tools"></i> emergency</span>
+            <span class="filter-chip"><i class="fas fa-phone-alt"></i> contact direct</span>
+        </div>
+
+        <div class="section-head"><i class="fas fa-th"></i> our services (phase‑0 & more)</div>
+        <div class="category-grid">
+            <div class="category-card"><i class="fas fa-wrench category-icon"></i><div class="category-title">Plumbing</div><div class="category-count">187 pros</div></div>
+            <div class="category-card"><i class="fas fa-bolt category-icon"></i><div class="category-title">Electrician</div><div class="category-count">142 pros</div></div>
+            <div class="category-card"><i class="fas fa-paint-roller category-icon"></i><div class="category-title">Painting</div><div class="category-count">93 pros</div></div>
+            <div class="category-card"><i class="fas fa-wind category-icon"></i><div class="category-title">AC service</div><div class="category-count">61 pros</div></div>
+            <div class="category-card"><i class="fas fa-trowel category-icon"></i><div class="category-title">Beldar / Mason</div><div class="category-count">34 pros</div></div>
+            <div class="category-card"><i class="fas fa-hard-hat category-icon"></i><div class="category-title">Contractor</div><div class="category-count">48 pros</div></div>
+            <div class="category-card"><i class="fas fa-home category-icon"></i><div class="category-title">House rent</div><div class="category-count">112 listings</div></div>
+            <div class="category-card"><i class="fas fa-building category-icon"></i><div class="category-title">Property sale</div><div class="category-count">76+</div></div>
+            <div class="category-card"><i class="fas fa-draw-polygon category-icon"></i><div class="category-title">Architect</div><div class="category-count">28 firms</div></div>
+            <div class="category-card"><i class="fas fa-question category-icon"></i><div class="category-title">Mystery service</div><div class="category-count">3 special</div></div>
+            <div class="category-card"><i class="fas fa-mountain category-icon"></i><div class="category-title">Stone worker</div><div class="category-count">19 pros</div></div>
+            <div class="category-card"><i class="fas fa-car-side category-icon"></i><div class="category-title">Car cleaning (AM)</div><div class="category-count">27 pros</div></div>
+            <div class="category-card"><i class="fas fa-tools category-icon"></i><div class="category-title">Thekedar</div><div class="category-count">15 groups</div></div>
+            <div class="category-card"><i class="fas fa-broom category-icon"></i><div class="category-title">House worker</div><div class="category-count">62 helpers</div></div>
+        </div>
+
+        <div class="branch-blocks">
+            <span class="branch-item"><i class="fas fa-diagram-project"></i> branch (territory hubs) · 4 zones</span>
+            <span class="branch-item"><i class="fas fa-cubes"></i> block (0.5km clusters) · 22 blocks</span>
+            <span class="branch-item"><i class="fas fa-database"></i> backend data exchange · simple id</span>
+        </div>
+
+        <!-- TRENDING IN YOUR AREA (modern cards) -->
+        <div class="section-head"><i class="fas fa-fire"></i> Trending in your area</div>
+        <div class="trending-grid">
+            <!-- card 1 : plumbing -->
+            <div class="trend-card">
+                <div class="trend-img" style="background-image: linear-gradient(0deg, #0f1f2f90, #0f1f2f30), url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiM5YWIwYzAiLz48dGV4dCB4PSIxMCIgeT0iMzAiIGZpbGw9IiMxRTNFNTAiIGZvbnQtc2l6ZT0iMTgiPvCfjLkgcG9ydHJhaXQ8L3RleHQ+PC9zdmc+');"><span class="work-badge"><i class="fas fa-wrench"></i> plumbing</span><span class="image-count"><i class="far fa-image"></i> 12</span></div>
+                <div class="trend-title"><h4>R.K. Plumbing</h4><span class="verified"><i class="fas fa-check-circle"></i> insured</span></div>
+                <div class="stars-row"><span class="stars">★★★★★</span><span class="reviews">(312)</span></div>
+                <div class="price-distance"><span class="price">₹350 /hr</span><span class="distance"><i class="fas fa-map-pin"></i> 0.6 km</span></div>
+                <div class="badge-group"><span class="badge">24/7</span><span class="badge emergency">emergency</span></div>
+                <a href="#" class="book-btn" onclick="window.location='https://example.com/book?pro=rk-plumbing'; return false;"><i class="fas fa-calendar-check"></i> Book now <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <!-- card 2 : electrician -->
+            <div class="trend-card">
+                <div class="trend-img" style="background-image: linear-gradient(0deg, #0f1f2f90, #0f1f2f30), url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiM5Y2IxYzAiLz48dGV4dCB4PSIxMCIgeT0iMzAiIGZpbGw9IiMyZTQyNTgiPkVMRUNUUklDQUw8L3RleHQ+PC9zdmc+');"><span class="work-badge"><i class="fas fa-bolt"></i> electrics</span><span class="image-count"><i class="far fa-image"></i> 9</span></div>
+                <div class="trend-title"><h4>Zen Electrics</h4><span class="verified">pro</span></div>
+                <div class="stars-row"><span class="stars">★★★★☆</span><span class="reviews">(207)</span></div>
+                <div class="price-distance"><span class="price">₹420 /fix</span><span class="distance">1.1 km</span></div>
+                <div class="badge-group"><span class="badge">licenced</span><span class="badge">solar</span></div>
+                <a href="#" class="book-btn" onclick="window.location='https://example.com/book?pro=zen-electrics'; return false;"><i class="fas fa-calendar-check"></i> Book now <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <!-- card 3 : ac service -->
+            <div class="trend-card">
+                <div class="trend-img" style="background-image: linear-gradient(0deg, #0f1f2f90, #0f1f2f30), url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNiYWNkZGUiLz48dGV4dCB4PSIxMCIgeT0iMzAiIGZpbGw9IiMwYzFhMjgiPkFDIHNlcnZpY2U8L3RleHQ+PC9zdmc+');"><span class="work-badge"><i class="fas fa-wind"></i> AC</span><span class="image-count"><i class="far fa-image"></i> 22</span></div>
+                <div class="trend-title"><h4>Cooldude AC</h4><span class="verified">top</span></div>
+                <div class="stars-row"><span class="stars">★★★★★</span><span class="reviews">(431)</span></div>
+                <div class="price-distance"><span class="price">₹399 /service</span><span class="distance">2.3 km</span></div>
+                <div class="badge-group"><span class="badge">same day</span><span class="badge">hybrid</span></div>
+                <a href="#" class="book-btn" onclick="window.location='https://example.com/book?pro=cooldude'; return false;"><i class="fas fa-calendar-check"></i> Book now <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <!-- card 4 : painting -->
+            <div class="trend-card">
+                <div class="trend-img" style="background-image: linear-gradient(0deg, #0f1f2f90, #0f1f2f30), url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNhZmM2ZGUiLz48dGV4dCB4PSIxMCIgeT0iMzAiIGZpbGw9IiMxZjJhMzgiPnBhaW50aW5nPC90ZXh0Pjwvc3ZnPg==');"><span class="work-badge"><i class="fas fa-paint-roller"></i> painting</span><span class="image-count"><i class="far fa-image"></i> 17</span></div>
+                <div class="trend-title"><h4>Asian Paints pro</h4><span class="verified">⭐ 4.8</span></div>
+                <div class="stars-row"><span class="stars">★★★★☆</span><span class="reviews">(95)</span></div>
+                <div class="price-distance"><span class="price">₹1800 /room</span><span class="distance">0.3 km</span></div>
+                <div class="badge-group"><span class="badge">interior</span><span class="badge">waterproof</span></div>
+                <a href="#" class="book-btn" onclick="window.location='https://example.com/book?pro=asian-paints'; return false;"><i class="fas fa-calendar-check"></i> Book now <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+
+        <!-- upgraded motive section (smooth animated) -->
+        <div class="motive-modern">
+            <div class="motive-text">
+                <h3>⚡ why zenzy ?</h3>
+                <p>We connect you with skilled pros that are often hard to find: plumbers, electricians, stone workers, local thekedar, house painters, AC techs, and even mystery services. Just like Zomato but for home & work — with real work images, rating, price, and nearest location. Designed for our parents & this generation.</p>
+                <div class="badge-row">
+                    <span><i class="fas fa-check-circle" style="color:#2b6c4b;"></i> 1300+ verified</span>
+                    <span><i class="fas fa-clock"></i> instant contact</span>
+                    <span><i class="fas fa-shield-alt"></i> insured work</span>
+                </div>
+            </div>
+            <div class="floating-stats">
+                <div class="stat-bubble"><span class="stat-number">47</span><span>blocks active</span></div>
+                <div class="stat-bubble"><span class="stat-number">12</span><span>branches</span></div>
+                <div class="stat-bubble"><span class="stat-number">2.5k</span><span>pros</span></div>
+            </div>
+        </div>
+
+        <div class="subscription-banner">
+            <div class="sub-left"><i class="fas fa-crown"></i><span class="sub-text"><strong>SUBSCRIPTIONS</strong> · zero fees · priority support · early access</span></div>
+            <span class="sub-chip">coming Q3</span>
+        </div>
+
+        <div class="contact-bar">
+            <span class="contact-item"><i class="fas fa-envelope"></i> hello@zenzy.in</span>
+            <span class="contact-item"><i class="fas fa-phone-alt"></i> +91 124 111 222</span>
+            <span class="contact-item"><i class="fas fa-map-marked-alt"></i> ABOUT: services for everyday</span>
+            <span class="contact-item"><i class="fas fa-database"></i> admin ID/simple panel</span>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: center; margin: 1.2rem 0;">
+            <span style="background:white; padding:0.4rem 1.5rem; border-radius:50px; border:1px solid #dde2e8;"><i class="fas fa-quote-right"></i> “found plumber in 5 min”</span>
+            <span style="background:white; padding:0.4rem 1.5rem; border-radius:50px; border:1px solid #dde2e8;"><i class="fas fa-star"></i> 4.8 avg rating</span>
+        </div>
+    </main>
+
+    <!-- creative footer (same) -->
+    <footer class="creative-footer">
+        <div class="footer-grid">
+            <div class="footer-logo-col"><div class="logo-big"><span class="brand-lg">zenzy<span class="dot"></span></span><div class="footer-tagline">bridge the access gap · since 2025</div></div><div class="social-row"><a href="#" class="social-icon"><i class="fab fa-instagram"></i></a><a href="#" class="social-icon"><i class="fab fa-x-twitter"></i></a><a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a><a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a></div><p style="color:#9bb8da; font-size:0.9rem;"><i class="fas fa-envelope"></i> hello@zenzy.in · support 24/7</p></div>
+            <div class="footer-col"><p>Explore</p><ul><li><a href="#"><i class="fas fa-chevron-right"></i> Home</a></li><li><a href="#"><i class="fas fa-chevron-right"></i> About us</a></li><li><a href="#"><i class="fas fa-chevron-right"></i> Subscriptions</a></li><li><a href="#"><i class="fas fa-chevron-right"></i> Branch / block</a></li></ul></div>
+            <div class="footer-col"><p>Services</p><ul><li><a href="#"><i class="fas fa-wrench"></i> Plumbers</a></li><li><a href="#"><i class="fas fa-bolt"></i> Electricians</a></li><li><a href="#"><i class="fas fa-paint-roller"></i> Painting</a></li><li><a href="#"><i class="fas fa-mountain"></i> Stone work</a></li><li><a href="#"><i class="fas fa-home"></i> Rent / sale</a></li></ul></div>
+            <div class="footer-col"><p>Help</p><ul><li><a href="#"><i class="fas fa-circle-info"></i> FAQ</a></li><li><a href="#"><i class="fas fa-phone"></i> Contact</a></li><li><a href="#"><i class="fas fa-shield"></i> Privacy</a></li><li><a href="#"><i class="fas fa-id-card"></i> Admin ID</a></li></ul></div>
+        </div>
+        <div class="footer-bottom"><div class="copy"><span>© 2025 zenzy · all good</span><span>v2.4.1 · branch/block protocol</span></div><div class="admin-badge"><i class="fas fa-diagram-project"></i> backend: branch (4) · block (22) · simple ID <i class="fas fa-microchip" style="margin-left:0.6rem;"></i></div></div>
+    </footer>
+
+    <script>
+        (function() {
+            const toggle = document.getElementById('chk');
+            const body = document.body;
+
+            // load saved preference
+            if (localStorage.getItem('chamaeleon') === 'active') {
+                body.classList.add('chamaeleon-active');
+                toggle.checked = true;
+            }
+
+            toggle.addEventListener('change', function(e) {
+                if (this.checked) {
+                    body.classList.add('chamaeleon-active');
+                    localStorage.setItem('chamaeleon', 'active');
+                } else {
+                    body.classList.remove('chamaeleon-active');
+                    localStorage.setItem('chamaeleon', 'inactive');
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

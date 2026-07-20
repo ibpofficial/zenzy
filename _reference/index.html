@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zenzy · the modern service protocol</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #0f172a;
+            --accent: #10b981;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius-lg: 20px;
+            --radius-xl: 32px;
+            --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.08);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ----- Reveal Animations ----- */
+        html { scroll-behavior: smooth; }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ----- REDESIGNED HEADER ----- */
+        .header {
+            background: transparent;
+            padding: 0.9rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(100, 116, 139, 0.12);
+            backdrop-filter: blur(10px);
+            background: rgba(248, 250, 252, 0.8);
+        }
+
+        .header-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .brand-wrapper {
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        .brand {
+            font-weight: 800;
+            font-size: 2rem;
+            letter-spacing: -0.05em;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+        .brand:hover {
+            transform: scale(1.01);
+        }
+        .brand-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            margin-left: 3px;
+            box-shadow: 0 0 12px var(--primary);
+            animation: pulseDot 2s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 5px var(--primary); }
+            50% { transform: scale(1.5); opacity: 1; box-shadow: 0 0 15px var(--primary); }
+        }
+
+        /* --- inline navigation --- */
+        .nav-links {
+            display: flex;
+            gap: 0.2rem;
+            align-items: center;
+            background: white;
+            padding: 0.3rem;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.5rem 1.2rem;
+            border-radius: 100px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary);
+            background: #f1f5f9;
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            background: #eef2ff;
+        }
+
+        .nav-links a.special {
+            position: relative;
+            background: var(--secondary);
+            color: white;
+            padding: 0.5rem 1.4rem;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .nav-links a.special::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200%;
+            height: 300%;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                transparent 280deg,
+                #f4b740 310deg,
+                #2563eb 340deg,
+                transparent 360deg
+            );
+            transform: translate(-50%, -50%);
+            animation: rotateBorder 3s linear infinite;
+            z-index: -2;
+        }
+        .nav-links a.special::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            background: var(--secondary);
+            border-radius: 100px;
+            z-index: -1;
+            transition: background 0.3s ease;
+        }
+        @keyframes rotateBorder {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .nav-links a.special:hover::after {
+            background: #1e293b;
+        }
+        .nav-links a.special:hover {
+            transform: scale(1.05);
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .icon-btn {
+            width: 44px;
+            height: 44px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--secondary);
+            font-size: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .icon-btn:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 8px 18px -6px rgba(37,99,235,0.2);
+        }
+
+        /* ----- Hero Section ----- */
+        .hero {
+            padding: 1.5rem 2rem;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+        .slideshow-container {
+            height: 380px;
+            width: 100%;
+            position: relative;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            background: #000;
+            box-shadow: var(--shadow-lg);
+        }
+        .slide-track {
+            display: flex;
+            width: 300%;
+            height: 100%;
+            animation: slideAuto 18s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+        }
+        @keyframes slideAuto {
+            0%, 22% { transform: translateX(0); }
+            33%, 55% { transform: translateX(-33.333%); }
+            66%, 88% { transform: translateX(-66.666%); }
+            100% { transform: translateX(0); }
+        }
+        .slide {
+            flex: 1;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            padding: 0 4rem;
+            position: relative;
+        }
+        .slide::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.1) 100%);
+        }
+        .slide-content {
+            position: relative;
+            z-index: 2;
+            color: white;
+            max-width: 600px;
+        }
+        .slide-content h2 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .slide-badge {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 100px;
+            font-size: 1.1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-weight: 500;
+        }
+
+        /* ----- Compact Promotional Scroller ----- */
+        .promo-section {
+            padding: 2rem 0;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+        .promo-wrapper {
+            display: flex;
+            gap: 1.2rem;
+            overflow-x: auto;
+            padding: 0.5rem 2rem 1.5rem;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .promo-wrapper::-webkit-scrollbar { display: none; }
+        .promo-card {
+            min-width: 300px;
+            flex: 0 0 300px;
+            height: 220px;
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--border);
+        }
+        .promo-card:hover {
+            transform: scale(0.98);
+            border-color: var(--primary);
+        }
+        .promo-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            transition: transform 0.6s ease;
+        }
+        .promo-card:hover .promo-bg {
+            transform: scale(1.1);
+        }
+        .promo-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(15, 23, 42, 0.9) 10%, rgba(15, 23, 42, 0) 80%);
+            z-index: 1;
+        }
+        .promo-content {
+            position: relative;
+            z-index: 2;
+            color: white;
+        }
+        .promo-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--secondary);
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            box-shadow: var(--shadow-sm);
+        }
+        .promo-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+        }
+        .promo-subtitle {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            font-weight: 400;
+        }
+        .scroll-indicator {
+            padding: 0 2.5rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: -10px;
+        }
+
+        /* ----- Filters & Sections ----- */
+        .filters-section {
+            padding: 0.5rem 2rem;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+        .filter-container {
+            display: flex;
+            gap: 0.8rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            scrollbar-width: none;
+        }
+        .filter-container::-webkit-scrollbar { display: none; }
+        .filter-pill {
+            background: white;
+            padding: 0.6rem 1.4rem;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            white-space: nowrap;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+        }
+        .filter-pill.active {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+        .branch-info-bar {
+            max-width: 1440px;
+            margin: 1.5rem auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            background: #ecf3fa;
+            border-radius: 100px;
+            padding: 0.8rem 2rem;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e3a5f;
+        }
+        .section-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .section-header i {
+            background: #eef2f6;
+            padding: 0.6rem;
+            border-radius: 14px;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--secondary);
+        }
+        
+        /* Category Grid */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1.2rem;
+        }
+        .category-card {
+            background: white;
+            padding: 1.5rem 1rem;
+            border-radius: 24px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .category-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+        }
+        .category-icon {
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 0.8rem;
+        }
+        .category-card h3 { font-size: 0.95rem; font-weight: 700; }
+        .category-card p { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* Trending Grid */
+        .trending-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .pro-card {
+            background: white;
+            border-radius: 28px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 380px;
+        }
+        .pro-card:hover {
+            transform: translateY(-8px);
+            border-color: #b9d6f0;
+            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.15);
+        }
+        .pro-img-wrapper {
+            height: 160px;
+            position: relative;
+            overflow: hidden;
+        }
+        .pro-img {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.5s ease;
+        }
+        .pro-card:hover .pro-img { transform: scale(1.1); }
+        .pro-work-badge {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .pro-img-count {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--secondary);
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        .pro-info { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+        .pro-name-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.4rem;
+        }
+        .pro-name { font-size: 1.1rem; font-weight: 800; color: var(--secondary); }
+        .pro-verified { font-size: 0.7rem; color: var(--primary); background: #e0edff; padding: 2px 8px; border-radius: 40px; font-weight: 700; }
+        .pro-rating-row { display: flex; align-items: center; gap: 5px; margin-bottom: 0.8rem; }
+        .stars { color: #f4b740; font-size: 0.85rem; letter-spacing: 1px; }
+        .reviews { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+        .pro-meta-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .pro-price { color: #0f4e3a; background: #e0f0ea; padding: 2px 10px; border-radius: 40px; }
+        .pro-dist { color: #2a4868; background: #edf4fc; padding: 2px 10px; border-radius: 40px; }
+        .book-btn {
+            background: var(--secondary);
+            color: white;
+            padding: 0.8rem;
+            border-radius: 100px;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            margin-top: auto;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+        .book-btn:hover {
+            background: var(--primary);
+            gap: 15px;
+            transform: scale(1.02);
+        }
+
+        /* --- UI Loaders --- */
+        .loading-skeleton {
+            background: #e2e8f0;
+            border-radius: 12px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0.6; }
+        }
+
+        /* --- Modals and Toasts --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-title { font-size: 1.5rem; font-weight: 800; color: var(--secondary); }
+        .close-btn { background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; }
+        
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--secondary); margin-bottom: 6px; }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); }
+        
+        .toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+            z-index: 3000;
+            transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast.show { bottom: 30px; }
+
+        /* Motive & Footer (Unchanged structure) */
+        .motive-section {
+            background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 80%);
+            border-radius: 50px;
+            padding: 3rem;
+            margin: 3rem 2rem;
+            border: 1px solid #deecfb;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3rem;
+            align-items: center;
+        }
+        .motive-text { flex: 2; min-width: 300px; }
+        .motive-text h3 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(155deg, #123456, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+        }
+        .motive-text p {
+            font-size: 1.1rem;
+            color: #1e3f60;
+            line-height: 1.7;
+            border-left: 5px solid var(--primary);
+            padding-left: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .floating-stats { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+        .stat-bubble {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 24px;
+            box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 1px solid #cddff5;
+            flex: 1;
+            min-width: 120px;
+            animation: float 6s infinite ease-in-out;
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .stat-number { font-size: 2.2rem; font-weight: 800; color: var(--secondary); display: block; }
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+        .sub-banner {
+            background: linear-gradient(98deg, #1b2c3f 0%, #2b4b68 100%);
+            border-radius: 100px;
+            padding: 1.2rem 3rem;
+            margin: 0 2rem 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+        .footer {
+            background: #0f212f;
+            color: #d4e0ec;
+            padding: 4rem 2rem 2rem;
+            border-radius: 50px 50px 0 0;
+            margin-top: 5rem;
+        }
+        .footer-grid {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.5fr repeat(3, 1fr);
+            gap: 4rem;
+            margin-bottom: 3rem;
+        }
+        .footer-logo-col h2 { font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 1rem; }
+        .footer-logo-col .dot { display: inline-block; width: 12px; height: 12px; background: var(--primary); border-radius: 50%; margin-left: 5px; }
+        .social-links { display: flex; gap: 1rem; margin: 1.5rem 0; }
+        .social-icon {
+            width: 44px;
+            height: 44px;
+            background: #1d3a50;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; text-decoration: none; transition: all 0.3s;
+        }
+        .social-icon:hover { background: var(--primary); transform: translateY(-5px); }
+        .footer-col h4 { color: white; margin-bottom: 1.5rem; font-size: 1.1rem; border-bottom: 2px solid #2f5577; display: inline-block; padding-bottom: 5px; }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 0.8rem; }
+        .footer-col a { color: #bed6ec; text-decoration: none; transition: all 0.2s; }
+        .footer-col a:hover { color: white; padding-left: 10px; }
+        .footer-bottom {
+            max-width: 1440px; margin: 0 auto; padding-top: 2rem; border-top: 1px solid #264a63;
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; opacity: 0.7;
+        }
+        @media (max-width: 900px) {
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .nav-links { display: none; }
+            .slide-content h2 { font-size: 1.8rem; }
+            .trending-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <a href="#" class="brand-wrapper">
+                    <span class="brand">zenzy<span class="brand-dot"></span></span>
+                </a>
+            </div>
+
+            <nav class="nav-links">
+                <a href="index.html" class="active"><i class="fas fa-home"></i> Home</a>
+                <a href="#services"><i class="fas fa-th-large"></i> Services</a>
+                <a href="about.html"><i class="fas fa-info-circle"></i> About</a>
+                <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+                <a href="#" class="special"><i class="fas fa-crown"></i> Subscriptions</a>
+            </nav>
+
+            <div class="user-actions">
+                <span class="icon-btn"><i class="fas fa-search"></i></span>
+                <span class="icon-btn"><i class="fas fa-user-circle"></i></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="slideshow-container">
+            <div class="slide-track">
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1581244276823-86f7a47ef6c0?auto=format&fit=crop&w=1600&q=80');">
+                    <div class="slide-content">
+                        <h2><span class="slide-badge"><i class="fas fa-bolt"></i> Protocol Alpha</span></h2>
+                        <h2 style="font-size: 3.5rem;">Plumbing & Electrical.</h2>
+                        <p>900+ Verified Professionals available in your block. Instant response guaranteed by protocol.</p>
+                    </div>
+                </div>
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1589939705384-5185138a04b9?auto=format&fit=crop&w=1600&q=80');">
+                    <div class="slide-content">
+                        <h2><span class="slide-badge"><i class="fas fa-paint-roller"></i> Protocol Beta</span></h2>
+                        <h2 style="font-size: 3.5rem;">Masonry & Painting.</h2>
+                        <p>Contractors, Beldars, and Master Painters. High-end finishes protocol-vetted for your home.</p>
+                    </div>
+                </div>
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1600&q=80');">
+                    <div class="slide-content">
+                        <h2><span class="slide-badge"><i class="fas fa-home"></i> Protocol Gamma</span></h2>
+                        <h2 style="font-size: 3.5rem;">Rent & Property Sale.</h2>
+                        <p>Thekedars and property experts. Find your next space with transparent block-level listings.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dynamic Promo Scroller -->
+    <section class="promo-section reveal">
+        <div class="section-header" style="padding-left: 2rem;">
+            <i class="fas fa-wand-magic-sparkles"></i>
+            <h2 class="section-title">Exclusive Protocols</h2>
+        </div>
+        <div class="promo-wrapper" id="promo-container">
+            <!-- Skeletons while loading -->
+            <div class="promo-card loading-skeleton"></div>
+            <div class="promo-card loading-skeleton"></div>
+            <div class="promo-card loading-skeleton"></div>
+        </div>
+        <div class="scroll-indicator">
+            <i class="fas fa-arrow-right"></i> Swipe for more protocols
+        </div>
+    </section>
+
+    <div class="branch-info-bar reveal">
+        <span><i class="fas fa-diagram-project"></i> For you For the Trust </span>
+    </div>
+
+    <!-- Filters -->
+    <section class="filters-section reveal">
+        <div class="filter-container">
+            <div class="filter-pill active"><i class="fas fa-map-marker-alt"></i> near me</div>
+            <div class="filter-pill"><i class="fas fa-star"></i> top rated</div>
+            <div class="filter-pill"><i class="fas fa-rupee-sign"></i> budget fix</div>
+            <div class="filter-pill"><i class="fas fa-clock"></i> available now</div>
+            <div class="filter-pill"><i class="fas fa-tools"></i> emergency pro</div>
+            <div class="filter-pill"><i class="fas fa-shield-alt"></i> insured only</div>
+        </div>
+    </section>
+
+    <!-- Dynamic Categories -->
+    <section class="section-container reveal" id="services">
+        <div class="section-header">
+            <i class="fas fa-th"></i>
+            <h2 class="section-title">Our Services</h2>
+        </div>
+        <div class="category-grid" id="category-container">
+            <!-- Loaders -->
+            <div class="category-card loading-skeleton" style="height: 140px;"></div>
+            <div class="category-card loading-skeleton" style="height: 140px;"></div>
+            <div class="category-card loading-skeleton" style="height: 140px;"></div>
+            <div class="category-card loading-skeleton" style="height: 140px;"></div>
+        </div>
+    </section>
+
+    <!-- Dynamic Trending Pros -->
+    <section class="section-container reveal" style="background: #f1f5f9; border-radius: 50px; margin: 2rem auto; max-width: 1400px;">
+        <div class="section-header" style="justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <i class="fas fa-fire"></i>
+                <h2 class="section-title">Trending in Block 4</h2>
+            </div>
+            <a href="#" style="color: var(--primary); font-weight: 700; text-decoration: none; font-size: 0.85rem;">See All <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="trending-grid" id="pros-container">
+            <!-- Loaders -->
+            <div class="pro-card loading-skeleton"></div>
+            <div class="pro-card loading-skeleton"></div>
+            <div class="pro-card loading-skeleton"></div>
+        </div>
+    </section>
+
+    <!-- Motive Section -->
+    <section class="motive-section reveal">
+        <div class="motive-text">
+            <h3>⚡ why zenzy?</h3>
+            <p>We connect you with skilled pros that are often hard to find: plumbers, electricians, stone workers, local thekedars, house painters, and even special mystery services. Designed for our parents & this generation. Real work images, fixed prices, and block-level proximity.</p>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <span style="background: white; padding: 10px 20px; border-radius: 50px; border: 1px solid #bfd9fc; font-weight: 600; font-size: 0.9rem;"><i class="fas fa-check-circle" style="color: #2b6c4b;"></i> 1300+ Verified Pros</span>
+                <span style="background: white; padding: 10px 20px; border-radius: 50px; border: 1px solid #bfd9fc; font-weight: 600; font-size: 0.9rem;"><i class="fas fa-shield-alt"></i> Insured Protocol</span>
+            </div>
+        </div>
+        <div class="floating-stats">
+            <div class="stat-bubble"><span class="stat-number">47</span><span class="stat-label">Blocks Active</span></div>
+            <div class="stat-bubble"><span class="stat-number">12</span><span class="stat-label">Branch Hubs</span></div>
+            <div class="stat-bubble" style="animation-delay: 1s;"><span class="stat-number">2.5k</span><span class="stat-label">Vetted Pros</span></div>
+        </div>
+    </section>
+
+    <!-- Subscription Banner -->
+    <div class="sub-banner reveal">
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <i class="fas fa-crown" style="font-size: 1.5rem; color: #f4b740;"></i>
+            <span style="font-weight: 700; font-size: 1.1rem; letter-spacing: 0.05em;">SUBSCRIPTIONS · ZERO FEES · PRIORITY SUPPORT</span>
+        </div>
+        <span style="background: rgba(255,255,255,0.2); padding: 5px 20px; border-radius: 50px; font-weight: 800; font-size: 0.8rem;">Coming Soon</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-logo-col">
+                <h2>zenzy<span class="dot"></span></h2>
+                <p style="font-size: 0.9rem; margin-bottom: 20px;">Bridging the access gap · since 2026. Reliable local skilled labor protocolized for the modern home.</p>
+                <div class="social-links">
+                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-col">
+                <h4>Explore</h4>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">About us</a></li>
+                    <li><a href="#">Subscriptions</a></li>
+                    <li><a href="#">Branch / Block</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Services</h4>
+                <ul>
+                    <li><a href="#">Plumbers</a></li>
+                    <li><a href="#">Electricians</a></li>
+                    <li><a href="#">Painting</a></li>
+                    <li><a href="#">Stone Work</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Help</h4>
+                <ul>
+                    <li><a href="#">FAQ</a></li>
+                    <li><a href="#">Contact Support</a></li>
+                    <li><a href="#">Privacy Protocol</a></li>
+                    <li><a href="#">Admin Login</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>© 2026 Zenzy Technologies </div>
+            <div>© All rights reserved </div>
+            <div style="display: flex; gap: 10px; align-items: center; background: #153145; padding: 5px 20px; border-radius: 40px; border: 1px solid #3b6385;">
+                <i class="fas fa-diagram-project"></i> Designed and developed by ISHANT UPADHYAY
+            </div>
+        </div>
+    </footer>
+
+    <!-- Booking Modal -->
+    <div class="modal-overlay" id="bookingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Request Service</h3>
+                <button class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">Booking: <strong id="modalProName" style="color: var(--secondary);">Pro Name</strong></p>
+            
+            <form id="bookingForm">
+                <input type="hidden" id="modalProId">
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" id="customerName" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="customerPhone" required placeholder="+91 98765 43210">
+                </div>
+                <div class="form-group">
+                    <label>Block / Address Details</label>
+                    <textarea id="customerAddress" required rows="3" placeholder="Block 4, Villa 12..."></textarea>
+                </div>
+                <button type="submit" class="book-btn" style="padding: 1rem; font-size: 1rem;">Confirm Booking Request</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i> <span id="toastMsg">Request sent successfully!</span>
+    </div>
+
+    <!-- Firebase SDK Setup -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your provided API Keys
+        const firebaseConfig = {
+            apiKey: "AIzaSyAGmSHiSFvlOIk5woSsbBLI5rndASromyg",
+            authDomain: "dmin-dbe58.firebaseapp.com",
+            projectId: "dmin-dbe58",
+            storageBucket: "dmin-dbe58.firebasestorage.app",
+            messagingSenderId: "369190320724",
+            appId: "1:369190320724:web:29a949f473c557d63d4bc1",
+            measurementId: "G-ZE2EEQC2WM"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Security implementation: Dynamic App ID support to ensure DB strict rules
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'zenzy_main_app';
+        
+        // Helper func to format paths following strict requirements
+        const getCol = (name) => collection(db, 'artifacts', appId, 'public', 'data', name);
+
+        let currentUser = null;
+
+        // Initialize App & Auth First
+        const initApp = async () => {
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
+
+        // Listen for Auth State changes to load data safely
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                await seedDatabaseIfEmpty(); // Smart seeding mechanism
+                setupRealtimeListeners();
+            }
+        });
+
+        initApp();
+
+        // -------------------------------------------------------------
+        // SEED DATA: Auto-populates your blank database so it's ready!
+        // -------------------------------------------------------------
+        const seedDatabaseIfEmpty = async () => {
+            const prosRef = getCol('zenzy_pros');
+            const catRef = getCol('zenzy_categories');
+            const promoRef = getCol('zenzy_promos');
+
+            const [prosSnap, catSnap, promoSnap] = await Promise.all([
+                getDocs(prosRef), getDocs(catRef), getDocs(promoRef)
+            ]);
+
+            // If empty, upload the default website data
+            if (prosSnap.empty) {
+                const defaultPros = [
+                    { name: "R.K. Plumbing", badgeIcon: "fas fa-wrench", badgeText: "plumbing", imagesCount: 12, bgImage: "https://images.unsplash.com/photo-1595814433015-e6f5cd696144?auto=format&fit=crop&w=600&q=80", verifiedText: "verified", verifiedIcon: "fas fa-check-circle", stars: "★★★★★", reviews: 312, price: "₹350 /hr", distance: "0.6 km" },
+                    { name: "Zen Electrics", badgeIcon: "fas fa-bolt", badgeText: "electrics", imagesCount: 9, bgImage: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80", verifiedText: "pro pro", verifiedIcon: "", stars: "★★★★☆", reviews: 207, price: "₹420 /fix", distance: "1.1 km", verifiedStyle: "background:#e0f0ea; color:#0f4e3a;" },
+                    { name: "Cooldude AC", badgeIcon: "fas fa-snowflake", badgeText: "AC repair", imagesCount: 22, bgImage: "https://images.unsplash.com/photo-1558979158-65a1eaa14271?auto=format&fit=crop&w=600&q=80", verifiedText: "elite", verifiedIcon: "fas fa-medal", stars: "★★★★★", reviews: 431, price: "₹399 /svc", distance: "2.3 km" },
+                    { name: "Asian Paints Pro", badgeIcon: "fas fa-paint-roller", badgeText: "painting", imagesCount: 17, bgImage: "https://images.unsplash.com/photo-1562259946-08c5475d8d61?auto=format&fit=crop&w=600&q=80", verifiedText: "top pro", verifiedIcon: "⭐", stars: "★★★★☆", reviews: 95, price: "₹1.8k /rm", distance: "0.3 km" }
+                ];
+                defaultPros.forEach(p => addDoc(prosRef, p));
+            }
+
+            if (catSnap.empty) {
+                const defaultCats = [
+                    { name: "Plumbing", icon: "fas fa-wrench", count: "187 zenzys", link: "#" },
+                    { name: "Electrician", icon: "fas fa-bolt", count: "142 zenzys", link: "#" },
+                    { name: "Painting", icon: "fas fa-paint-roller", count: "93 zenzys", link: "#" },
+                    { name: "AC Service", icon: "fas fa-wind", count: "61 zenzys", link: "#" },
+                    { name: "Beldar / Mason", icon: "fas fa-trowel", count: "34 zenzys", link: "#" },
+                    { name: "Contractor", icon: "fas fa-hard-hat", count: "48 zenzys", link: "#" },
+                    { name: "House Rent", icon: "fas fa-home", count: "112 listings", link: "houserent.html" },
+                    { name: "Property Sale", icon: "fas fa-building", count: "76 zenzys", link: "#" },
+                    { name: "Architect", icon: "fas fa-draw-polygon", count: "28 zenzys", link: "#" },
+                    { name: "House Worker", icon: "fas fa-broom", count: "62 helpers", link: "#" },
+                ];
+                defaultCats.forEach(c => addDoc(catRef, c));
+            }
+
+            if (promoSnap.empty) {
+                const defaultPromos = [
+                    { title: "Deep Cleaning Plus", subtitle: "Full villa sanitation protocol", badge: "Popular", bg: "https://images.unsplash.com/photo-1581578731548-c64695ce6958?auto=format&fit=crop&w=600&q=80" },
+                    { title: "Wire-Safe Audit", subtitle: "Whole house electrical health check", badge: "Safety", bg: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80", badgeStyle: "background: #e0f0ea; color: #0f4e3a;" },
+                    { title: "Flash Plumbing", subtitle: "Under 30-min response time", badge: "Emergency", bg: "https://images.unsplash.com/photo-1556911220-e15224bbaf41?auto=format&fit=crop&w=600&q=80", badgeStyle: "background: #fee2e2; color: #991b1b;" },
+                    { title: "Modular Kitchens", subtitle: "Consult with Zenzy Architects", badge: "Design", bg: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80" }
+                ];
+                defaultPromos.forEach(p => addDoc(promoRef, p));
+            }
+        };
+
+        // -------------------------------------------------------------
+        // REALTIME LISTENERS: Fetches and displays data live
+        // -------------------------------------------------------------
+        const setupRealtimeListeners = () => {
+            if(!currentUser) return;
+
+            // 1. Listen to Categories
+            onSnapshot(getCol('zenzy_categories'), (snapshot) => {
+                const container = document.getElementById('category-container');
+                container.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    container.innerHTML += `
+                        <a href="${data.link || '#'}" class="category-card">
+                            <i class="${data.icon} category-icon"></i>
+                            <h3>${data.name}</h3>
+                            <p>${data.count}</p>
+                        </a>
+                    `;
+                });
+            }, (err) => console.error("Error fetching categories:", err));
+
+            // 2. Listen to Promos
+            onSnapshot(getCol('zenzy_promos'), (snapshot) => {
+                const container = document.getElementById('promo-container');
+                container.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    container.innerHTML += `
+                        <div class="promo-card">
+                            <div class="promo-bg" style="background-image: url('${data.bg}');"></div>
+                            <div class="promo-overlay"></div>
+                            <span class="promo-badge" style="${data.badgeStyle || ''}">${data.badge}</span>
+                            <div class="promo-content">
+                                <h3 class="promo-title">${data.title}</h3>
+                                <p class="promo-subtitle">${data.subtitle}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }, (err) => console.error("Error fetching promos:", err));
+
+            // 3. Listen to Trending Pros
+            onSnapshot(getCol('zenzy_pros'), (snapshot) => {
+                const container = document.getElementById('pros-container');
+                container.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const id = doc.id;
+                    container.innerHTML += `
+                        <div class="pro-card">
+                            <div class="pro-img-wrapper">
+                                <div class="pro-img" style="background-image: linear-gradient(0deg, rgba(0,0,0,0.4), transparent), url('${data.bgImage}');"></div>
+                                <span class="pro-work-badge"><i class="${data.badgeIcon}"></i> ${data.badgeText}</span>
+                                <span class="pro-img-count"><i class="far fa-image"></i> ${data.imagesCount}</span>
+                            </div>
+                            <div class="pro-info">
+                                <div class="pro-name-row">
+                                    <h4 class="pro-name">${data.name}</h4>
+                                    <span class="pro-verified" style="${data.verifiedStyle || ''}"><i class="${data.verifiedIcon}"></i> ${data.verifiedText}</span>
+                                </div>
+                                <div class="pro-rating-row">
+                                    <span class="stars">${data.stars}</span>
+                                    <span class="reviews">(${data.reviews} reviews)</span>
+                                </div>
+                                <div class="pro-meta-row">
+                                    <span class="pro-price">${data.price}</span>
+                                    <span class="pro-dist"><i class="fas fa-map-pin"></i> ${data.distance}</span>
+                                </div>
+                                <button onclick="window.openModal('${id}', '${data.name.replace(/'/g, "\\'")}')" class="book-btn">Book Now <i class="fas fa-arrow-right"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }, (err) => console.error("Error fetching pros:", err));
+        };
+
+        // -------------------------------------------------------------
+        // BOOKING SYSTEM (Writing to Firebase for Admin Panel)
+        // -------------------------------------------------------------
+        window.openModal = (proId, proName) => {
+            document.getElementById('modalProId').value = proId;
+            document.getElementById('modalProName').innerText = proName;
+            document.getElementById('bookingModal').classList.add('active');
+        };
+
+        window.closeModal = () => {
+            document.getElementById('bookingModal').classList.remove('active');
+            document.getElementById('bookingForm').reset();
+        };
+
+        window.showToast = (message) => {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        };
+
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(!currentUser) {
+                alert("Authenticating... please wait a second.");
+                return;
+            }
+
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = "Sending Request...";
+            btn.disabled = true;
+
+            const requestData = {
+                proId: document.getElementById('modalProId').value,
+                proName: document.getElementById('modalProName').innerText,
+                customerName: document.getElementById('customerName').value,
+                customerPhone: document.getElementById('customerPhone').value,
+                customerAddress: document.getElementById('customerAddress').value,
+                status: "Pending",
+                timestamp: serverTimestamp()
+            };
+
+            try {
+                // Save to booking requests collection (Admin Panel will read this)
+                await addDoc(getCol('zenzy_booking_requests'), requestData);
+                closeModal();
+                showToast("Request sent! Admin will contact you shortly.");
+            } catch (error) {
+                console.error("Booking error:", error);
+                alert("Failed to send request. Please try again.");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
+
+    </script>
+
+    <script>
+        // Animations and UI logic (No Firebase logic here)
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealOnScroll = () => {
+            for (let i = 0; i < revealElements.length; i++) {
+                const windowHeight = window.innerHeight;
+                const elementTop = revealElements[i].getBoundingClientRect().top;
+                if (elementTop < windowHeight - 80) {
+                    revealElements[i].classList.add('active');
+                }
+            }
+        };
+
+        window.addEventListener('scroll', revealOnScroll);
+        window.onload = revealOnScroll;
+
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('.header');
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll > lastScroll && currentScroll > 150) {
+                header.style.top = '-100px';
+            } else {
+                header.style.top = '0';
+                header.style.boxShadow = currentScroll > 50 ? '0 4px 12px rgba(0,0,0,0.05)' : 'none';
+            }
+            lastScroll = currentScroll;
+        });
+    </script>
+</body>
+</html>
