@@ -10,8 +10,96 @@ export interface GeocodeResult {
 
 const GOOGLE_API_KEY = "AIzaSyC2366CHQdrTehbt3PfgnQJE7HEiCM5G6E";
 
+/**
+ * Reverse geocode latitude and longitude into high-precision address details.
+ * Uses BigDataCloud -> Nominatim OSM -> Google Maps API with intelligent fallbacks.
+ */
 export async function reverseGeocode(latitude: number, longitude: number): Promise<GeocodeResult> {
-  // 1. Try Google Geocoding API first for maximum precision
+  // 1. High-precision BigDataCloud Client Reverse Geocoder (Free, Fast, Exact Indian Sub-localities)
+  try {
+    const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
+    const res = await fetch(bdcUrl);
+    if (res.ok) {
+      const data = await res.json();
+      if (data) {
+        const subLocality = data.localityInfo?.informative?.[0]?.name || data.locality || "";
+        const city = data.city || data.localityInfo?.administrative?.find((a: any) => a.order === 4 || a.order === 5)?.name || data.principalSubdivision || "";
+        const state = data.principalSubdivision || "Delhi";
+        const postcode = data.postcode || "";
+
+        const primary = subLocality.trim();
+        const secondary = city.trim();
+        
+        let shortAddress = "";
+        if (primary && secondary && primary.toLowerCase() !== secondary.toLowerCase()) {
+          shortAddress = `${primary}, ${secondary}`;
+        } else {
+          shortAddress = primary || secondary || "Delhi NCR";
+        }
+
+        const fullAddress = `${primary ? primary + ", " : ""}${secondary ? secondary + ", " : ""}${state}`.trim();
+
+        if (shortAddress) {
+          return {
+            fullAddress: fullAddress || shortAddress,
+            shortAddress,
+            city: secondary || "New Delhi",
+            state,
+            postcode,
+            latitude,
+            longitude
+          };
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("BigDataCloud Geocoding failed, trying Nominatim", err);
+  }
+
+  // 2. Try OpenStreetMap Nominatim with custom User-Agent
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+      { headers: { "User-Agent": "ZenzyApp/1.0 (contact@zenzy.in)" } }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.address) {
+        const addr = data.address;
+        
+        const specific = addr.neighbourhood || addr.suburb || addr.colony || addr.village || addr.city_district || addr.road || addr.residential || addr.town;
+        const city = addr.city || addr.town || addr.municipality || addr.state_district || "";
+        const state = addr.state || "";
+        const postcode = addr.postcode || "";
+        
+        let fullAddress = data.display_name || "";
+        if (fullAddress.endsWith(", India")) {
+          fullAddress = fullAddress.substring(0, fullAddress.length - 7);
+        }
+
+        let shortAddress = "";
+        if (specific && city && specific.toLowerCase() !== city.toLowerCase()) {
+          shortAddress = `${specific}, ${city}`;
+        } else {
+          shortAddress = specific || city || "Delhi NCR";
+        }
+
+        return {
+          fullAddress: fullAddress || `${shortAddress}, ${state}`.trim(),
+          shortAddress,
+          city: city || "New Delhi",
+          state: state || "Delhi",
+          postcode,
+          latitude,
+          longitude
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("Nominatim Geocoding failed, trying Google Maps", err);
+  }
+
+  // 3. Fallback to Google Geocoding API
   try {
     const googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_API_KEY}`;
     const res = await fetch(googleUrl);
@@ -25,9 +113,6 @@ export async function reverseGeocode(latitude: number, longitude: number): Promi
       let locality = "";
       let state = "";
       let postcode = "";
-      let route = "";
-      let neighborhood = "";
-      let streetNumber = "";
 
       for (const comp of components) {
         if (comp.types.includes("sublocality_level_1") || comp.types.includes("sublocality")) {
@@ -38,23 +123,15 @@ export async function reverseGeocode(latitude: number, longitude: number): Promi
           state = comp.long_name;
         } else if (comp.types.includes("postal_code")) {
           postcode = comp.long_name;
-        } else if (comp.types.includes("route")) {
-          route = comp.long_name;
-        } else if (comp.types.includes("neighborhood")) {
-          neighborhood = comp.long_name;
-        } else if (comp.types.includes("street_number")) {
-          streetNumber = comp.long_name;
         }
       }
 
-      // Clean up Google's full formatted address (remove ", India" at the end)
       let fullAddress = firstResult.formatted_address || "";
       if (fullAddress.endsWith(", India")) {
         fullAddress = fullAddress.substring(0, fullAddress.length - 7);
       }
 
-      // Build short address for UI pill
-      const primaryLoc = sublocality || neighborhood || route || "";
+      const primaryLoc = sublocality || "";
       const secondaryLoc = locality || state || "";
       let shortAddress = "";
       if (primaryLoc && secondaryLoc && primaryLoc !== secondaryLoc) {
@@ -66,68 +143,59 @@ export async function reverseGeocode(latitude: number, longitude: number): Promi
       return {
         fullAddress,
         shortAddress,
-        city: locality || "Jaipur",
-        state: state || "Rajasthan",
-        postcode: postcode || "302017",
+        city: locality || "New Delhi",
+        state: state || "Delhi",
+        postcode: postcode || "110001",
         latitude,
         longitude
       };
     }
   } catch (err) {
-    console.error("Google Geocoding failed, falling back to Nominatim", err);
+    console.warn("Google Geocoding failed", err);
   }
 
-  // 2. Fallback to Nominatim OpenStreetMap reverse geocoder
+  // Final fallback to IP detection if available
+  return await detectLocationByIP(latitude, longitude);
+}
+
+/**
+ * IP-based location auto-detection fallback when GPS is disabled/blocked by user
+ */
+export async function detectLocationByIP(defaultLat?: number, defaultLng?: number): Promise<GeocodeResult> {
   try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
-    const data = await res.json();
-    if (data && data.address) {
-      const addr = data.address;
-      
-      const specific = addr.neighbourhood || addr.suburb || addr.colony || addr.village || addr.city_district || addr.road || addr.town;
-      const city = addr.city || addr.town || addr.village || "";
-      const state = addr.state || "";
-      const postcode = addr.postcode || "";
-      
-      const house = addr.house_number || "";
-      const streetAddress = (house && specific) ? `${house}, ${specific}` : (specific || "Auto-detected Location");
-      
-      // Full Address construction
-      let fullAddress = data.display_name || "";
-      if (fullAddress.endsWith(", India")) {
-        fullAddress = fullAddress.substring(0, fullAddress.length - 7);
-      }
+    const res = await fetch("https://ipapi.co/json/");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.city) {
+        const city = data.city;
+        const region = data.region || data.country_name || "";
+        const postcode = data.postal || "";
+        const lat = data.latitude || defaultLat || 28.6139;
+        const lng = data.longitude || defaultLng || 77.209;
 
-      // Short Address construction
-      let shortAddress = "";
-      if (specific && city && specific !== city) {
-        shortAddress = `${specific}, ${city}`;
-      } else {
-        shortAddress = specific || city || "Delhi NCR";
+        return {
+          fullAddress: `${city}, ${region}, India`,
+          shortAddress: `${city}, ${region}`,
+          city,
+          state: region,
+          postcode,
+          latitude: lat,
+          longitude: lng
+        };
       }
-
-      return {
-        fullAddress: fullAddress || `${streetAddress}, ${city}, ${state}`.trim(),
-        shortAddress,
-        city: city || "Jaipur",
-        state: state || "Rajasthan",
-        postcode: postcode || "302017",
-        latitude,
-        longitude
-      };
     }
-  } catch (err) {
-    console.error("Nominatim Geocoding failed", err);
+  } catch (e) {
+    console.warn("IP-based location detection failed", e);
   }
 
-  // Final fallback
+  // Absolute fallback
   return {
-    fullAddress: "Delhi NCR",
+    fullAddress: "Delhi NCR, India",
     shortAddress: "Delhi NCR",
-    city: "New Delhi",
+    city: "Delhi NCR",
     state: "Delhi",
     postcode: "110001",
-    latitude,
-    longitude
+    latitude: defaultLat || 28.6139,
+    longitude: defaultLng || 77.2090
   };
 }

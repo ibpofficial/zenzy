@@ -9,7 +9,7 @@ import { db } from "@/lib/firebase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
-import { reverseGeocode } from "@/lib/locationUtils";
+import { reverseGeocode, detectLocationByIP } from "@/lib/locationUtils";
 
 import { performFuzzySearch, recordSearchClick, SearchIndexItem, SpellingSuggestion } from "@/lib/search";
 import { processTrendingWorkers, WorkerDocument } from "@/lib/trending";
@@ -375,12 +375,22 @@ export default function HomePage() {
     setShowLocationDropdown(false);
   };
 
-  const handleAutoLocationSearch = () => {
+  const handleAutoLocationSearch = async () => {
+    setDetectingLoc(true);
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
+      try {
+        const ipLoc = await detectLocationByIP();
+        setUserLocation(ipLoc.shortAddress);
+        localStorage.setItem("zenzy_user_location", ipLoc.shortAddress);
+      } catch (e) {
+        setUserLocation("Delhi NCR");
+      } finally {
+        setDetectingLoc(false);
+        setShowLocationDropdown(false);
+      }
       return;
     }
-    setDetectingLoc(true);
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
@@ -389,19 +399,28 @@ export default function HomePage() {
           setUserLocation(result.shortAddress);
           localStorage.setItem("zenzy_user_location", result.shortAddress);
         } catch (err) {
-          console.error("Auto detect failed", err);
+          const ipLoc = await detectLocationByIP();
+          setUserLocation(ipLoc.shortAddress || "Delhi NCR");
+          localStorage.setItem("zenzy_user_location", ipLoc.shortAddress || "Delhi NCR");
+        } finally {
+          setDetectingLoc(false);
+          setShowLocationDropdown(false);
+        }
+      },
+      async (error) => {
+        console.warn("Browser GPS permission error or timeout, falling back to IP location", error);
+        try {
+          const ipLoc = await detectLocationByIP();
+          setUserLocation(ipLoc.shortAddress);
+          localStorage.setItem("zenzy_user_location", ipLoc.shortAddress);
+        } catch (err) {
           setUserLocation("Delhi NCR");
         } finally {
           setDetectingLoc(false);
           setShowLocationDropdown(false);
         }
       },
-      (error) => {
-        console.error("Auto detect error", error);
-        setDetectingLoc(false);
-        setShowLocationDropdown(false);
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
   };
 
@@ -787,7 +806,7 @@ export default function HomePage() {
         <Navbar />
 
         {/* ═══════════════════════════════════ HERO SLIDESHOW ═══════════════════════════════════ */}
-        <section className="max-w-[1290px] mx-auto w-full px-[15px] sm:px-[27px] pt-28 pb-4">
+        <section className="max-w-[1290px] mx-auto w-full px-[15px] sm:px-[27px] pt-28 pb-0">
           <div className="relative h-[420px] sm:h-[460px] rounded-2xl overflow-hidden shadow-[0_24px_50px_rgba(0,0,0,0.06)]">
             {heroSlides.map((slide: any, idx: number) => (
               <div
@@ -838,7 +857,7 @@ export default function HomePage() {
             ))}
 
             {/* Trust badges — transparent, compact, top-right on mobile, bottom-right on desktop */}
-            <div className="absolute top-4 right-4 sm:top-auto sm:bottom-5 sm:right-5 z-20 flex flex-col gap-1.5">
+            <div className="absolute top-4 right-4 sm:top-auto sm:bottom-14 sm:right-5 z-20 flex flex-col gap-1.5">
               <div className="bg-black/25 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
                 <CheckCircle className="w-3 h-3 text-emerald-400" />
                 <span className="text-[10px] font-bold text-white/90">1,300+ Partners</span>
@@ -866,7 +885,7 @@ export default function HomePage() {
             </button>
 
             {/* Dots Indicator */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
               {heroSlides.map((_: any, idx: number) => (
                 <button
                   key={idx}
@@ -880,7 +899,7 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════ UNIVERSAL SEARCH BAR ═══════════════════════════════════ */}
-        <section className="relative z-40 max-w-4xl mx-auto w-full px-5 sm:px-8 py-6 animate-fade-up">
+        <section className="relative z-40 max-w-4xl mx-auto w-full px-3.5 sm:px-8 -mt-10 sm:-mt-12 pb-6 animate-fade-up">
           {/* Backdrop dimming effect when focused/suggestions open */}
           {showSuggestions && (suggestions.length > 0 || spellingSuggestion || (recentSearches.length > 0 && !searchQuery)) && (
             <div
@@ -890,11 +909,11 @@ export default function HomePage() {
           )}
 
           <form onSubmit={handleSearchSubmit} className="relative z-40">
-            <div className={`flex items-center bg-white/95 backdrop-blur-xl rounded-3xl p-2.5 border border-slate-200/80 shadow-sm hover:shadow-[0_16px_36px_rgba(59,130,246,0.08)] transition-all duration-300 group ${showSuggestions ? 'scale-[1.015] shadow-[0_20px_50px_rgba(59,130,246,0.12)]' : ''}`}>
-              <div className="pl-4 text-slate-450 shrink-0">
-                <Search className="w-5 h-5 text-indigo-500 group-focus-within:rotate-12 transition-transform duration-300" />
+            <div className={`flex items-center bg-white rounded-3xl p-1.5 sm:p-2.5 border border-slate-200/90 shadow-[0_14px_38px_rgba(15,23,42,0.13)] hover:shadow-[0_18px_45px_rgba(37,99,235,0.18)] transition-all duration-300 group ${showSuggestions ? 'scale-[1.01] shadow-[0_20px_50px_rgba(37,99,235,0.22)]' : ''}`}>
+              <div className="pl-3 sm:pl-4 text-slate-400 shrink-0">
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 group-focus-within:rotate-12 transition-transform duration-300" />
               </div>
-              <div className="relative flex-1">
+              <div className="relative flex-1 min-w-0">
                 <input
                   type="text"
                   value={searchQuery}
@@ -914,11 +933,11 @@ export default function HomePage() {
                     if (searchQuery.length === 0) setIsUserTyping(false);
                   }}
                   placeholder=""
-                  className="w-full bg-transparent border-none outline-none pl-4 pr-10 py-3.5 text-slate-850 font-extrabold text-[14.5px] relative z-10"
+                  className="w-full bg-transparent border-none outline-none pl-2.5 sm:pl-4 pr-8 sm:pr-10 py-2.5 sm:py-3.5 text-slate-850 font-extrabold text-[13px] sm:text-[14.5px] relative z-10"
                 />
                 {!searchQuery && (
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-[14.5px] font-bold text-slate-400 z-0">
-                    <span>{typedPlaceholder}</span>
+                  <div className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center text-[12px] sm:text-[14.5px] font-bold text-slate-400 z-0 truncate max-w-[90%]">
+                    <span className="truncate">{typedPlaceholder}</span>
                     <span className="typewriter-cursor">|</span>
                   </div>
                 )}
@@ -930,9 +949,9 @@ export default function HomePage() {
                       setIsUserTyping(false);
                       setShowSuggestions(false);
                     }}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors p-1 cursor-pointer z-20"
+                    className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors p-1 cursor-pointer z-20"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                 )}
               </div>
@@ -942,38 +961,57 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={() => setShowLocationDropdown(!showLocationDropdown)}
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 text-slate-500 shadow-inner mr-2.5 select-none hover:bg-slate-100 transition cursor-pointer"
+                  className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl bg-slate-100/90 text-slate-600 shadow-inner mr-1.5 sm:mr-2.5 select-none hover:bg-slate-200/80 transition cursor-pointer shrink-0"
                 >
-                  <MapPin className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-wider max-w-[120px] truncate">{userLocation}</span>
-                  <ChevronDown className="w-3 h-3 text-slate-400" />
+                  <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-500 animate-pulse shrink-0" />
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider max-w-[60px] sm:max-w-[120px] truncate">{userLocation}</span>
+                  <ChevronDown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400 shrink-0" />
                 </button>
 
                 {showLocationDropdown && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200/60 rounded-2xl shadow-xl z-50 p-2.5 space-y-1 animate-dropdown">
-                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1">
-                      Select Location
+                  <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white border border-slate-200/90 rounded-2xl shadow-[0_20px_60px_rgba(15,23,42,0.18)] z-50 p-3.5 space-y-3 animate-dropdown">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                        Location Settings
+                      </span>
+                      <span className="text-[9.5px] font-extrabold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100/60 max-w-[140px] truncate">
+                        📍 {userLocation}
+                      </span>
                     </div>
-                    {["Delhi NCR", "Jaipur", "Noida", "Gurugram"].map((loc) => (
-                      <button
-                        key={loc}
-                        type="button"
-                        onClick={() => handleSelectLocation(loc)}
-                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-50 transition cursor-pointer ${userLocation === loc ? "text-blue-500 bg-blue-50/50" : "text-slate-700"
-                          }`}
-                      >
-                        {loc}
-                      </button>
-                    ))}
 
-                    <div className="px-2 py-1 space-y-1">
-                      <div className="flex gap-1">
+                    {/* Auto Detect Button */}
+                    <button
+                      type="button"
+                      onClick={handleAutoLocationSearch}
+                      disabled={detectingLoc}
+                      className="w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md flex items-center justify-between cursor-pointer disabled:opacity-60 group"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        {detectingLoc ? (
+                          <RefreshCw className="w-4 h-4 animate-spin text-white shrink-0" />
+                        ) : (
+                          <div className="relative shrink-0">
+                            <MapPin className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                          </div>
+                        )}
+                        <span className="tracking-tight truncate">{detectingLoc ? "Detecting High-Precision GPS..." : "Auto-Detect My Location"}</span>
+                      </div>
+                      <span className="text-[9px] bg-white/20 text-white px-2 py-0.5 rounded-full font-black uppercase shrink-0">GPS</span>
+                    </button>
+
+                    {/* Custom Search / Address Input */}
+                    <div className="space-y-1 pt-1">
+                      <div className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider px-1">
+                        Search Colony / Locality
+                      </div>
+                      <div className="flex gap-1.5">
                         <input
                           type="text"
-                          placeholder="Type address / colony..."
+                          placeholder="Type colony, sector, or city..."
                           value={customLocInput}
                           onChange={(e) => setCustomLocInput(e.target.value)}
-                          className="flex-1 px-2.5 py-1.5 bg-slate-55 text-[11px] font-semibold rounded-lg border border-slate-200 outline-none text-slate-800"
+                          className="flex-1 px-3 py-2 bg-slate-50 text-[12px] font-extrabold rounded-xl border border-slate-200 outline-none focus:border-blue-500 focus:bg-white text-slate-900 transition-all"
                           onClick={(e) => e.stopPropagation()}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
@@ -991,43 +1029,50 @@ export default function HomePage() {
                               handleSelectLocation(customLocInput.trim());
                             }
                           }}
-                          className="px-2 bg-slate-900 text-white text-[10px] font-black uppercase rounded-lg hover:bg-slate-850 transition cursor-pointer"
+                          className="px-3 bg-slate-900 text-white text-[11px] font-black uppercase rounded-xl hover:bg-slate-800 transition cursor-pointer shrink-0"
                         >
                           Set
                         </button>
                       </div>
                     </div>
 
-                    <div className="border-t border-slate-150 my-1.5" />
-                    <button
-                      type="button"
-                      onClick={handleAutoLocationSearch}
-                      disabled={detectingLoc}
-                      className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50 transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                    >
-                      {detectingLoc ? (
-                        <>
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          Detecting...
-                        </>
-                      ) : (
-                        <>
-                          <MapPin className="w-3.5 h-3.5" />
-                          Detect Location
-                        </>
-                      )}
-                    </button>
+                    {/* Popular Hub Cities */}
+                    <div className="pt-1 space-y-1">
+                      <div className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider px-1">
+                        Popular Service Hubs
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {["Delhi NCR", "Jaipur", "Noida", "Gurugram", "Mumbai", "Bengaluru"].map((loc) => {
+                          const isSelected = userLocation === loc;
+                          return (
+                            <button
+                              key={loc}
+                              type="button"
+                              onClick={() => handleSelectLocation(loc)}
+                              className={`text-left px-2.5 py-1.5 rounded-xl text-[11.5px] font-extrabold transition flex items-center justify-between cursor-pointer ${
+                                isSelected
+                                  ? "text-blue-600 bg-blue-50/90 border border-blue-200/80 shadow-xs"
+                                  : "text-slate-700 bg-slate-50/70 hover:bg-slate-100/80 border border-transparent"
+                              }`}
+                            >
+                              <span className="truncate">{loc}</span>
+                              {isSelected && <CheckCircle className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
 
               <button
                 type="submit"
-                className="search-btn-premium group flex items-center gap-2 text-white px-7 py-3.5 rounded-xl font-extrabold text-[13.5px] shadow-md hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-150 whitespace-nowrap cursor-pointer"
+                className="search-btn-premium group flex items-center justify-center gap-1.5 sm:gap-2 text-white px-4 sm:px-7 py-2.5 sm:py-3.5 rounded-2xl sm:rounded-xl font-extrabold text-[12px] sm:text-[13.5px] shadow-md hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-150 whitespace-nowrap cursor-pointer shrink-0"
               >
-                <Search className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
-                Search
-                <ArrowRight className="w-3.5 h-3.5 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300" />
+                <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:rotate-12 transition-transform duration-300" />
+                <span>Search</span>
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 hidden sm:inline-block" />
               </button>
             </div>
 
@@ -1141,13 +1186,13 @@ export default function HomePage() {
             )}
           </form>
           {/* Quick search chips */}
-          <div className="flex items-center gap-2.5 mt-3.5 flex-wrap">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Popular:</span>
+          <div className="flex items-center gap-1.5 sm:gap-2.5 mt-3.5 overflow-x-auto hide-scrollbar pb-1 sm:flex-wrap">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider shrink-0">Popular:</span>
             {["AC Service", "Electrician", "Plumber", "Painter", "2 BHK Rent"].map((chip) => (
               <button
                 key={chip}
                 onClick={() => setSearchQuery(chip)}
-                className="px-4 py-1.5 bg-white border border-slate-200 rounded-full text-[12px] font-bold text-slate-600 hover:border-primary-450 hover:text-primary-600 hover:bg-primary-50/40 transition-all cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.01)]"
+                className="px-3.5 py-1.5 bg-white border border-slate-200 rounded-full text-[11px] sm:text-[12px] font-bold text-slate-600 hover:border-primary-450 hover:text-primary-600 hover:bg-primary-50/40 transition-all cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.01)] shrink-0"
               >
                 {chip}
               </button>
@@ -1273,9 +1318,18 @@ export default function HomePage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/40 via-transparent to-transparent"></div>
 
-                    <span className="absolute top-3 left-3 bg-[#0f172a]/70 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] font-semibold uppercase tracking-wider border border-white/10">
-                      {pro.category}
-                    </span>
+                    {userLocation && pro.serviceArea && (
+                      pro.serviceArea.toLowerCase().includes(userLocation.toLowerCase().split(',')[0]) ||
+                      userLocation.toLowerCase().includes(pro.serviceArea.toLowerCase().split(',')[0])
+                    ) ? (
+                      <span className="absolute top-3 left-3 bg-blue-600/90 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                        <MapPin className="w-2.5 h-2.5" /> Near {userLocation.split(',')[0]}
+                      </span>
+                    ) : (
+                      <span className="absolute top-3 left-3 bg-[#0f172a]/70 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] font-semibold uppercase tracking-wider border border-white/10">
+                        {pro.category}
+                      </span>
+                    )}
 
                     {pro.status === "Available" ? (
                       <span className="absolute top-3 right-3 bg-emerald-500/90 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] font-semibold uppercase tracking-wider">
@@ -1315,8 +1369,13 @@ export default function HomePage() {
                         <span>·</span>
                         <span>{pro.experience || "2 years"}</span>
                         <span>·</span>
-                        <span className="flex items-center gap-1 text-slate-400 truncate max-w-[100px]">
-                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span className={`flex items-center gap-1 truncate max-w-[120px] ${
+                          userLocation && pro.serviceArea && (
+                            pro.serviceArea.toLowerCase().includes(userLocation.toLowerCase().split(',')[0]) ||
+                            userLocation.toLowerCase().includes(pro.serviceArea.toLowerCase().split(',')[0])
+                          ) ? "text-blue-600 font-extrabold" : "text-slate-400"
+                        }`}>
+                          <MapPin className="w-3 h-3 text-blue-500 shrink-0" />
                           {pro.serviceArea?.split(',')[0] || "Jaipur"}
                         </span>
                       </div>
