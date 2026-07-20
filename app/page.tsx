@@ -1155,51 +1155,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ═══════════════════════════════════ EXCLUSIVE PROTOCOLS ═══════════════════════════════════ */}
-        <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-8 animate-fade-up">
-          <div className="space-y-2 mb-8">
-            <h2 className="text-3xl sm:text-4.5xl font-black text-slate-900 tracking-tight leading-none">
-              Exclusive Protocols
-            </h2>
-          </div>
-          <div className="flex overflow-x-auto pb-4 sm:pb-8 sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8 pt-4 hide-scrollbar snap-x snap-mandatory w-full scroll-smooth">
-            {promos.length === 0 ? (
-              [1, 2, 3].map((n) => (
-                <div key={n} className="w-[82vw] min-w-[270px] sm:w-full h-[240px] sm:h-[280px] rounded-3xl skeleton shrink-0 snap-center"></div>
-              ))
-            ) : (
-              promos.map((promo) => (
-                <div
-                  key={promo.id}
-                  className="w-[82vw] min-w-[270px] sm:w-full h-[240px] sm:h-[280px] rounded-3xl relative overflow-hidden shrink-0 group border border-slate-200/40 cursor-pointer shadow-sm hover:shadow-[0_12px_28px_rgba(0,0,0,0.06)] hover:-translate-y-1.5 transition-all duration-500 transform snap-center"
-                >
-                  {/* Background Image with Zoom */}
-                  <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                    style={{ backgroundImage: `url('${promo.bg}')` }}
-                  ></div>
-
-                  {/* Dark Gradient Overlay for Maximum Text Contrast */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-black/10 z-0 pointer-events-none"></div>
-
-                  {/* Floating Tag */}
-                  <span
-                    style={promo.badgeStyle ? parseStyleString(promo.badgeStyle) : undefined}
-                    className="absolute top-4 right-4 bg-slate-950/75 text-white font-black text-[9px] tracking-wider uppercase px-3 py-1.5 rounded-lg z-10 shadow-sm border border-white/10 backdrop-blur-sm"
-                  >
-                    {promo.badge}
-                  </span>
-
-                  {/* Crystal Clear Glass Bar - Minimal Blur, Maximum Clarity */}
-                  <div className="absolute bottom-3 left-3 right-3 bg-white/10 backdrop-blur-[2px] border border-white/20 p-3 sm:p-3.5 rounded-xl z-10 transition-all duration-350 text-left group-hover:bg-white/15 shadow-sm">
-                    <h3 className="font-extrabold text-[13px] sm:text-[15px] tracking-tight leading-snug text-white drop-shadow-md">{promo.title}</h3>
-                    <p className="text-[10px] sm:text-[11px] text-white/90 mt-1 font-medium truncate drop-shadow-md">{promo.subtitle}</p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
         {/* ═══════════════════════════════════ SERVICE CATEGORIES ═══════════════════════════════════ */}
         <section className="relative z-20 max-w-7xl mx-auto w-full px-5 sm:px-8 py-8 sm:py-12 animate-fade-up">
           {/* Soft background glow elements for premium SaaS feel */}

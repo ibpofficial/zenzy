@@ -148,9 +148,9 @@ export default function SubscriptionPage() {
   const savings = (p: any) => p.price === 0 ? 0 : (p.price * 12) - p.yearly;
 
   const cell = (v: any) => {
-    if (v === true) return <Check className="w-4 h-4 text-slate-900 mx-auto" />;
+    if (v === true) return <Check className="w-4 h-4 text-slate-800 mx-auto" strokeWidth={2.5} />;
     if (v === false) return <span className="block w-1 h-1 rounded-full bg-slate-300 mx-auto" />;
-    return <span className="text-[11px] font-bold text-slate-600">{v}</span>;
+    return <span className="text-[11px] font-medium text-slate-500">{v}</span>;
   };
 
   return (
@@ -160,22 +160,22 @@ export default function SubscriptionPage() {
 
         {/* ─── HERO ─── */}
         <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pt-32 pb-14 text-center">
-          <div className="animate-fade-up space-y-4">
-            <p className="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400">Pricing</p>
-            <h1 className="text-4xl md:text-[3.5rem] font-black tracking-tight leading-[1.08] text-slate-900">
+          <div className="space-y-5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Pricing</p>
+            <h1 className="text-4xl md:text-[3.25rem] font-bold tracking-tight leading-[1.1] text-slate-900">
               Simple, transparent pricing.
             </h1>
-            <p className="text-slate-500 font-medium text-[16px] max-w-lg mx-auto leading-relaxed">
+            <p className="text-slate-500 text-[15px] max-w-lg mx-auto leading-relaxed">
               Choose a plan for booking services or growing your professional business. Scale up or down anytime.
             </p>
           </div>
         </section>
 
         {/* ─── TAB + BILLING TOGGLE ─── */}
-        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-10 animate-fade-up">
+        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-10">
           {/* Audience Tab */}
           <div className="flex justify-center mb-6">
-            <div className="inline-flex bg-slate-100 rounded-xl p-1 gap-1 border border-slate-200/60">
+            <div className="inline-flex bg-slate-100/80 rounded-xl p-1 gap-1 border border-slate-200/50">
               {[
                 { key: "customer", label: "For Customers", icon: <Users className="w-3.5 h-3.5" /> },
                 { key: "professional", label: "For Professionals", icon: <Briefcase className="w-3.5 h-3.5" /> },
@@ -183,8 +183,8 @@ export default function SubscriptionPage() {
                 <button
                   key={t.key}
                   onClick={() => { setTab(t.key as any); setTableExpanded(false); }}
-                  className={`flex items-center gap-2 px-5 sm:px-7 py-2.5 rounded-lg text-[12px] font-extrabold transition-all duration-200 cursor-pointer ${tab === t.key
-                    ? "bg-white text-slate-900 shadow-sm"
+                  className={`flex items-center gap-2 px-5 sm:px-7 py-2.5 rounded-lg text-[12px] font-semibold transition-all duration-200 cursor-pointer ${tab === t.key
+                    ? "bg-white text-slate-900 shadow-sm border border-slate-200/50"
                     : "text-slate-500 hover:text-slate-700"
                     }`}
                 >
@@ -196,20 +196,20 @@ export default function SubscriptionPage() {
 
           {/* Billing */}
           <div className="flex items-center justify-center gap-3">
-            <span className={`text-[12px] font-bold ${billing === "monthly" ? "text-slate-900" : "text-slate-400"}`}>Monthly</span>
+            <span className={`text-[12px] font-medium ${billing === "monthly" ? "text-slate-900" : "text-slate-400"}`}>Monthly</span>
             <button
               onClick={() => setBilling(billing === "monthly" ? "yearly" : "monthly")}
-              className="relative w-12 h-6 rounded-full bg-slate-200 transition-colors cursor-pointer p-0.5"
+              className="relative w-11 h-6 rounded-full bg-slate-300 transition-colors cursor-pointer p-0.5"
               aria-label="Toggle billing"
             >
-              <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${billing === "yearly" ? "translate-x-6" : "translate-x-0"}`} />
+              <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${billing === "yearly" ? "translate-x-5" : "translate-x-0"}`} />
             </button>
-            <span className={`text-[12px] font-bold ${billing === "yearly" ? "text-slate-900" : "text-slate-400"}`}>
+            <span className={`text-[12px] font-medium ${billing === "yearly" ? "text-slate-900" : "text-slate-400"}`}>
               Yearly
             </span>
             {billing === "yearly" && (
-              <span className="text-[10px] font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-                SAVE 30%
+              <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200/60">
+                Save 30%
               </span>
             )}
           </div>
@@ -217,24 +217,26 @@ export default function SubscriptionPage() {
 
         {/* ─── PRICING CARDS ─── */}
         <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-0 border border-slate-200 rounded-2xl overflow-hidden bg-white">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {plans.map((plan, idx) => (
               <div
                 key={plan.id}
-                className={`relative flex flex-col p-7 sm:p-8 ${idx < plans.length - 1 ? "border-b md:border-b-0 md:border-r border-slate-200" : ""
-                  } ${plan.popular ? "bg-slate-50/50" : ""}`}
+                className={`relative flex flex-col p-7 rounded-2xl border transition-all duration-200 ${plan.popular
+                    ? "border-slate-900 bg-slate-50/40 shadow-sm"
+                    : "border-slate-200/80 bg-white hover:border-slate-300/80"
+                  }`}
               >
                 {/* Popular indicator */}
                 {plan.popular && (
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-slate-900" />
+                  <div className="absolute -top-px left-8 right-8 h-[2px] bg-slate-900 rounded-full" />
                 )}
 
                 {/* Header */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-[18px] font-black text-slate-900 tracking-tight">{plan.name}</h3>
+                <div className="mb-5">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <h3 className="text-[17px] font-semibold text-slate-900 tracking-tight">{plan.name}</h3>
                     {plan.popular && (
-                      <span className="text-[9px] font-black uppercase tracking-wider bg-slate-900 text-white px-2 py-0.5 rounded-full">
+                      <span className="text-[9px] font-semibold uppercase tracking-wider bg-slate-900 text-white px-2 py-0.5 rounded-full">
                         Popular
                       </span>
                     )}
@@ -243,16 +245,16 @@ export default function SubscriptionPage() {
                 </div>
 
                 {/* Price */}
-                <div className="mb-6">
+                <div className="mb-5">
                   {plan.price === 0 ? (
                     <div className="flex items-baseline gap-1">
-                      <span className="text-[40px] font-black text-slate-900 leading-none">₹0</span>
+                      <span className="text-[38px] font-bold text-slate-900 leading-none tracking-tight">₹0</span>
                       <span className="text-[13px] font-medium text-slate-400">/forever</span>
                     </div>
                   ) : (
                     <>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-[40px] font-black text-slate-900 leading-none">
+                        <span className="text-[38px] font-bold text-slate-900 leading-none tracking-tight">
                           ₹{price(plan).toLocaleString()}
                         </span>
                         <span className="text-[13px] font-medium text-slate-400">
@@ -260,7 +262,7 @@ export default function SubscriptionPage() {
                         </span>
                       </div>
                       {billing === "yearly" && savings(plan) > 0 && (
-                        <p className="text-[11px] font-bold text-slate-500 mt-1.5">
+                        <p className="text-[11px] font-medium text-slate-500 mt-1">
                           ₹{Math.round(price(plan) / 12).toLocaleString()}/mo · Save ₹{savings(plan).toLocaleString()}
                         </p>
                       )}
@@ -274,9 +276,9 @@ export default function SubscriptionPage() {
                     if (!user) window.location.href = "/auth";
                     else alert(`You selected ${plan.name}! Payment integration coming soon.`);
                   }}
-                  className={`w-full py-3 rounded-xl text-[12px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer hover:opacity-90 active:scale-[0.98] mb-7 ${plan.popular
-                    ? "bg-slate-900 text-white"
-                    : "bg-white text-slate-900 border border-slate-200 hover:bg-slate-50"
+                  className={`w-full py-3 rounded-xl text-[12px] font-semibold transition-all duration-200 cursor-pointer hover:opacity-90 active:scale-[0.98] mb-6 ${plan.popular
+                      ? "bg-slate-900 text-white hover:bg-slate-800"
+                      : "bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 hover:border-slate-300"
                     }`}
                 >
                   {plan.cta}
@@ -284,10 +286,10 @@ export default function SubscriptionPage() {
 
                 {/* Features */}
                 <div className="space-y-3 flex-1">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">What&apos;s included</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">What's included</p>
                   {plan.highlights.map((f, i) => (
                     <div key={i} className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-slate-900 shrink-0 mt-0.5" strokeWidth={2.5} />
+                      <Check className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" strokeWidth={2.5} />
                       <span className="text-[13px] font-medium text-slate-600 leading-snug">{f}</span>
                     </div>
                   ))}
@@ -298,9 +300,9 @@ export default function SubscriptionPage() {
         </section>
 
         {/* ─── COMPARISON TABLE ─── */}
-        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20 animate-fade-up">
+        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Compare all features</h2>
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Compare all features</h2>
             <p className="text-[13px] font-medium text-slate-400 mt-1">
               {tab === "customer" ? `${customerComparison.length} features across all customer plans` : `${professionalComparison.length} features across all professional plans`}
             </p>
@@ -311,9 +313,9 @@ export default function SubscriptionPage() {
               <table className="w-full min-w-[560px]">
                 <thead>
                   <tr className="border-b border-slate-100">
-                    <th className="text-left px-5 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider w-[46%]">Feature</th>
+                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider w-[46%]">Feature</th>
                     {labels.map((l, i) => (
-                      <th key={i} className={`px-3 py-4 text-[11px] font-black uppercase tracking-wider text-center ${i === 1 ? "text-slate-900" : "text-slate-400"
+                      <th key={i} className={`px-3 py-4 text-[11px] font-semibold uppercase tracking-wider text-center ${i === 1 ? "text-slate-900" : "text-slate-400"
                         }`}>
                         {l}
                       </th>
@@ -325,7 +327,7 @@ export default function SubscriptionPage() {
                     <tr key={idx} className="border-b border-slate-50 last:border-none">
                       <td className="px-5 py-3 text-[12.5px] font-medium text-slate-600">{row.f}</td>
                       <td className="px-3 py-3 text-center">{cell(row.a)}</td>
-                      <td className="px-3 py-3 text-center bg-slate-50/40">{cell(row.b)}</td>
+                      <td className="px-3 py-3 text-center bg-slate-50/30">{cell(row.b)}</td>
                       <td className="px-3 py-3 text-center">{cell(row.c)}</td>
                     </tr>
                   ))}
@@ -336,7 +338,7 @@ export default function SubscriptionPage() {
             {!tableExpanded && comparison.length > 10 && (
               <button
                 onClick={() => setTableExpanded(true)}
-                className="w-full border-t border-slate-100 py-3.5 text-[12px] font-extrabold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                className="w-full border-t border-slate-100 py-3.5 text-[12px] font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-center gap-1.5"
               >
                 Show all {comparison.length} features <ChevronDown className="w-3.5 h-3.5" />
               </button>
@@ -345,12 +347,12 @@ export default function SubscriptionPage() {
         </section>
 
         {/* ─── PLATFORM FEATURES ─── */}
-        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20 animate-fade-up">
-          <div className="bg-slate-950 rounded-2xl p-8 md:p-12 border border-slate-800">
-            <div className="max-w-2xl mx-auto text-center space-y-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">Included in every plan</p>
-              <h2 className="text-2xl font-black text-white tracking-tight">Enterprise-grade infrastructure</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-3 pt-4 text-left max-w-lg mx-auto">
+        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20">
+          <div className="bg-slate-900 rounded-2xl p-8 md:p-12 border border-slate-800">
+            <div className="max-w-2xl mx-auto text-center space-y-5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Included in every plan</p>
+              <h2 className="text-2xl font-bold text-white tracking-tight">Enterprise-grade infrastructure</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-3 pt-3 text-left max-w-lg mx-auto">
                 {[
                   "AI-Powered Search",
                   "Escrow Payments",
@@ -366,7 +368,7 @@ export default function SubscriptionPage() {
                   "Referral System",
                 ].map((f, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-slate-400 shrink-0" strokeWidth={2.5} />
+                    <Check className="w-3.5 h-3.5 text-slate-500 shrink-0" strokeWidth={2.5} />
                     <span className="text-[12px] font-medium text-slate-400">{f}</span>
                   </div>
                 ))}
@@ -376,8 +378,8 @@ export default function SubscriptionPage() {
         </section>
 
         {/* ─── FAQ ─── */}
-        <section className="max-w-2xl mx-auto w-full px-5 sm:px-8 pb-20 animate-fade-up">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-center mb-8">
+        <section className="max-w-2xl mx-auto w-full px-5 sm:px-8 pb-20">
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight text-center mb-8">
             Frequently asked questions
           </h2>
           <div className="divide-y divide-slate-100 border-t border-b border-slate-100">
@@ -387,8 +389,9 @@ export default function SubscriptionPage() {
                   onClick={() => setFaqOpen(faqOpen === idx ? null : idx)}
                   className="w-full flex items-center justify-between py-5 text-left cursor-pointer group"
                 >
-                  <span className="text-[14px] font-semibold text-slate-900 pr-6 group-hover:text-slate-600 transition-colors">{faq.q}</span>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${faqOpen === idx ? "rotate-180" : ""}`} />
+                  <span className="text-[14px] font-medium text-slate-900 pr-6 group-hover:text-slate-600 transition-colors">{faq.q}</span>
+                  <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${faqOpen === idx ? "rotate-180" : ""
+                    }`} />
                 </button>
                 {faqOpen === idx && (
                   <p className="pb-5 text-[13px] font-medium text-slate-500 leading-relaxed -mt-1">{faq.a}</p>
@@ -399,40 +402,32 @@ export default function SubscriptionPage() {
         </section>
 
         {/* ─── BOTTOM CTA ─── */}
-        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20 animate-fade-up">
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#0a0a12] via-[#0f0f1a] to-[#0a0a12] rounded-2xl p-10 md:p-14 text-center border border-white/5 shadow-2xl shadow-black/60">
+        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20">
+          <div className="relative overflow-hidden bg-slate-900 rounded-2xl p-10 md:p-14 text-center border border-slate-800">
 
-            {/* Ambient glow effects */}
-            <div className="absolute -top-24 -right-24 w-[400px] h-[400px] bg-blue-500/8 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -left-24 w-[400px] h-[400px] bg-purple-500/6 rounded-full blur-3xl pointer-events-none" />
+            {/* Subtle glow effects */}
+            <div className="absolute -top-24 -right-24 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -left-24 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Subtle grid overlay */}
-            <div className="absolute inset-0 opacity-30 pointer-events-none">
-              <div className="w-full h-full" style={{
-                backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0)`,
-                backgroundSize: '40px 40px'
-              }} />
-            </div>
-
-            <div className="relative max-w-2xl mx-auto space-y-5">
+            <div className="relative max-w-2xl mx-auto space-y-6">
 
               {/* Premium badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/40 animate-pulse" />
-                <span className="text-[10px] font-semibold text-white/60 tracking-[0.15em] uppercase">No credit card required</span>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-white/10 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span className="text-[10px] font-medium text-white/60 tracking-[0.15em] uppercase">No credit card required</span>
               </div>
 
               {/* Main headline */}
               <div className="space-y-2">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-[1.15]">
                   Start your
-                  <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
+                  <span className="block text-white/80">
                     7-day free trial
                   </span>
                 </h2>
-                <p className="text-[14px] font-normal text-white/50 leading-relaxed max-w-lg mx-auto">
+                <p className="text-[14px] font-normal text-white/40 leading-relaxed max-w-lg mx-auto">
                   Join thousands of teams already building better products.
-                  <span className="block text-white/30 text-xs mt-0.5">Upgrade, downgrade, or cancel — it's always your choice.</span>
+                  <span className="block text-white/25 text-xs mt-0.5">Upgrade, downgrade, or cancel — it's always your choice.</span>
                 </p>
               </div>
 
@@ -440,48 +435,40 @@ export default function SubscriptionPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                 <button
                   onClick={() => { if (!user) window.location.href = "/auth"; else window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                  className="group relative px-9 py-3.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold text-[14px] transition-all duration-300 cursor-pointer active:scale-[0.97] flex items-center gap-2.5 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5"
+                  className="group relative px-9 py-3.5 bg-white text-slate-900 hover:bg-slate-100 rounded-xl font-medium text-[14px] transition-all duration-300 cursor-pointer active:scale-[0.97] flex items-center gap-2.5 shadow-sm"
                 >
                   <span>Get Started</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-all duration-300" />
-                  <span className="absolute -top-1.5 -right-1.5 px-2 py-0.5 bg-emerald-400 text-[9px] font-extrabold text-black rounded-full shadow-lg shadow-emerald-400/40">
-                    FREE
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  <span className="absolute -top-1.5 -right-1.5 px-2 py-0.5 bg-emerald-400 text-[9px] font-medium text-black rounded-full shadow-sm">
+                    Free
                   </span>
                 </button>
 
                 <Link
                   href="/contact"
-                  className="group px-9 py-3.5 text-white/50 hover:text-white border border-white/10 hover:border-white/25 rounded-xl font-medium text-[14px] transition-all duration-300 hover:bg-white/5 backdrop-blur-sm flex items-center gap-2"
+                  className="group px-9 py-3.5 text-white/40 hover:text-white border border-white/10 hover:border-white/20 rounded-xl font-medium text-[14px] transition-all duration-300 flex items-center gap-2"
                 >
                   <span>Contact Sales</span>
                   <span className="inline-block transition-all duration-300 group-hover:translate-x-1">→</span>
                 </Link>
               </div>
 
-              {/* Trust indicators - compact */}
-              <div className="flex flex-wrap items-center justify-center gap-5 pt-3 border-t border-white/5">
-                <div className="flex items-center gap-2 text-white/40">
-                  <svg className="w-4 h-4 text-emerald-400/70 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
+              {/* Trust indicators */}
+              <div className="flex flex-wrap items-center justify-center gap-5 pt-4 border-t border-white/5">
+                <div className="flex items-center gap-2 text-white/30">
+                  <Check className="w-3.5 h-3.5 text-emerald-400/60" strokeWidth={2.5} />
                   <span className="text-xs font-medium">Full access</span>
                 </div>
-                <div className="flex items-center gap-2 text-white/40">
-                  <svg className="w-4 h-4 text-emerald-400/70 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
+                <div className="flex items-center gap-2 text-white/30">
+                  <Check className="w-3.5 h-3.5 text-emerald-400/60" strokeWidth={2.5} />
                   <span className="text-xs font-medium">Cancel anytime</span>
                 </div>
-                <div className="flex items-center gap-2 text-white/40">
-                  <svg className="w-4 h-4 text-emerald-400/70 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
+                <div className="flex items-center gap-2 text-white/30">
+                  <Check className="w-3.5 h-3.5 text-emerald-400/60" strokeWidth={2.5} />
                   <span className="text-xs font-medium">No risk</span>
                 </div>
-                <div className="flex items-center gap-2 text-white/40">
-                  <svg className="w-4 h-4 text-emerald-400/70 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
+                <div className="flex items-center gap-2 text-white/30">
+                  <Check className="w-3.5 h-3.5 text-emerald-400/60" strokeWidth={2.5} />
                   <span className="text-xs font-medium">7-day trial</span>
                 </div>
               </div>
