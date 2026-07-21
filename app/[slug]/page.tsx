@@ -352,7 +352,7 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
       : (Array.isArray(worker.marketplaceItems) && worker.marketplaceItems.length > 0)
         ? [...worker.marketplaceItems]
         : [];
-    
+
     const newService = {
       title: servTitle,
       desc: servDesc,
@@ -1911,7 +1911,7 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
               {/* OVERVIEW TAB */}
               {activeTab === "overview" && (
                 <div className="space-y-8 animate-fade-in">
-                  
+
                   {/* Primary Hero Card: Featured Portfolio Projects & Case Studies (Goal 2.1) */}
                   <div className={`${theme.card} p-6 sm:p-7 space-y-6`}>
                     <div className="flex justify-between items-center">
@@ -2260,10 +2260,10 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                           const realList = proServices.length > 0
                             ? proServices
                             : (worker.services && worker.services.length > 0)
-                            ? worker.services
-                            : (worker.marketplaceItems && worker.marketplaceItems.length > 0)
-                              ? worker.marketplaceItems
-                              : [];
+                              ? worker.services
+                              : (worker.marketplaceItems && worker.marketplaceItems.length > 0)
+                                ? worker.marketplaceItems
+                                : [];
                           return realList.length > 0 ? `(${realList.length})` : "(0)";
                         })()}
                       </h3>
@@ -2283,10 +2283,10 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                     const realServices = proServices.length > 0
                       ? proServices
                       : (worker.services && worker.services.length > 0)
-                      ? worker.services
-                      : (worker.marketplaceItems && worker.marketplaceItems.length > 0)
-                        ? worker.marketplaceItems
-                        : [];
+                        ? worker.services
+                        : (worker.marketplaceItems && worker.marketplaceItems.length > 0)
+                          ? worker.marketplaceItems
+                          : [];
 
                     if (realServices.length === 0) {
                       return (
@@ -2936,11 +2936,11 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                     {(proServices.length > 0
                       ? proServices
                       : (worker.marketplaceItems && worker.marketplaceItems.length > 0)
-                      ? worker.marketplaceItems
-                      : [
-                        { id: "default-1", title: `${worker.category || "Service"} Diagnostics & Minor Repair`, price: worker.pricing || "₹499", description: "Standard diagnostic site visit and troubleshooting." },
-                        { id: "default-2", title: "Full System Installation / Wiring", price: "₹2499", description: "Complete installation with safety compliance inspection." }
-                      ]
+                        ? worker.marketplaceItems
+                        : [
+                          { id: "default-1", title: `${worker.category || "Service"} Diagnostics & Minor Repair`, price: worker.pricing || "₹499", description: "Standard diagnostic site visit and troubleshooting." },
+                          { id: "default-2", title: "Full System Installation / Wiring", price: "₹2499", description: "Complete installation with safety compliance inspection." }
+                        ]
                     ).map((pkg: any) => (
                       <div
                         key={pkg.id || pkg.title || pkg.name}
@@ -4133,7 +4133,7 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
 
             {/* Modal Form */}
             <form onSubmit={handleSaveService} className="p-6 space-y-5 text-xs font-bold text-slate-700 max-h-[75vh] overflow-y-auto">
-              
+
               {/* Title Input */}
               <div className="space-y-1.5">
                 <label className="text-[10.5px] font-black text-slate-400 uppercase tracking-widest pl-0.5 block">
@@ -4188,11 +4188,10 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                         key={item.key}
                         type="button"
                         onClick={() => setServIcon(item.key)}
-                        className={`p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1 transition cursor-pointer ${
-                          isSelected
+                        className={`p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1 transition cursor-pointer ${isSelected
                             ? "bg-[#1a3a5c] border-[#1a3a5c] text-white shadow-md scale-105"
                             : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
-                        }`}
+                          }`}
                       >
                         <IconComp className="w-5 h-5" />
                         <span className="text-[9px] font-bold tracking-tight line-clamp-1">{item.label}</span>
@@ -4217,11 +4216,10 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                       key={mode.id}
                       type="button"
                       onClick={() => setServPriceType(mode.id as any)}
-                      className={`py-2.5 px-2 rounded-xl border text-[10.5px] font-extrabold transition cursor-pointer text-center ${
-                        servPriceType === mode.id
+                      className={`py-2.5 px-2 rounded-xl border text-[10.5px] font-extrabold transition cursor-pointer text-center ${servPriceType === mode.id
                           ? "bg-[#1a3a5c] border-[#1a3a5c] text-white shadow-sm"
                           : "bg-white border-slate-200 text-slate-600 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       {mode.label}
                     </button>

@@ -2085,69 +2085,102 @@ export default function ProviderDashboardPage() {
               </div>
             )}
 
-            {/* TAB: REQUESTS */}
+            {/* TAB: REQUESTS (Client Inquiry & Project Requests) */}
             {activeTab === "requests" && (
-              <div className="rounded-2xl p-6 sm:p-8 space-y-6 animate-fade-up text-left">
-                <div className="flex justify-between items-start flex-wrap gap-4">
+              <div className="space-y-6 animate-fade-up text-left">
+                {/* Header Canvas */}
+                <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div>
-                    <h2 className="text-lg font-extrabold tracking-tight">Client Inquiry & Project Requests</h2>
-                    <p className="text-slate-400 text-xs font-semibold mt-1">Review client project inquiries. Accept the request, message the client, or generate a detailed quotation.</p>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-1">
+                      Inbound Client Workspace
+                    </span>
+                    <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">Client Inquiry & Project Requests</h2>
+                    <p className="text-slate-300 text-xs font-medium mt-1">Review incoming client inquiries, accept requests, or issue an official itemized quotation.</p>
                   </div>
-                  <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl">
-                    ⚡ Quote Generator Enabled
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs font-extrabold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3.5 py-2 rounded-2xl flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-indigo-400" />
+                      <span>Quote Generator Active</span>
+                    </span>
+                  </div>
                 </div>
 
                 {jobs.filter((j) => j.status === "Pending").length === 0 ? (
-                  <div className="bg-white/60 border border-slate-200/50 rounded-3xl p-10 text-center space-y-2">
-                    <FileText className="w-10 h-10 text-slate-300 mx-auto" />
-                    <h4 className="font-extrabold text-sm text-slate-800">No Incoming Requests</h4>
-                    <p className="text-slate-400 text-xs font-semibold">New project inquiries from clients will appear here automatically.</p>
+                  <div className="bg-white border border-slate-200/80 rounded-3xl p-12 text-center space-y-3 shadow-xs">
+                    <FileText className="w-12 h-12 text-slate-300 mx-auto" />
+                    <h4 className="font-extrabold text-base text-slate-900">No Pending Inquiries</h4>
+                    <p className="text-slate-500 text-xs font-semibold max-w-md mx-auto">
+                      New project inquiries submitted by clients on your profile or directory will appear here in real time.
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {jobs.filter((j) => j.status === "Pending").map((book) => (
-                      <div key={book.id} className="bg-white/70 backdrop-blur-md border border-slate-200/40 p-5 rounded-3xl flex flex-col gap-4 shadow-sm hover:shadow-card hover:-translate-y-0.5 transition-all duration-300 group">
-                        <div className="flex justify-between items-start flex-wrap gap-3">
-                          <div>
-                            <span className="font-extrabold text-[15px] text-slate-855 group-hover:text-emerald-600 transition-colors block">{book.customerName}</span>
-                            <span className="text-[10px] text-slate-400 font-bold block mt-0.5">📞 {book.customerPhone}</span>
-                            <span className="text-[10.5px] text-emerald-600 font-bold mt-1.5 block">📅 {book.date} at {book.time}</span>
+                      <div key={book.id} className="bg-white border border-slate-200/80 hover:border-slate-300 p-6 rounded-3xl flex flex-col gap-4 shadow-xs hover:shadow-md transition-all duration-300">
+                        
+                        {/* Card Header Row */}
+                        <div className="flex justify-between items-start flex-wrap gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-extrabold text-base text-slate-900">{book.customerName}</h3>
+                              <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
+                                New Request
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500">
+                              <span>📞 {book.customerPhone}</span>
+                              <span>•</span>
+                              <span className="text-emerald-700 font-bold">📅 Scheduled: {book.date} at {book.time}</span>
+                              {book.location && (
+                                <>
+                                  <span>•</span>
+                                  <span>📍 {book.location}</span>
+                                </>
+                              )}
+                            </div>
                           </div>
+
                           <div className="text-right">
-                            <span className="text-lg font-black text-slate-900 block">₹{book.price}</span>
+                            <span className="text-xs font-bold text-slate-400 block uppercase">Est. Budget / Rate</span>
+                            <span className="text-xl font-black text-slate-900">₹{book.price || "Quote Required"}</span>
                             <RequestTimer booking={book} onExpire={handleExpireBooking} />
                           </div>
                         </div>
+
+                        {/* Inquiry Notes Block (Clean tint without nested borders) */}
                         {book.notes && (
-                          <div className="p-3.5 bg-slate-55 border border-slate-100 rounded-2xl text-xs font-semibold text-slate-500">
-                            <strong>Inquiry Scope / Notes:</strong> {book.notes}
+                          <div className="bg-slate-50 p-4 rounded-2xl text-xs text-slate-700 font-medium leading-relaxed">
+                            <span className="font-extrabold text-slate-900 block mb-0.5">Project Scope / Requirements:</span>
+                            {book.notes}
                           </div>
                         )}
-                        <div className="flex justify-between items-center gap-2 border-t border-slate-100 pt-3 flex-wrap">
+
+                        {/* Card Bottom Actions Divider */}
+                        <div className="border-t border-slate-100 pt-4 flex flex-wrap justify-between items-center gap-3">
                           <Link
                             href={`/worker/quote-generator?clientName=${encodeURIComponent(book.customerName || "")}&clientPhone=${encodeURIComponent(book.customerPhone || "")}&service=${encodeURIComponent(book.serviceName || book.notes || "")}`}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-md"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer active:scale-95"
                           >
                             <FileText className="w-4 h-4" />
                             <span>⚡ Generate & Send Detailed Quote</span>
                           </Link>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2.5">
                             <button
                               onClick={() => handleModifyStatus(book.id, "Cancelled", book.customerId)}
-                              className="bg-red-55/60 hover:bg-red-500 border border-red-200 text-red-500 hover:text-white px-4 py-2.5 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-1 cursor-pointer"
+                              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 text-xs font-extrabold transition cursor-pointer"
                             >
                               Decline
                             </button>
                             <button
                               onClick={() => handleModifyStatus(book.id, "Accepted", book.customerId)}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-1 cursor-pointer shadow-sm"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold transition shadow-sm cursor-pointer active:scale-95"
                             >
                               Accept Inquiry
                             </button>
                           </div>
                         </div>
+
                       </div>
                     ))}
                   </div>
@@ -2155,16 +2188,33 @@ export default function ProviderDashboardPage() {
               </div>
             )}
 
-            {/* TAB: ACTIVE JOBS & SCHEDULE */}
+            {/* TAB: ACTIVE JOBS & SCHEDULE (Project & Quote Management Console) */}
             {activeTab === "jobs" && (
-              <div className="bg-white rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm border border-slate-100 animate-fade-up text-left">
-                <div>
-                  <h2 className="text-lg font-black tracking-tight text-slate-900">Project & Quote Management Console</h2>
-                  <p className="text-slate-400 text-xs font-semibold mt-1">Manage active client projects, send quotes, reschedule consultations, and handle invoices.</p>
+              <div className="space-y-6 animate-fade-up text-left">
+                
+                {/* Console Header Banner */}
+                <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 block mb-1">
+                      Professional Operations
+                    </span>
+                    <h2 className="text-xl font-black tracking-tight text-slate-900">Project & Quote Management Console</h2>
+                    <p className="text-slate-500 text-xs font-semibold mt-1">Manage active projects, issue estimates, contact clients, and process payments.</p>
+                  </div>
+
+                  {/* Summary Metric Badges */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-extrabold">
+                      Active Requests: {jobs.filter((j) => ["Accepted", "OnTheWay", "Started"].includes(j.status)).length}
+                    </span>
+                    <span className="bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-extrabold">
+                      Completed: {jobs.filter((j) => ["Completed", "Job Done"].includes(j.status)).length}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Sub-tabs Nav */}
-                <div className="flex gap-2 border-b border-slate-100 pb-2 mb-4 overflow-x-auto scrollbar-none">
+                {/* Sub-tabs Floating Pill Nav */}
+                <div className="bg-slate-100/80 p-1.5 rounded-2xl flex gap-1 overflow-x-auto scrollbar-none max-w-full">
                   {[
                     { id: "today", label: "Active Project Requests" },
                     { id: "upcoming", label: "Upcoming Schedule" },
@@ -2184,14 +2234,15 @@ export default function ProviderDashboardPage() {
                       return false;
                     }).length;
 
+                    const isSelected = bookingSubTab === subTab.id;
                     return (
                       <button
                         key={subTab.id}
                         onClick={() => setBookingSubTab(subTab.id as any)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
-                          bookingSubTab === subTab.id
-                            ? "bg-slate-900 text-white shadow"
-                            : "bg-slate-50 text-slate-550 hover:bg-slate-100"
+                        className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 ${
+                          isSelected
+                            ? "bg-slate-900 text-white shadow-sm"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
                         }`}
                       >
                         {subTab.label} ({filteredCount})
@@ -2217,8 +2268,8 @@ export default function ProviderDashboardPage() {
 
                   if (filteredJobs.length === 0) {
                     return (
-                      <div className="py-12 text-center text-slate-400 font-semibold italic text-xs">
-                        No active project requests in this category.
+                      <div className="bg-white border border-slate-200/80 rounded-3xl p-12 text-center text-slate-400 font-semibold italic text-xs shadow-xs">
+                        No project records in this schedule view.
                       </div>
                     );
                   }
@@ -2226,78 +2277,81 @@ export default function ProviderDashboardPage() {
                   return (
                     <div className="space-y-4">
                       {filteredJobs.map((book) => (
-                        <div key={book.id} className="bg-slate-50/50 border border-slate-205 p-5 rounded-3xl flex flex-col gap-4 shadow-sm hover:shadow-card hover:-translate-y-0.5 transition-all duration-300 group">
+                        <div key={book.id} className="bg-white border border-slate-200/80 hover:border-slate-300 p-6 rounded-3xl flex flex-col gap-4 shadow-xs hover:shadow-md transition-all duration-300">
+                          
+                          {/* Top Info Row */}
                           <div className="flex justify-between items-start flex-wrap gap-3">
                             <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-extrabold text-[15px] text-slate-905">{book.customerName}</span>
-                                <span className={`text-[9px] font-black px-2.5 py-1 rounded-full border uppercase ${
+                              <div className="flex items-center gap-2.5">
+                                <h3 className="font-extrabold text-base text-slate-900">{book.customerName}</h3>
+                                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border uppercase ${
                                   book.status === "Pending" ? "bg-amber-100 border-amber-200 text-amber-800" :
                                   book.status === "Accepted" ? "bg-emerald-100 border-emerald-200 text-emerald-800" :
-                                  "bg-slate-200 border-slate-300 text-slate-700"
+                                  ["Completed", "Job Done"].includes(book.status) ? "bg-blue-100 border-blue-200 text-blue-800" :
+                                  "bg-slate-100 border-slate-200 text-slate-600"
                                 }`}>
                                   {book.status === "Accepted" ? "Inquiry Accepted" : book.status}
                                 </span>
                               </div>
-                              <span className="text-[10.5px] text-slate-450 font-bold block mt-1">
-                                📞 {book.customerPhone} · 📅 {book.date} at {book.time}
-                              </span>
-                              {book.location && (
-                                <span className="text-[10px] text-slate-500 font-medium block mt-0.5">📍 {book.location}</span>
-                              )}
+
+                              <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500 mt-1">
+                                <span>📞 {book.customerPhone}</span>
+                                <span>•</span>
+                                <span>📅 Date: {book.date} at {book.time}</span>
+                                {book.location && (
+                                  <>
+                                    <span>•</span>
+                                    <span>📍 {book.location}</span>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                            <span className="text-lg font-black text-slate-900">₹{book.price || book.budget || "N/A"}</span>
+
+                            <div className="text-right">
+                              <span className="text-[10px] font-bold text-slate-400 block uppercase">Scope Value</span>
+                              <span className="text-xl font-black text-slate-900">₹{book.price || book.budget || "N/A"}</span>
+                            </div>
                           </div>
 
-                          {/* Refined Project Actions: Focus on Quotation & Coming Soon for live tracking */}
-                          {["Accepted", "OnTheWay", "Started"].includes(book.status) && (
-                            <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 border border-slate-100 rounded-2xl">
-                              <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Status:</span>
-                                <span className="text-[10px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-md">
-                                  Inquiry Accepted
-                                </span>
-                              </div>
-
-                              <div className="flex items-center gap-2">
-                                <Link
-                                  href={`/worker/quote-generator?clientName=${encodeURIComponent(book.customerName || "")}&clientPhone=${encodeURIComponent(book.customerPhone || "")}&service=${encodeURIComponent(book.serviceName || book.notes || "")}`}
-                                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-sm"
-                                >
-                                  <FileText className="w-3.5 h-3.5" />
-                                  <span>⚡ Generate & Send Quote</span>
-                                </Link>
-
-                                <span className="text-[9.5px] font-extrabold text-slate-400 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md" title="Live field tracking will be enabled in upcoming release">
-                                  ⏱️ Live Job Tracking (Coming Soon)
-                                </span>
-                              </div>
-                            </div>
-                          )}
-
+                          {/* Client Notes Block */}
                           {book.notes && (
-                            <div className="p-3 bg-white border border-slate-100 rounded-2xl text-[11px] font-semibold text-slate-500">
-                              <strong>Client Notes:</strong> {book.notes}
+                            <div className="bg-slate-50 p-4 rounded-2xl text-xs text-slate-700 font-medium leading-relaxed">
+                              <span className="font-extrabold text-slate-900 block mb-0.5">Client Requirements:</span>
+                              {book.notes}
                             </div>
                           )}
 
-                          <div className="flex flex-wrap justify-between items-center gap-3 border-t border-slate-200/60 pt-3">
-                            <div className="flex gap-2">
+                          {/* Action Controls & Quotation Trigger Divider */}
+                          <div className="border-t border-slate-100 pt-4 flex flex-wrap justify-between items-center gap-3">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Link
+                                href={`/worker/quote-generator?clientName=${encodeURIComponent(book.customerName || "")}&clientPhone=${encodeURIComponent(book.customerPhone || "")}&service=${encodeURIComponent(book.serviceName || book.notes || "")}`}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                              >
+                                <FileText className="w-4 h-4" />
+                                <span>⚡ Generate & Send Quote</span>
+                              </Link>
+
+                              <span className="text-[10px] font-extrabold text-slate-400 bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl" title="Live field tracking will be enabled in upcoming release">
+                                ⏱️ Live Field Tracking (Coming Soon)
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
                               <button
                                 onClick={() => setActiveChatBooking(book)}
-                                className="bg-white hover:bg-slate-100 border border-slate-205 px-3 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer transition text-slate-700"
+                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5"
                               >
                                 <MessageSquare className="w-3.5 h-3.5" /> Chat
                               </button>
+
                               <a
                                 href={`tel:${book.customerPhone}`}
-                                className="bg-white hover:bg-slate-105 border border-slate-205 px-3 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-1 transition text-slate-700"
+                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5"
                               >
-                                📞 Call
+                                📞 Call Client
                               </a>
-                            </div>
 
-                            <div className="flex gap-2">
                               {["Accepted", "OnTheWay"].includes(book.status) && (
                                 <button
                                   onClick={() => {
@@ -2306,7 +2360,7 @@ export default function ProviderDashboardPage() {
                                     setNewRescheduleTime(book.time || "");
                                     setRescheduleModalOpen(true);
                                   }}
-                                  className="bg-amber-500 hover:bg-amber-600 text-white px-3.5 py-2 rounded-xl text-[10px] font-black uppercase transition cursor-pointer shadow-sm"
+                                  className="bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer"
                                 >
                                   Reschedule
                                 </button>
@@ -2325,13 +2379,14 @@ export default function ProviderDashboardPage() {
                                     ]);
                                     setInvoiceModalOpen(true);
                                   }}
-                                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-[10px] font-black uppercase transition cursor-pointer shadow-sm"
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold transition shadow-sm cursor-pointer"
                                 >
                                   Generate Invoice
                                 </button>
                               )}
                             </div>
                           </div>
+
                         </div>
                       ))}
                     </div>

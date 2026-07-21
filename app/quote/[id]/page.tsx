@@ -230,7 +230,7 @@ export default function PublicQuotationPage() {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-900 print:bg-white print:p-0">
-      
+
       {/* Minimal Top Header with Back Button (Non-Printable) */}
       <div className="print:hidden bg-slate-900 text-white py-3.5 px-6 border-b border-slate-800 shadow-md flex items-center justify-between sticky top-0 z-[100]">
         <div className="flex items-center gap-3">
@@ -257,7 +257,7 @@ export default function PublicQuotationPage() {
       </div>
 
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-8 pt-6 print:pt-0 print:max-w-none">
-        
+
         {/* Top Action Control Bar (Non-Printable) */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 print:hidden">
           <Link href="/services" className="inline-flex items-center gap-1.5 text-xs font-extrabold hover:underline" style={{ color: brandColor }}>
@@ -287,15 +287,14 @@ export default function PublicQuotationPage() {
 
         {/* Printable Quotation Document Sheet Card */}
         <div className="relative bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden p-6 sm:p-10 space-y-8 print:shadow-none print:border-none print:p-0">
-          
+
           {/* Diagonal Status Watermark Overlay (Goal 1.4) */}
           {watermarkText && (
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden z-10">
-              <div className={`transform -rotate-45 text-5xl sm:text-7xl font-black uppercase tracking-widest opacity-15 select-none print:opacity-20 border-8 px-8 py-4 rounded-3xl ${
-                watermarkText === "ACCEPTED" ? "text-emerald-600 border-emerald-600" :
+              <div className={`transform -rotate-45 text-5xl sm:text-7xl font-black uppercase tracking-widest opacity-15 select-none print:opacity-20 border-8 px-8 py-4 rounded-3xl ${watermarkText === "ACCEPTED" ? "text-emerald-600 border-emerald-600" :
                 watermarkText === "DECLINED" ? "text-rose-600 border-rose-600" :
-                "text-amber-600 border-amber-600"
-              }`}>
+                  "text-amber-600 border-amber-600"
+                }`}>
                 {watermarkText}
               </div>
             </div>
@@ -339,7 +338,7 @@ export default function PublicQuotationPage() {
               <div>
                 <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Quote Reference</span>
                 <span className="text-sm font-black text-slate-900">{quote.quoteNumber || `QT-${quote.id.slice(0, 8).toUpperCase()}`}</span>
-                
+
                 {/* Revision Indicator (Goal 1.5) */}
                 {(quote.version > 1 || quote.revisionOf) && (
                   <span className="text-[9.5px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-md block mt-1">
@@ -354,12 +353,11 @@ export default function PublicQuotationPage() {
               </div>
 
               <div className="pt-1">
-                <span className={`inline-block text-[10px] font-black uppercase px-3 py-1 rounded-full ${
-                  accepted ? "bg-emerald-100 text-emerald-800 border border-emerald-300" :
+                <span className={`inline-block text-[10px] font-black uppercase px-3 py-1 rounded-full ${accepted ? "bg-emerald-100 text-emerald-800 border border-emerald-300" :
                   declined ? "bg-red-100 text-red-800 border border-red-300" :
-                  isExpired ? "bg-amber-100 text-amber-800 border border-amber-300" :
-                  "bg-blue-100 text-blue-800 border border-blue-300"
-                }`}>
+                    isExpired ? "bg-amber-100 text-amber-800 border border-amber-300" :
+                      "bg-blue-100 text-blue-800 border border-blue-300"
+                  }`}>
                   {accepted ? "✓ Accepted & Signed" : declined ? "✕ Declined" : isExpired ? "⚠️ Expired" : "Pending Approval"}
                 </span>
               </div>
@@ -495,9 +493,9 @@ export default function PublicQuotationPage() {
 
           {/* Financial Calculation Summary & Payment Schedule */}
           <div className="flex flex-col lg:flex-row justify-between items-start gap-6 pt-2">
-            
+
             <div className="space-y-4 flex-1 text-xs font-semibold text-slate-600 w-full">
-              
+
               {/* Payment Terms */}
               {quote.paymentTerms && (
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-1">
@@ -524,7 +522,7 @@ export default function PublicQuotationPage() {
 
             {/* Right Column: Grand Total & Payment Details Block (Goal 1.3) */}
             <div className="w-full lg:w-80 space-y-4 shrink-0">
-              
+
               {/* Financial Calculation Box */}
               <div className="bg-slate-900 text-white p-6 rounded-3xl space-y-3 shadow-lg">
                 <div className="flex justify-between items-center text-xs font-semibold text-slate-300">
