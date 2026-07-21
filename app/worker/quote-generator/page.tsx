@@ -362,7 +362,7 @@ function QuoteComposerContent() {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-900">
-      
+
       {/* Minimal Header */}
       <div className="bg-slate-900 text-white py-3.5 px-6 border-b border-slate-800 shadow-md flex items-center justify-between sticky top-0 z-[100]">
         <div className="flex items-center gap-3">
@@ -382,7 +382,7 @@ function QuoteComposerContent() {
       </div>
 
       <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-8 pt-6">
-        
+
         {/* Top Title Banner */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
@@ -469,9 +469,9 @@ function QuoteComposerContent() {
 
         {/* Main Composer Form Card */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden p-6 sm:p-8 space-y-8">
-          
+
           <form onSubmit={handleSaveQuotation} className="space-y-8">
-            
+
             {/* Quick Fill from Recent Inquiries */}
             {inquiries.length > 0 && (
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2">
@@ -871,7 +871,7 @@ function QuoteComposerContent() {
 
             {/* Section 6: Summary & Final Computation */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
-              
+
               <div className="lg:col-span-7 space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
