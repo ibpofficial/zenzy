@@ -2115,19 +2115,29 @@ export default function ProviderDashboardPage() {
                             <strong>Instructions:</strong> {book.notes}
                           </div>
                         )}
-                        <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
-                          <button
-                            onClick={() => handleModifyStatus(book.id, "Cancelled", book.customerId)}
-                            className="bg-red-55/60 hover:bg-red-500 border border-red-200 text-red-500 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-1 cursor-pointer"
+                        <div className="flex justify-between items-center gap-2 border-t border-slate-100 pt-3 flex-wrap">
+                          <Link
+                            href={`/worker/quote-generator?clientName=${encodeURIComponent(book.customerName || "")}&clientPhone=${encodeURIComponent(book.customerPhone || "")}&service=${encodeURIComponent(book.serviceName || book.notes || "")}`}
+                            className="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-800 font-extrabold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                           >
-                            Decline
-                          </button>
-                          <button
-                            onClick={() => handleModifyStatus(book.id, "Accepted", book.customerId)}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-1 cursor-pointer shadow-sm"
-                          >
-                            Accept Job
-                          </button>
+                            <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                            <span>⚡ Generate Detailed Quote</span>
+                          </Link>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleModifyStatus(book.id, "Cancelled", book.customerId)}
+                              className="bg-red-55/60 hover:bg-red-500 border border-red-200 text-red-500 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-1 cursor-pointer"
+                            >
+                              Decline
+                            </button>
+                            <button
+                              onClick={() => handleModifyStatus(book.id, "Accepted", book.customerId)}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-1 cursor-pointer shadow-sm"
+                            >
+                              Accept Job
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}

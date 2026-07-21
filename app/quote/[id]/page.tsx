@@ -11,7 +11,6 @@ import {
   collection
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
 import {
@@ -19,19 +18,18 @@ import {
   CheckCircle,
   XCircle,
   Printer,
-  Share2,
   Phone,
   MessageSquare,
   MapPin,
-  Calendar,
-  Clock,
   FileText,
-  DollarSign,
-  Send,
-  Building,
   CheckCircle2,
-  ExternalLink,
-  ChevronLeft
+  ChevronLeft,
+  Building2,
+  Ruler,
+  Clock,
+  Layers,
+  Wrench,
+  Info
 } from "lucide-react";
 
 export default function PublicQuotationPage() {
@@ -137,7 +135,6 @@ export default function PublicQuotationPage() {
   if (!quote) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-        <Navbar />
         <main className="flex-1 flex flex-col items-center justify-center p-8 text-center pt-28">
           <FileText className="w-16 h-16 text-slate-300 mb-4" />
           <h2 className="text-2xl font-black text-slate-900">Quotation Not Found</h2>
@@ -166,6 +163,7 @@ export default function PublicQuotationPage() {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-900 print:bg-white print:p-0">
+      
       {/* Minimal Top Header with Back Button (Non-Printable) */}
       <div className="print:hidden bg-slate-900 text-white py-3.5 px-6 border-b border-slate-800 shadow-md flex items-center justify-between sticky top-0 z-[100]">
         <div className="flex items-center gap-3">
@@ -179,7 +177,7 @@ export default function PublicQuotationPage() {
           </button>
           <span className="text-slate-500 font-normal text-xs">|</span>
           <span className="font-extrabold text-sm tracking-tight text-white flex items-center gap-2">
-            Zenzy <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-md">Official Quote</span>
+            Zenzy <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-md">Official Project Quote</span>
           </span>
         </div>
 
@@ -196,7 +194,7 @@ export default function PublicQuotationPage() {
         {/* Top Control Bar (Non-Printable) */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 print:hidden">
           <Link href="/services" className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#1a3a5c] hover:underline">
-            <ChevronLeft className="w-4 h-4" /> Back to Directory
+            <ChevronLeft className="w-4 h-4" /> Back to Services Directory
           </Link>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -209,7 +207,7 @@ export default function PublicQuotationPage() {
 
             {whatsappNumber && (
               <a
-                href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi ${proName}, I am reviewing Quotation #${quote.quoteNumber || quoteId.slice(0, 8)}.`)}`}
+                href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi ${proName}, I am reviewing Project Quotation #${quote.quoteNumber || quoteId.slice(0, 8)}.`)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-2 flex-1 sm:flex-none justify-center"
@@ -231,7 +229,7 @@ export default function PublicQuotationPage() {
                   Z
                 </span>
                 <div>
-                  <span className="text-xs font-black uppercase tracking-widest text-[#1a3a5c]">Official Quotation</span>
+                  <span className="text-xs font-black uppercase tracking-widest text-[#1a3a5c]">Official Project Quotation</span>
                   <h1 className="text-xl font-extrabold text-slate-900">{proName}</h1>
                 </div>
               </div>
@@ -239,7 +237,7 @@ export default function PublicQuotationPage() {
               <div className="text-xs font-medium text-slate-500 space-y-1">
                 <p className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-slate-400" /> {proAddress}</p>
                 {proPhone && <p className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-slate-400" /> {proPhone}</p>}
-                <p className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Business Estimate</p>
+                <p className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Architecture & Construction Contractor</p>
               </div>
             </div>
 
@@ -264,6 +262,35 @@ export default function PublicQuotationPage() {
             </div>
           </div>
 
+          {/* Architectural & Construction Project Parameters Box */}
+          {(quote.plotArea || quote.projectDuration || quote.structureType) && (
+            <div className="bg-[#1a3a5c] text-white p-5 rounded-2xl shadow-md space-y-2">
+              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-300 block">
+                📐 Architectural & Construction Project Parameters
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                {quote.plotArea && (
+                  <div>
+                    <span className="text-[9.5px] uppercase font-bold text-slate-300 block">Total Area / Scope</span>
+                    <span className="text-sm font-black text-white">{quote.plotArea}</span>
+                  </div>
+                )}
+                {quote.projectDuration && (
+                  <div>
+                    <span className="text-[9.5px] uppercase font-bold text-slate-300 block">Estimated Timeline</span>
+                    <span className="text-sm font-black text-white">{quote.projectDuration}</span>
+                  </div>
+                )}
+                {quote.structureType && (
+                  <div>
+                    <span className="text-[9.5px] uppercase font-bold text-slate-300 block">Structure Type</span>
+                    <span className="text-sm font-black text-white">{quote.structureType}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Client & Project Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-slate-50/70 p-5 rounded-2xl border border-slate-100">
             <div>
@@ -282,20 +309,23 @@ export default function PublicQuotationPage() {
             </div>
           </div>
 
-          {/* Line Items Table */}
+          {/* Phase-by-Phase Cost Breakdown Table */}
           <div className="space-y-3">
-            <h3 className="font-black text-xs uppercase tracking-wider text-slate-700">Itemized Cost Estimate</h3>
+            <h3 className="font-black text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-[#1a3a5c]" />
+              Phase-by-Phase Cost Breakdown
+            </h3>
 
             <div className="border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-[#1a3a5c] text-white font-extrabold text-[10px] uppercase tracking-wider">
-                    <th className="p-3.5">#</th>
-                    <th className="p-3.5">Item Description & Work Scope</th>
-                    <th className="p-3.5 text-center">Qty / Unit</th>
-                    <th className="p-3.5 text-right">Unit Rate</th>
-                    <th className="p-3.5 text-right">GST %</th>
-                    <th className="p-3.5 text-right">Total (₹)</th>
+                    <th className="p-3.5 w-12">#</th>
+                    <th className="p-3.5">Phase / Scope Item</th>
+                    <th className="p-3.5 text-center w-28">Qty / Unit</th>
+                    <th className="p-3.5 text-right w-28">Unit Rate</th>
+                    <th className="p-3.5 text-right w-20">GST %</th>
+                    <th className="p-3.5 text-right w-32">Total (₹)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
@@ -311,6 +341,11 @@ export default function PublicQuotationPage() {
                       <tr key={idx} className="hover:bg-slate-50/80 transition">
                         <td className="p-3.5 text-slate-400 font-bold">{idx + 1}</td>
                         <td className="p-3.5">
+                          {item.phase && (
+                            <span className="text-[9px] font-black uppercase text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md inline-block mb-1">
+                              {item.phase}
+                            </span>
+                          )}
                           <span className="font-bold text-slate-900 block">{item.name || item.description || item.title}</span>
                           {item.notes && <span className="text-[10px] text-slate-400 block font-normal mt-0.5">{item.notes}</span>}
                         </td>
@@ -326,13 +361,40 @@ export default function PublicQuotationPage() {
             </div>
           </div>
 
-          {/* Financial Calculation Summary */}
+          {/* Technical Material Specifications & Inclusions/Exclusions */}
+          {(quote.materialSpecs || quote.inclusionsExclusions) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {quote.materialSpecs && (
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-1">
+                  <span className="text-[9.5px] font-black uppercase text-slate-500 tracking-wider block">
+                    🏗️ Material Brands & Technical Standards
+                  </span>
+                  <p className="text-xs text-slate-700 font-normal leading-relaxed whitespace-pre-line">
+                    {quote.materialSpecs}
+                  </p>
+                </div>
+              )}
+
+              {quote.inclusionsExclusions && (
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-1">
+                  <span className="text-[9.5px] font-black uppercase text-slate-500 tracking-wider block">
+                    📋 Scope Inclusions & Exclusions
+                  </span>
+                  <p className="text-xs text-slate-700 font-normal leading-relaxed whitespace-pre-line">
+                    {quote.inclusionsExclusions}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Financial Calculation Summary & Payment Schedule */}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pt-2">
             
             <div className="space-y-3 flex-1 text-xs font-semibold text-slate-600">
               {quote.paymentTerms && (
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-1">
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider block">Payment Terms & Schedule</span>
+                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-wider block">Milestone Payment Terms & Schedule</span>
                   <p className="text-slate-800 font-bold">{quote.paymentTerms}</p>
                 </div>
               )}
@@ -380,7 +442,7 @@ export default function PublicQuotationPage() {
                 <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
                 <h4 className="font-black text-base">You Accepted This Quotation!</h4>
                 <p className="text-xs text-emerald-700 font-semibold max-w-md mx-auto">
-                  The professional has received your confirmation. They will contact you shortly to schedule and initiate the project.
+                  The professional contractor has received your confirmation. They will contact you shortly to schedule and initiate the project.
                 </p>
               </div>
             ) : declined ? (
@@ -394,7 +456,7 @@ export default function PublicQuotationPage() {
             ) : (
               <div className="bg-slate-50 border border-slate-200/80 p-6 rounded-3xl flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div>
-                  <h4 className="font-black text-sm text-slate-900">Ready to proceed with this quote?</h4>
+                  <h4 className="font-black text-sm text-slate-900">Ready to proceed with this project quotation?</h4>
                   <p className="text-xs text-slate-500 font-semibold mt-0.5">
                     Click accept to lock in this estimate and notify {proName}.
                   </p>
