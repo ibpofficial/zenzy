@@ -32,6 +32,22 @@ export interface BusinessProfile {
     linkedin?: string;
     youtube?: string;
   };
+  brandColor?: string;
+  themeStyle?: string;
+  logo?: string;
+  gstNumber?: string;
+  licenseNumber?: string;
+  yearsInBusiness?: string;
+  teamSize?: string;
+  notableClients?: string[];
+  bankDetails?: {
+    bankName?: string;
+    accountNumber?: string;
+    ifscCode?: string;
+    accountName?: string;
+    upiId?: string;
+    paymentLink?: string;
+  };
   documentVerifications?: {
     aadhar?: string;
     pan?: string;
@@ -59,14 +75,33 @@ export interface Project {
 
 export interface Quotation {
   id: string;
-  projectId: string;
-  businessId: string;
-  businessName: string;
+  projectId?: string;
+  businessId?: string;
+  workerId?: string;
+  businessName?: string;
+  workerName?: string;
+  workerLogo?: string;
+  workerGstin?: string;
+  brandColor?: string;
+  revisionOf?: string;
+  version?: number;
+  bankDetails?: {
+    bankName?: string;
+    accountNumber?: string;
+    ifscCode?: string;
+    accountName?: string;
+    upiId?: string;
+    paymentLink?: string;
+  };
   items: { description: string; qty: number; unitPrice: number; total: number }[];
-  materialsCost: number;
-  laborCost: number;
-  terms: string;
-  status: 'draft' | 'submitted' | 'accepted' | 'declined';
+  materialsCost?: number;
+  laborCost?: number;
+  terms?: string;
+  termsAndConditions?: string;
+  status: 'draft' | 'submitted' | 'accepted' | 'declined' | 'Pending' | 'Accepted' | 'Declined' | 'Expired';
+  acceptedAt?: string;
+  acceptedSignature?: string;
+  signatureName?: string;
   createdAt: string;
 }
 

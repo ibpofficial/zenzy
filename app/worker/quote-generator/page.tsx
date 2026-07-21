@@ -30,7 +30,8 @@ import {
   Layers,
   Wrench,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  DollarSign
 } from "lucide-react";
 
 interface LineItem {
@@ -250,6 +251,18 @@ function QuoteComposerContent() {
   const discountVal = Number(discount) || 0;
   const grandTotal = Math.max(0, subtotal - discountVal + taxAmount);
 
+  // Payment & Branding Details
+  const [bankName, setBankName] = useState(userData?.bankDetails?.bankName || "");
+  const [accountNumber, setAccountNumber] = useState(userData?.bankDetails?.accountNumber || "");
+  const [ifscCode, setIfscCode] = useState(userData?.bankDetails?.ifscCode || "");
+  const [accountName, setAccountName] = useState(userData?.bankDetails?.accountName || userData?.name || "");
+  const [upiId, setUpiId] = useState(userData?.bankDetails?.upiId || "");
+  const [paymentLink, setPaymentLink] = useState(userData?.bankDetails?.paymentLink || "");
+  const [workerGstin, setWorkerGstin] = useState(userData?.gstNumber || userData?.documentVerifications?.gstNumber || "");
+  const [brandColor, setBrandColor] = useState(userData?.brandColor || userData?.themeStyle || "#1a3a5c");
+  const [version, setVersion] = useState(1);
+  const [revisionOf, setRevisionOf] = useState("");
+
   // Save Quotation to Firestore
   const handleSaveQuotation = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,9 +281,14 @@ function QuoteComposerContent() {
       const quotePayload = {
         workerId: user.uid,
         workerName: userData?.name || "Professional",
+        workerLogo: userData?.logo || userData?.avatar || "",
         workerPhone: userData?.phone || "",
         workerAddress: userData?.address || userData?.serviceArea || "",
+        workerGstin: workerGstin.trim(),
+        brandColor: brandColor.trim() || "#1a3a5c",
         quoteNumber,
+        version: Number(version) || 1,
+        revisionOf: revisionOf.trim(),
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         customerEmail: customerEmail.trim(),
@@ -286,6 +304,14 @@ function QuoteComposerContent() {
         expiryDate,
         paymentTerms,
         termsAndConditions,
+        bankDetails: {
+          bankName: bankName.trim(),
+          accountNumber: accountNumber.trim(),
+          ifscCode: ifscCode.trim(),
+          accountName: accountName.trim(),
+          upiId: upiId.trim(),
+          paymentLink: paymentLink.trim()
+        },
         items: lineItems,
         subtotal,
         discount: discountVal,
@@ -763,6 +789,83 @@ function QuoteComposerContent() {
                   placeholder="Explicitly list what is included vs excluded."
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-normal text-slate-700 outline-none focus:border-[#1a3a5c]"
                 />
+              </div>
+            </div>
+
+            {/* Section 6: Payment Details & Business Branding */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 flex items-center gap-1.5">
+                <DollarSign className="w-4 h-4 text-[#1a3a5c]" />
+                5. Payment Details & Business Branding
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">UPI ID</label>
+                  <input
+                    type="text"
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
+                    placeholder="e.g. business@upi"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-[#1a3a5c]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Bank Name</label>
+                  <input
+                    type="text"
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                    placeholder="e.g. HDFC Bank"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-[#1a3a5c]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Account Number</label>
+                  <input
+                    type="text"
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    placeholder="e.g. 501002349012"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-[#1a3a5c]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">IFSC Code</label>
+                  <input
+                    type="text"
+                    value={ifscCode}
+                    onChange={(e) => setIfscCode(e.target.value)}
+                    placeholder="e.g. HDFC0001234"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-[#1a3a5c]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">GSTIN Number</label>
+                  <input
+                    type="text"
+                    value={workerGstin}
+                    onChange={(e) => setWorkerGstin(e.target.value)}
+                    placeholder="e.g. 08AAAAA0000A1Z5"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-[#1a3a5c]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Brand Accent Color</label>
+                  <input
+                    type="color"
+                    value={brandColor}
+                    onChange={(e) => setBrandColor(e.target.value)}
+                    className="w-full h-10 p-1 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer"
+                  />
+                </div>
               </div>
             </div>
 

@@ -1758,8 +1758,8 @@ export default function ProviderDashboardPage() {
               {[
                 { id: "analytics", label: "Analytics & Charts", icon: TrendingUp },
                 { id: "enquiries", label: "Project Inquiries", icon: FileText, badge: enquiries.length },
-                { id: "requests", label: "Booking Requests", icon: Clock, badge: jobs.filter(j => j.status === "Pending").length },
-                { id: "jobs", label: "Active Workspaces", icon: Briefcase, badge: jobs.filter(j => ["Accepted", "OnTheWay", "Started", "Job Done"].includes(j.status)).length },
+                { id: "requests", label: "Project Requests", icon: Clock, badge: jobs.filter(j => j.status === "Pending").length },
+                { id: "jobs", label: "Active Projects & Quotes", icon: Briefcase, badge: jobs.filter(j => ["Accepted", "OnTheWay", "Started", "Job Done"].includes(j.status)).length },
                 { id: "shop_orders", label: "Shop Bookings", icon: ShoppingBag, badge: shopOrders.filter(o => o.status === "Pending" || o.status === "Processing").length },
                 { id: "availability", label: "Availability Manager", icon: CheckCircle },
                 { id: "services", label: "Services Manager", icon: Wrench, badge: servicesList.length },
@@ -2088,13 +2088,22 @@ export default function ProviderDashboardPage() {
             {/* TAB: REQUESTS */}
             {activeTab === "requests" && (
               <div className="rounded-2xl p-6 sm:p-8 space-y-6 animate-fade-up text-left">
-                <div>
-                  <h2 className="text-lg font-extrabold tracking-tight">Client Booking Requests</h2>
-                  <p className="text-slate-400 text-xs font-semibold mt-1">Accept or decline client requests within the 30-minute timeout.</p>
+                <div className="flex justify-between items-start flex-wrap gap-4">
+                  <div>
+                    <h2 className="text-lg font-extrabold tracking-tight">Client Inquiry & Project Requests</h2>
+                    <p className="text-slate-400 text-xs font-semibold mt-1">Review client project inquiries. Accept the request, message the client, or generate a detailed quotation.</p>
+                  </div>
+                  <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl">
+                    ⚡ Quote Generator Enabled
+                  </span>
                 </div>
 
                 {jobs.filter((j) => j.status === "Pending").length === 0 ? (
-                  <p className="text-slate-400 text-xs font-semibold py-8 text-center">No incoming requests at the moment.</p>
+                  <div className="bg-white/60 border border-slate-200/50 rounded-3xl p-10 text-center space-y-2">
+                    <FileText className="w-10 h-10 text-slate-300 mx-auto" />
+                    <h4 className="font-extrabold text-sm text-slate-800">No Incoming Requests</h4>
+                    <p className="text-slate-400 text-xs font-semibold">New project inquiries from clients will appear here automatically.</p>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {jobs.filter((j) => j.status === "Pending").map((book) => (
@@ -2112,30 +2121,30 @@ export default function ProviderDashboardPage() {
                         </div>
                         {book.notes && (
                           <div className="p-3.5 bg-slate-55 border border-slate-100 rounded-2xl text-xs font-semibold text-slate-500">
-                            <strong>Instructions:</strong> {book.notes}
+                            <strong>Inquiry Scope / Notes:</strong> {book.notes}
                           </div>
                         )}
                         <div className="flex justify-between items-center gap-2 border-t border-slate-100 pt-3 flex-wrap">
                           <Link
                             href={`/worker/quote-generator?clientName=${encodeURIComponent(book.customerName || "")}&clientPhone=${encodeURIComponent(book.customerPhone || "")}&service=${encodeURIComponent(book.serviceName || book.notes || "")}`}
-                            className="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-800 font-extrabold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-md"
                           >
-                            <FileText className="w-3.5 h-3.5 text-indigo-600" />
-                            <span>⚡ Generate Detailed Quote</span>
+                            <FileText className="w-4 h-4" />
+                            <span>⚡ Generate & Send Detailed Quote</span>
                           </Link>
 
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleModifyStatus(book.id, "Cancelled", book.customerId)}
-                              className="bg-red-55/60 hover:bg-red-500 border border-red-200 text-red-500 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-1 cursor-pointer"
+                              className="bg-red-55/60 hover:bg-red-500 border border-red-200 text-red-500 hover:text-white px-4 py-2.5 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-1 cursor-pointer"
                             >
                               Decline
                             </button>
                             <button
                               onClick={() => handleModifyStatus(book.id, "Accepted", book.customerId)}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-1 cursor-pointer shadow-sm"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition duration-200 flex items-center gap-1 cursor-pointer shadow-sm"
                             >
-                              Accept Job
+                              Accept Inquiry
                             </button>
                           </div>
                         </div>
@@ -2150,20 +2159,20 @@ export default function ProviderDashboardPage() {
             {activeTab === "jobs" && (
               <div className="bg-white rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm border border-slate-100 animate-fade-up text-left">
                 <div>
-                  <h2 className="text-lg font-black tracking-tight text-slate-900">Booking Management Console</h2>
-                  <p className="text-slate-400 text-xs font-semibold mt-1">Manage active workspace tasks, rescheduling, calling customers, and invoicing.</p>
+                  <h2 className="text-lg font-black tracking-tight text-slate-900">Project & Quote Management Console</h2>
+                  <p className="text-slate-400 text-xs font-semibold mt-1">Manage active client projects, send quotes, reschedule consultations, and handle invoices.</p>
                 </div>
 
                 {/* Sub-tabs Nav */}
                 <div className="flex gap-2 border-b border-slate-100 pb-2 mb-4 overflow-x-auto scrollbar-none">
                   {[
-                    { id: "today", label: "Today's Bookings" },
+                    { id: "today", label: "Active Project Requests" },
                     { id: "upcoming", label: "Upcoming Schedule" },
-                    { id: "completed", label: "Completed Jobs" },
+                    { id: "completed", label: "Completed Projects" },
                     { id: "cancelled", label: "Cancelled / Expired" }
                   ].map((subTab) => {
                     const filteredCount = jobs.filter((j) => {
-                      const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local timezone
+                      const todayStr = new Date().toLocaleDateString('en-CA');
                       const isCompleted = ["Completed", "Job Done"].includes(j.status);
                       const isCancelled = ["Cancelled", "Expired"].includes(j.status);
                       const isActiveOrUpcoming = ["Accepted", "OnTheWay", "Started"].includes(j.status);
@@ -2209,7 +2218,7 @@ export default function ProviderDashboardPage() {
                   if (filteredJobs.length === 0) {
                     return (
                       <div className="py-12 text-center text-slate-400 font-semibold italic text-xs">
-                        No bookings matching this schedule category.
+                        No active project requests in this category.
                       </div>
                     );
                   }
@@ -2225,11 +2234,9 @@ export default function ProviderDashboardPage() {
                                 <span className={`text-[9px] font-black px-2.5 py-1 rounded-full border uppercase ${
                                   book.status === "Pending" ? "bg-amber-100 border-amber-200 text-amber-800" :
                                   book.status === "Accepted" ? "bg-emerald-100 border-emerald-200 text-emerald-800" :
-                                  book.status === "OnTheWay" ? "bg-teal-100 border-teal-200 text-teal-800" :
-                                  book.status === "Started" ? "bg-purple-100 border-purple-200 text-purple-800" :
                                   "bg-slate-200 border-slate-300 text-slate-700"
                                 }`}>
-                                  {book.status}
+                                  {book.status === "Accepted" ? "Inquiry Accepted" : book.status}
                                 </span>
                               </div>
                               <span className="text-[10.5px] text-slate-450 font-bold block mt-1">
@@ -2242,35 +2249,29 @@ export default function ProviderDashboardPage() {
                             <span className="text-lg font-black text-slate-900">₹{book.price || book.budget || "N/A"}</span>
                           </div>
 
-                          {/* Tracker status actions */}
+                          {/* Refined Project Actions: Focus on Quotation & Coming Soon for live tracking */}
                           {["Accepted", "OnTheWay", "Started"].includes(book.status) && (
-                            <div className="flex flex-wrap items-center gap-2 bg-white p-3.5 border border-slate-100 rounded-2xl">
-                              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mr-2">Advance Job State:</span>
+                            <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 border border-slate-100 rounded-2xl">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Status:</span>
+                                <span className="text-[10px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-md">
+                                  Inquiry Accepted
+                                </span>
+                              </div>
 
-                              {book.status === "Accepted" && (
-                                <button
-                                  onClick={() => handleModifyStatus(book.id, "OnTheWay", book.customerId)}
-                                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase transition duration-205 cursor-pointer shadow-sm"
+                              <div className="flex items-center gap-2">
+                                <Link
+                                  href={`/worker/quote-generator?clientName=${encodeURIComponent(book.customerName || "")}&clientPhone=${encodeURIComponent(book.customerPhone || "")}&service=${encodeURIComponent(book.serviceName || book.notes || "")}`}
+                                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] px-3.5 py-1.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-sm"
                                 >
-                                  Depart to Location
-                                </button>
-                              )}
-                              {book.status === "OnTheWay" && (
-                                <button
-                                  onClick={() => handleModifyStatus(book.id, "Started", book.customerId)}
-                                  className="bg-teal-600 hover:bg-teal-700 text-white px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase transition duration-205 cursor-pointer shadow-sm"
-                                >
-                                  Start Service Task
-                                </button>
-                              )}
-                              {book.status === "Started" && (
-                                <button
-                                  onClick={() => handleModifyStatus(book.id, "Job Done", book.customerId)}
-                                  className="bg-purple-600 hover:bg-purple-700 text-white px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase transition duration-205 cursor-pointer shadow-sm"
-                                >
-                                  Mark Completed
-                                </button>
-                              )}
+                                  <FileText className="w-3.5 h-3.5" />
+                                  <span>⚡ Generate & Send Quote</span>
+                                </Link>
+
+                                <span className="text-[9.5px] font-extrabold text-slate-400 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md" title="Live field tracking will be enabled in upcoming release">
+                                  ⏱️ Live Job Tracking (Coming Soon)
+                                </span>
+                              </div>
                             </div>
                           )}
 
