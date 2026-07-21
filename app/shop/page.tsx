@@ -79,7 +79,10 @@ import {
   AlertCircle,
   Compass,
   BadgeCheck,
-  Gem
+  Gem,
+  ChevronRight,
+  RotateCcw,
+  Sparkle
 } from "lucide-react";
 
 interface Product {
@@ -154,11 +157,11 @@ const ProductTimer = ({ productId }: { productId: string }) => {
   const s = (timeLeft % 60).toString().padStart(2, '0');
 
   return (
-    <div className="absolute bottom-3 left-3 right-3 bg-gradient-to-r from-rose-500/95 to-rose-600/95 backdrop-blur-md text-white px-3 py-1.5 rounded-lg flex items-center justify-between shadow-lg shadow-rose-500/25 animate-fade-up z-10 border border-rose-400/30">
+    <div className="absolute bottom-3 left-3 right-3 bg-gradient-to-r from-rose-600/95 via-rose-500/95 to-amber-500/95 backdrop-blur-md text-white px-3 py-1 rounded-xl flex items-center justify-between shadow-lg shadow-rose-500/20 animate-fade-up z-10 border border-white/20">
       <span className="text-[9px] font-black uppercase tracking-widest flex items-center gap-1">
-        <Zap className="w-3 h-3 fill-current" /> Flash Deal
+        <Zap className="w-3.5 h-3.5 fill-current animate-pulse" /> Flash Deal
       </span>
-      <span className="text-[10px] font-mono font-bold tracking-widest bg-white/20 px-2 py-0.5 rounded">{h}:{m}:{s}</span>
+      <span className="text-[10px] font-mono font-bold tracking-widest bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded-md border border-white/10">{h}:{m}:{s}</span>
     </div>
   );
 };
@@ -366,7 +369,7 @@ export default function ShopPage() {
 
     const formatted = content.split("\n").map((line, index) => {
       if (line.startsWith("✦") && line.endsWith("✦")) {
-        return <div key={index} className="text-center font-bold text-teal-650 text-sm py-1">{line}</div>;
+        return <div key={index} className="text-center font-bold text-teal-600 text-sm py-1">{line}</div>;
       }
       if (line.startsWith("▸") || line.startsWith("▪") || line.startsWith("•") || line.startsWith("◦") || line.startsWith("›")) {
         return <div key={index} className="flex items-start gap-2 ml-1 py-0.5">
@@ -375,7 +378,7 @@ export default function ShopPage() {
         </div>;
       }
       if (line.includes("━")) {
-        return <div key={index} className="text-center text-slate-350 text-xs">{line}</div>;
+        return <div key={index} className="text-center text-slate-400 text-xs">{line}</div>;
       }
       if (line.startsWith("⚠️")) {
         return <div key={index} className="bg-amber-50 border-l-4 border-amber-500 p-2 rounded text-amber-800 text-xs">{line}</div>;
@@ -1128,23 +1131,36 @@ AI Assistant Rules:
       : selectedProduct.rating || "4.8";
 
     return (
-      <div className="relative flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/80 text-slate-800 font-sans transition-colors duration-300 overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-teal-500/5 rounded-full blur-[100px] pointer-events-none z-0" />
-        <div className="absolute top-1/3 right-1/4 w-[800px] h-[800px] bg-blue-400/5 rounded-full blur-[120px] pointer-events-none z-0" />
+      <div className="relative flex flex-col min-h-screen bg-slate-50/70 text-slate-800 font-sans transition-colors duration-300 overflow-hidden">
+        {/* Subtle Ambient Light Glows */}
+        <div className="absolute top-0 left-1/4 w-[700px] h-[700px] bg-teal-500/5 rounded-full blur-[140px] pointer-events-none z-0" />
+        <div className="absolute top-1/3 right-1/4 w-[900px] h-[900px] bg-cyan-500/5 rounded-full blur-[160px] pointer-events-none z-0" />
 
         <Navbar />
 
         <main className="relative z-10 max-w-7xl mx-auto w-full px-5 sm:px-8 pt-28 pb-20 flex-grow animate-fade-in">
-          {/* Breadcrumb */}
-          <div className="flex items-center justify-between mb-8">
+          {/* Breadcrumb Header */}
+          <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-200/60">
             <button
               onClick={() => setSelectedProduct(null)}
-              className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition cursor-pointer bg-white/80 backdrop-blur-md border border-slate-200/60 px-4 py-2.5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+              className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer bg-white/90 backdrop-blur-md border border-slate-200/80 px-4 py-2.5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to Shop
+              <ArrowLeft className="w-4 h-4 text-teal-600" /> Back to Catalog
             </button>
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">
-              Shop &gt; {selectedProduct.category} &gt; <span className="text-slate-900">{selectedProduct.name}</span>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/dashboard"
+                className="hidden sm:flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs uppercase tracking-wider px-3.5 py-2 rounded-xl transition border border-slate-200/60"
+              >
+                <Package className="w-3.5 h-3.5 text-teal-600" /> My Orders
+              </Link>
+              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest hidden lg:flex items-center gap-2">
+                <Link href="/shop" className="hover:text-slate-700 transition">Shop</Link>
+                <ChevronRight className="w-3 h-3 text-slate-300" />
+                <span className="text-slate-500">{selectedProduct.category}</span>
+                <ChevronRight className="w-3 h-3 text-slate-300" />
+                <span className="text-slate-900 font-black">{selectedProduct.name}</span>
+              </div>
             </div>
           </div>
 
@@ -1153,7 +1169,7 @@ AI Assistant Rules:
             <div className="space-y-4">
               <div
                 onClick={() => setZoomOpen(true)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-white flex items-center justify-center group shadow-xl shadow-slate-200/50 border border-slate-100/80 cursor-zoom-in"
+                className="relative aspect-square rounded-3xl overflow-hidden bg-white flex items-center justify-center group shadow-xl shadow-slate-200/50 border border-slate-200/70 cursor-zoom-in"
               >
                 <img
                   src={productImages[selectedImageIdx]}
@@ -1164,26 +1180,26 @@ AI Assistant Rules:
                 <button
                   type="button"
                   onClick={(e) => handleToggleWishlist(selectedProduct.id, e)}
-                  className="absolute top-4 right-4 z-30 p-2.5 rounded-xl bg-white/95 text-slate-500 hover:text-rose-500 hover:scale-105 transition-all shadow-lg border border-slate-100/80"
+                  className="absolute top-4 right-4 z-30 p-3 rounded-2xl bg-white/95 backdrop-blur-md text-slate-500 hover:text-rose-500 hover:scale-110 transition-all shadow-lg border border-slate-100"
                 >
-                  <Heart className={`w-4 h-4 ${wishlist.includes(selectedProduct.id) ? "fill-rose-500 text-rose-500" : "text-slate-450"}`} />
+                  <Heart className={`w-5 h-5 ${wishlist.includes(selectedProduct.id) ? "fill-rose-500 text-rose-500" : "text-slate-400"}`} />
                 </button>
 
-                <span className="absolute top-4 left-4 bg-gradient-to-r from-teal-600 to-teal-500 text-white font-black text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-md shadow-lg shadow-teal-500/25 animate-pulse">
-                  Save 25%
+                <span className="absolute top-4 left-4 bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-500 text-white font-black text-[10px] uppercase tracking-widest px-3.5 py-1.5 rounded-lg shadow-lg shadow-teal-500/25">
+                  Save 25% OFF
                 </span>
 
                 <ProductTimer productId={selectedProduct.id} />
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex gap-3 overflow-x-auto hide-scrollbar py-1">
                 {productImages.map((img, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => setSelectedImageIdx(idx)}
-                    className={`w-20 h-20 rounded-xl overflow-hidden transition-all duration-300 cursor-pointer relative bg-white ${selectedImageIdx === idx
-                      ? "ring-2 ring-teal-500 shadow-lg scale-[1.02]"
+                    className={`w-20 h-20 rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer relative bg-white shrink-0 ${selectedImageIdx === idx
+                      ? "ring-2 ring-teal-500 shadow-lg scale-[1.03] border-none"
                       : "opacity-60 hover:opacity-100 border border-slate-200"
                       }`}
                   >
@@ -1194,60 +1210,68 @@ AI Assistant Rules:
             </div>
 
             {/* Product Info */}
-            <div className="flex flex-col justify-center space-y-6 lg:space-y-0">
-              <div className="space-y-5">
+            <div className="flex flex-col justify-between space-y-6 text-left">
+              <div className="space-y-6">
                 <div className="space-y-3">
-                  <span className="inline-flex bg-white border border-slate-200 shadow-sm text-slate-600 px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider">
+                  <span className="inline-flex items-center gap-1.5 bg-teal-50 border border-teal-200/60 text-teal-700 px-3.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                    <Sparkles className="w-3 h-3 text-teal-500" />
                     {selectedProduct.category}
                   </span>
                   <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight text-slate-900">
                     {selectedProduct.name}
                   </h1>
-                  <div className="flex items-center gap-3">
-                    <span className="text-amber-500 font-bold text-xs flex items-center gap-1">
-                      <Star className="w-3.5 h-3.5 fill-current" /> {selectedProduct.rating || 4.8}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/60 px-2.5 py-1 rounded-lg">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      <span className="text-amber-700 font-black text-xs">{selectedProduct.rating || 4.8}</span>
+                    </div>
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                    <span className="text-xs font-bold text-slate-500">120 Verified Buyer Ratings</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                    <span className="text-xs font-bold text-teal-600 flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5" /> Zenzy Certified Supply
                     </span>
-                    <span className="w-1 h-1 rounded-full bg-slate-300" />
-                    <span className="text-xs font-semibold text-slate-500">120 Ratings</span>
-                    <span className="w-1 h-1 rounded-full bg-slate-300" />
-                    <span className="text-xs font-semibold text-slate-500">18 Questions</span>
                   </div>
                 </div>
 
-                <div className="py-5 border-y border-slate-200/60 space-y-2">
+                <div className="p-5 bg-white rounded-2xl border border-slate-200/70 shadow-sm space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Special Price</span>
-                    <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-2.5 py-0.5 rounded-md">
-                      25% OFF
+                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Market Price &amp; Deal</span>
+                    <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200/50 px-2.5 py-0.5 rounded-md">
+                      Verified Genuine
                     </span>
                   </div>
                   <div className="flex items-baseline gap-4 flex-wrap">
-                    <span className="text-3xl font-black text-slate-900 tracking-tight">
+                    <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
                       ₹{selectedProduct.price.toLocaleString()}
                     </span>
-                    <span className="text-base font-bold text-slate-400 line-through">
+                    <span className="text-lg font-bold text-slate-400 line-through">
                       ₹{originalPrice.toLocaleString()}
                     </span>
-                    <span className="text-xs font-extrabold text-teal-600">
-                      Save ₹{savings.toLocaleString()}
+                    <span className="text-xs font-extrabold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-100">
+                      Save ₹{savings.toLocaleString()} (25% OFF)
                     </span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Description</span>
-                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    {selectedProduct.description} This professional-grade supply has been standard checked by Zenzy partner technicians. Perfect for residential or workplace applications, ensuring long durability, high compatibility, and optimal performance under all standard usage conditions.
+                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Specifications &amp; Overview</span>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                    {selectedProduct.description} Standard checked by Zenzy partner technicians to guarantee long operational durability, precise compatibility, and seamless heavy-duty or residential performance.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2.5 p-3 bg-teal-500/5 rounded-xl border border-teal-500/10 text-xs font-semibold text-slate-800">
-                  <Truck className="w-4 h-4 text-teal-500 shrink-0 animate-pulse" />
-                  <span>Estimated Delivery by <strong className="text-teal-600">{new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString("en-IN", { weekday: 'long', month: 'short', day: 'numeric' })}</strong> (Free above ₹499)</span>
+                {/* Delivery Bar */}
+                <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-teal-500/10 via-cyan-500/10 to-transparent rounded-2xl border border-teal-500/20 text-xs font-semibold text-slate-800">
+                  <Truck className="w-5 h-5 text-teal-600 shrink-0 animate-pulse" />
+                  <div>
+                    <span className="font-bold text-slate-900">Free Express Delivery</span> above ₹499. Estimated dispatch by <strong className="text-teal-700 font-black">{new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString("en-IN", { weekday: 'long', month: 'short', day: 'numeric' })}</strong>.
+                  </div>
                 </div>
 
+                {/* Variants */}
                 {selectedProduct.variants && selectedProduct.variants.length > 0 && (
-                  <div className="space-y-3.5 pt-1 border-t">
+                  <div className="space-y-3.5 pt-2 border-t border-slate-200/60">
                     {selectedProduct.variants.map((v: any) => (
                       <div key={v.name} className="space-y-1.5">
                         <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">{v.name}</span>
@@ -1259,9 +1283,9 @@ AI Assistant Rules:
                                 key={opt}
                                 type="button"
                                 onClick={() => setSelectedVariants(prev => ({ ...prev, [v.name]: opt }))}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition duration-205 cursor-pointer ${isSelected
-                                  ? "bg-slate-900 text-white shadow-sm"
-                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${isSelected
+                                  ? "bg-slate-900 text-white shadow-md"
+                                  : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
                                   }`}
                               >
                                 {opt}
@@ -1274,52 +1298,54 @@ AI Assistant Rules:
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-y-3 gap-x-4 pt-2 text-xs font-semibold text-slate-700">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-teal-500 shrink-0" />
-                    <span>1 Year Warranty</span>
+                {/* Guarantees */}
+                <div className="grid grid-cols-2 gap-3 pt-2 text-xs font-semibold text-slate-700">
+                  <div className="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200/60">
+                    <ShieldCheck className="w-4 h-4 text-teal-500 shrink-0" />
+                    <span>1 Year Official Warranty</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-teal-500 shrink-0" />
-                    <span>Fast Dispatch (24h)</span>
+                  <div className="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200/60">
+                    <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span>24 Hours Express Dispatch</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-teal-500 shrink-0" />
+                  <div className="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200/60">
+                    <RotateCcw className="w-4 h-4 text-blue-500 shrink-0" />
                     <span>7 Days Replacement</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-teal-500 shrink-0" />
-                    <span>Zenzy Quality Check</span>
+                  <div className="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-slate-200/60">
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Zenzy Quality Checked</span>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-5 pt-6">
+              {/* Purchase Actions */}
+              <div className="space-y-4 pt-6 border-t border-slate-200/60">
                 <div className="flex items-center justify-between text-xs font-bold">
-                  <span className="text-slate-500">Quantity</span>
-                  <span className={selectedProduct.stock > 0 ? "text-teal-600 bg-teal-50 px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider" : "text-red-500 bg-red-50 px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider animate-pulse"}>
-                    {selectedProduct.stock > 0 ? (selectedProduct.stock <= 5 ? `⚠️ Only ${selectedProduct.stock} Left` : `✓ In Stock (${selectedProduct.stock} available)`) : "🚫 Out of Stock"}
+                  <span className="text-slate-500">Order Quantity</span>
+                  <span className={selectedProduct.stock > 0 ? "text-teal-700 bg-teal-50 border border-teal-200/50 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider" : "text-rose-600 bg-rose-50 border border-rose-200/50 px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider animate-pulse"}>
+                    {selectedProduct.stock > 0 ? (selectedProduct.stock <= 5 ? `⚠️ Only ${selectedProduct.stock} Left` : `✓ In Stock (${selectedProduct.stock} units available)`) : "🚫 Out of Stock"}
                   </span>
                 </div>
 
                 <div className="flex gap-3 flex-wrap sm:flex-nowrap">
-                  <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-1 shrink-0 shadow-sm">
+                  <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-2xl p-1 shrink-0 shadow-sm">
                     <button
                       type="button"
                       onClick={() => setDetailQty(prev => Math.max(1, prev - 1))}
-                      className="w-10 h-10 rounded-lg hover:bg-slate-50 flex items-center justify-center transition cursor-pointer text-slate-700 font-extrabold text-sm"
+                      className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center transition cursor-pointer text-slate-700 font-extrabold text-sm border-none bg-transparent"
                     >
-                      -
+                      <Minus className="w-4 h-4" />
                     </button>
-                    <span className="text-sm font-black text-slate-900 min-w-[20px] text-center">
+                    <span className="text-sm font-black text-slate-900 min-w-[24px] text-center">
                       {detailQty}
                     </span>
                     <button
                       type="button"
                       onClick={() => setDetailQty(prev => Math.min(selectedProduct.stock || 10, prev + 1))}
-                      className="w-10 h-10 rounded-lg hover:bg-slate-50 flex items-center justify-center transition cursor-pointer text-slate-700 font-extrabold text-sm"
+                      className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center transition cursor-pointer text-slate-700 font-extrabold text-sm border-none bg-transparent"
                     >
-                      +
+                      <Plus className="w-4 h-4" />
                     </button>
                   </div>
 
@@ -1327,10 +1353,10 @@ AI Assistant Rules:
                     <button
                       type="button"
                       onClick={() => handleNotifyMe(selectedProduct.id, selectedProduct.name)}
-                      className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 px-5 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-300 shadow-md hover:-translate-y-0.5 active:translate-y-0 cursor-pointer border-none"
+                      className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-4 px-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 shadow-md hover:-translate-y-0.5 active:translate-y-0 cursor-pointer border-none"
                     >
                       <Info className="w-4 h-4" />
-                      <span>Notify Me when Restocked</span>
+                      <span>Notify Me When Restocked</span>
                     </button>
                   ) : (
                     <>
@@ -1347,9 +1373,9 @@ AI Assistant Rules:
                           setTransactionId("");
                           setCheckoutOpen(true);
                         }}
-                        className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white py-3.5 px-5 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-300 shadow-lg hover:-translate-y-0.5 active:translate-y-0 cursor-pointer border-none"
+                        className="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white py-4 px-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 shadow-xl hover:-translate-y-0.5 active:translate-y-0 cursor-pointer border-none"
                       >
-                        <ShoppingBag className="w-4 h-4" />
+                        <ShoppingBag className="w-4 h-4 text-teal-400" />
                         <span>Buy Now</span>
                       </button>
 
@@ -1361,7 +1387,7 @@ AI Assistant Rules:
                           }
                           showToast(`${detailQty}x ${selectedProduct.name} added to cart!`);
                         }}
-                        className="flex-1 flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-900 py-3.5 px-5 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer"
+                        className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white py-4 px-6 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 shadow-lg shadow-teal-500/25 hover:-translate-y-0.5 cursor-pointer border-none"
                       >
                         <ShoppingCart className="w-4 h-4" />
                         <span>Add to Cart</span>
@@ -1373,12 +1399,15 @@ AI Assistant Rules:
             </div>
           </div>
 
-          {/* You Might Also Like */}
+          {/* You Might Also Like Carousel / Grid */}
           {products.filter(p => p.category === selectedProduct.category && p.id !== selectedProduct.id).length > 0 && (
-            <section className="mt-16 pt-12 border-t border-slate-200/60 space-y-6">
+            <section className="mt-20 pt-12 border-t border-slate-200/60 space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-black text-slate-900 uppercase tracking-wider">You Might Also Like</h3>
-                <span className="text-[10px] text-slate-400 font-bold">Trending Now</span>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 uppercase tracking-wider">You Might Also Like</h3>
+                  <p className="text-xs text-slate-500 font-semibold mt-0.5">Similar verified supplies in {selectedProduct.category}</p>
+                </div>
+                <span className="text-[10px] bg-teal-50 text-teal-700 font-black uppercase tracking-widest px-3 py-1 rounded-full border border-teal-200/50">Top Pick Recommendations</span>
               </div>
               <div className="flex gap-6 overflow-x-auto hide-scrollbar pb-4 -mx-5 px-5 sm:mx-0 sm:px-0">
                 {products
@@ -1393,36 +1422,41 @@ AI Assistant Rules:
                         setDetailQty(1);
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
-                      className="min-w-[200px] sm:min-w-[220px] bg-white/80 backdrop-blur-md p-4 rounded-xl border border-slate-200/60 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer text-left space-y-3 shrink-0 group"
+                      className="min-w-[220px] sm:min-w-[240px] bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer text-left space-y-3 shrink-0 group"
                     >
-                      <div className="h-32 bg-slate-50 rounded-lg overflow-hidden relative">
+                      <div className="h-36 bg-slate-50 rounded-xl overflow-hidden relative border border-slate-100">
                         <img src={prod.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
-                        <span className="absolute top-2 left-2 bg-gradient-to-r from-teal-600 to-teal-500 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded">
+                        <span className="absolute top-2 left-2 bg-slate-900/90 backdrop-blur-sm text-white text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md">
                           ₹{prod.price}
                         </span>
                       </div>
-                      <h4 className="font-extrabold text-xs text-slate-900 line-clamp-1">{prod.name}</h4>
-                      <span className="text-[10px] text-amber-550 font-bold block">★ {prod.rating || 4.5}</span>
+                      <h4 className="font-extrabold text-xs text-slate-900 line-clamp-1 group-hover:text-teal-600 transition-colors">{prod.name}</h4>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-amber-500 font-bold flex items-center gap-0.5">★ {prod.rating || 4.5}</span>
+                        <span className="text-teal-600 font-black uppercase tracking-wider">Quick View →</span>
+                      </div>
                     </div>
                   ))}
               </div>
             </section>
           )}
 
-          {/* Reviews */}
+          {/* Customer Reviews Section */}
           <section className="mt-16 pt-12 border-t border-slate-200/60 space-y-8">
             <div className="flex justify-between items-center flex-wrap gap-4 text-left">
               <div>
-                <h3 className="text-lg font-black text-slate-900 uppercase tracking-wider">Customer Reviews</h3>
+                <h3 className="text-lg font-black text-slate-900 uppercase tracking-wider">Verified Customer Reviews</h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-amber-500 font-extrabold text-sm">★ {averageRating}</span>
-                  <span className="text-slate-400 text-xs font-semibold">({productReviews.length} reviews)</span>
+                  <span className="text-amber-500 font-extrabold text-sm flex items-center gap-1">
+                    <Star className="w-4 h-4 fill-amber-400" /> {averageRating}
+                  </span>
+                  <span className="text-slate-400 text-xs font-semibold">({productReviews.length} total reviews)</span>
                 </div>
               </div>
             </div>
 
             {user && userPurchasedProduct && (
-              <form onSubmit={handlePostReview} className="bg-white/80 backdrop-blur-md p-6 rounded-xl border border-slate-200/60 space-y-4 max-w-xl text-left shadow-sm">
+              <form onSubmit={handlePostReview} className="bg-white/90 backdrop-blur-md p-6 rounded-2xl border border-slate-200/70 space-y-4 max-w-xl text-left shadow-sm">
                 <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">Share your feedback</h4>
                 <div className="space-y-1">
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase block">Rating</span>
@@ -1432,7 +1466,7 @@ AI Assistant Rules:
                         key={star}
                         type="button"
                         onClick={() => setNewReviewRating(star)}
-                        className={`text-lg transition cursor-pointer bg-transparent border-none ${star <= newReviewRating ? "text-amber-500 animate-bounce" : "text-slate-300"}`}
+                        className={`text-xl transition cursor-pointer bg-transparent border-none ${star <= newReviewRating ? "text-amber-400 scale-110" : "text-slate-300"}`}
                       >
                         ★
                       </button>
@@ -1444,10 +1478,10 @@ AI Assistant Rules:
                   <span className="text-[10px] font-extrabold text-slate-400 uppercase block">Your review</span>
                   <textarea
                     rows={3}
-                    placeholder="Write a short review..."
+                    placeholder="Write a short review based on your experience..."
                     value={newReviewComment}
                     onChange={(e) => setNewReviewComment(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border rounded-lg text-xs outline-none text-slate-900 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none text-slate-900 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                     required
                   />
                 </div>
@@ -1455,7 +1489,7 @@ AI Assistant Rules:
                 <button
                   type="submit"
                   disabled={submittingReview}
-                  className="bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider cursor-pointer border-none disabled:opacity-50 transition-all hover:-translate-y-0.5 shadow-md"
+                  className="bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer border-none disabled:opacity-50 transition-all hover:-translate-y-0.5 shadow-md shadow-teal-500/20"
                 >
                   {submittingReview ? "Submitting..." : "Submit Review"}
                 </button>
@@ -1464,34 +1498,35 @@ AI Assistant Rules:
 
             <div className="space-y-4 max-w-2xl text-left">
               {productReviews.length === 0 ? (
-                <p className="text-xs text-slate-400 italic font-semibold">No reviews written for this supply yet. Be the first to try it!</p>
+                <p className="text-xs text-slate-400 italic font-semibold">No customer reviews written for this supply yet. Be the first to try it!</p>
               ) : (
                 productReviews.map((rev) => (
-                  <div key={rev.id} className="bg-white/80 p-4 rounded-xl border border-slate-200/60 space-y-2 shadow-sm hover:shadow-md transition-all">
+                  <div key={rev.id} className="bg-white/90 p-5 rounded-2xl border border-slate-200/60 space-y-2 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-center">
                       <div>
                         <span className="font-extrabold text-xs text-slate-900 block">{rev.customerName}</span>
                         <span className="text-[9px] text-slate-400 block mt-0.5">{new Date(rev.createdAt).toLocaleDateString()}</span>
                       </div>
-                      <span className="bg-amber-500/10 text-amber-605 px-2.5 py-0.5 rounded-lg text-[10px] font-black">
+                      <span className="bg-amber-50 text-amber-600 border border-amber-200/50 px-2.5 py-1 rounded-lg text-[10px] font-black flex items-center gap-1">
                         ★ {rev.rating}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-655 font-medium leading-relaxed">{rev.comment}</p>
+                    <p className="text-xs text-slate-600 font-medium leading-relaxed">{rev.comment}</p>
                   </div>
                 ))
               )}
             </div>
           </section>
 
+          {/* Image Zoom Modal */}
           {zoomOpen && (
             <div
-              className="fixed inset-0 z-[220] flex items-center justify-center bg-black/90 p-4 cursor-zoom-out"
+              className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 cursor-zoom-out animate-fade-in"
               onClick={() => setZoomOpen(false)}
             >
               <img
                 src={productImages[selectedImageIdx]}
-                className="max-w-full max-h-full object-contain rounded-lg animate-scale-in"
+                className="max-w-full max-h-full object-contain rounded-2xl animate-scale-in border border-white/10"
                 alt=""
               />
             </div>
@@ -1499,32 +1534,32 @@ AI Assistant Rules:
         </main>
 
         {toast && (
-          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-5 py-3.5 rounded-xl font-bold text-xs shadow-xl flex items-center gap-2 animate-fade-up">
-            <CheckCircle className="w-4 h-4 text-teal-500" />
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-6 py-4 rounded-2xl font-bold text-xs shadow-2xl flex items-center gap-2.5 animate-fade-up border border-white/10">
+            <CheckCircle className="w-4 h-4 text-teal-400" />
             {toast}
           </div>
         )}
 
-        <div className="hidden md:block mt-8">
+        <div className="hidden md:block mt-12">
           <Footer />
         </div>
       </div>
     );
   }
 
-  // ==== MAIN SHOP RENDER ====
+  // ==== MAIN SHOP CATALOG RENDER ====
   return (
-    <div className="relative flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/80 text-slate-800 font-sans transition-colors duration-300 overflow-hidden">
-
-      <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-teal-500/5 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="absolute top-1/3 right-1/4 w-[1000px] h-[1000px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none z-0" />
+    <div className="relative flex flex-col min-h-screen bg-slate-50/70 text-slate-800 font-sans transition-colors duration-300 overflow-hidden">
+      {/* Background Ambient Radial Glows */}
+      <div className="absolute top-0 left-1/4 w-[900px] h-[900px] bg-teal-500/5 rounded-full blur-[160px] pointer-events-none z-0" />
+      <div className="absolute top-1/3 right-1/4 w-[1100px] h-[1100px] bg-cyan-500/5 rounded-full blur-[180px] pointer-events-none z-0" />
 
       <Navbar />
 
       <main className="relative z-10 max-w-7xl mx-auto w-full px-5 sm:px-8 pt-24 pb-20 flex-grow">
 
-        {/* ─── PREMIUM HERO BANNER ─── */}
-        <section className="relative w-full rounded-2xl overflow-hidden mb-10 z-10 group border border-white/10 shadow-2xl shadow-slate-200/30" style={{ minHeight: '280px' }}>
+        {/* ─── COMPACT SLEEK HERO BANNER ─── */}
+        <section className="relative w-full rounded-3xl overflow-hidden mb-8 z-10 group border border-slate-200/80 shadow-xl shadow-slate-200/40 min-h-[220px] sm:min-h-[250px] flex flex-col justify-between">
 
           {shopConfig?.heroMediaType === "image" && shopConfig?.heroImageUrl ? (
             <div className="absolute inset-0 w-full h-full">
@@ -1545,101 +1580,120 @@ AI Assistant Rules:
             </div>
           )}
 
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/40 to-transparent z-[1]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent z-[2]" />
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-slate-950/80 to-transparent z-[3]" />
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-teal-400/60 to-transparent z-[4]" />
+          {/* Rich Gradient Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-955/90 via-slate-950/70 to-slate-950/40 z-[1]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-955/90 via-transparent to-slate-955/30 z-[2]" />
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-teal-400/80 to-transparent z-[4]" />
 
-          <div className="relative z-[5] flex flex-col justify-between px-8 sm:px-12 py-8" style={{ minHeight: '280px' }}>
+          <div className="relative z-[5] flex flex-col justify-between px-6 sm:px-10 py-6 sm:py-7 min-h-[220px] sm:min-h-[250px]">
 
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-              <div className="space-y-3 max-w-xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-500/20 border border-teal-400/30 rounded-full text-[9px] font-black text-teal-300 uppercase tracking-[0.15em] backdrop-blur-sm">
-                  <Sparkles className="w-3.5 h-3.5 fill-current" />
-                  <span>Zenzy Premium Marketplace</span>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="space-y-2 max-w-2xl text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-teal-500/20 border border-teal-400/30 rounded-full text-[9px] font-black text-teal-300 uppercase tracking-[0.15em] backdrop-blur-md">
+                  <Sparkles className="w-3 h-3 text-teal-400 fill-current animate-pulse" />
+                  <span>Zenzy Certified Marketplace</span>
                 </div>
-                <h1 className="text-3xl sm:text-4xl md:text-[2.8rem] font-black tracking-tight text-white leading-[1.05] drop-shadow-lg">
+                <h1 className="text-2xl sm:text-3xl lg:text-[2.5rem] font-black tracking-tight text-white leading-tight drop-shadow-xl">
                   Equip Smarter.{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-cyan-300 to-teal-400">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-emerald-300 to-cyan-300">
                     Build Better.
                   </span>
                 </h1>
-                <p className="text-slate-300 text-sm font-medium max-w-md leading-relaxed hidden sm:block drop-shadow">
-                  Certified tools, smart devices &amp; safety supplies — shipped fast from verified trade professionals.
+                <p className="text-slate-300 text-xs sm:text-sm font-medium max-w-lg leading-relaxed hidden sm:block drop-shadow">
+                  Certified trade tools, smart automation &amp; safety supplies shipped fast.
                 </p>
               </div>
 
-              <div className="flex flex-row sm:flex-col gap-3 shrink-0 pt-1">
+              {/* Action buttons */}
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
                 <button
                   type="button"
                   onClick={() => {
                     const el = document.getElementById("supplies-grid");
                     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - 100, behavior: 'smooth' });
                   }}
-                  className="bg-white hover:bg-slate-100 text-slate-950 font-extrabold text-[10px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5 shadow-lg flex items-center gap-2 cursor-pointer border-none whitespace-nowrap"
+                  className="bg-white hover:bg-slate-100 text-slate-950 font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-xl transition-all duration-200 hover:-translate-y-0.5 shadow-lg flex items-center justify-center gap-2 cursor-pointer border-none whitespace-nowrap"
                 >
-                  Browse Supplies <ArrowRight className="w-3.5 h-3.5" />
+                  Browse Supplies <ArrowRight className="w-3.5 h-3.5 text-teal-600" />
                 </button>
+
+                <Link
+                  href="/dashboard"
+                  className="bg-white/15 hover:bg-white/25 text-white font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-xl transition-all duration-200 backdrop-blur-md border border-white/20 flex items-center justify-center gap-2 whitespace-nowrap"
+                >
+                  <Package className="w-3.5 h-3.5 text-teal-300" /> View My Orders
+                </Link>
+
                 <button
                   type="button"
                   onClick={() => setZenAiOpen(true)}
-                  className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-extrabold text-[10px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5 shadow-[0_0_30px_rgba(20,184,166,0.4)] flex items-center gap-2 cursor-pointer border-none whitespace-nowrap"
+                  className="bg-gradient-to-r from-teal-500 via-teal-600 to-cyan-600 hover:from-teal-400 hover:to-cyan-500 text-white font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-teal-500/25 flex items-center justify-center gap-2 cursor-pointer border-none whitespace-nowrap"
                 >
                   <Sparkles className="w-3.5 h-3.5 fill-current" /> Ask Zen AI
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-8 sm:gap-12 pt-6 mt-auto border-t border-white/10">
+            {/* Bottom Compact Stats Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 mt-auto border-t border-white/10">
               {[
-                { label: "Products", value: products.length > 0 ? `${products.length}+` : "100+" },
-                { label: "Categories", value: "12+" },
-                { label: "Shipping", value: "24hr" },
-                { label: "Verified", value: "100%" }
-              ].map((stat) => (
-                <div key={stat.label} className="text-left">
-                  <div className="text-white font-black text-sm sm:text-base leading-none drop-shadow">{stat.value}</div>
-                  <div className="text-teal-400/80 text-[9px] font-black uppercase tracking-widest mt-0.5">{stat.label}</div>
-                </div>
-              ))}
+                { label: "Products Catalog", value: products.length > 0 ? `${products.length}+` : "100+", icon: Package },
+                { label: "Supplies Categories", value: "12+", icon: LayoutGrid },
+                { label: "Express Shipping", value: "24 Hours", icon: Truck },
+                { label: "Verified Guarantee", value: "100% Genuine", icon: ShieldCheck }
+              ].map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <div key={stat.label} className="flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/15">
+                    <div className="w-6 h-6 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-300 shrink-0">
+                      <Icon className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="text-left min-w-0">
+                      <div className="text-white font-black text-xs sm:text-sm leading-none drop-shadow">{stat.value}</div>
+                      <div className="text-teal-300/90 text-[8.5px] font-black uppercase tracking-widest mt-0.5 truncate">{stat.label}</div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
           </div>
         </section>
 
         {/* ─── MODERN CENTERED SEARCH BAR ─── */}
-        <div className="flex flex-col items-center justify-center w-full mb-12 -mt-2 relative z-30">
+        <div className="flex flex-col items-center justify-center w-full mb-8 -mt-2 relative z-30">
           <div className="w-full max-w-3xl relative" ref={searchContainerRef}>
-            <div className="relative flex items-center bg-white/90 backdrop-blur-xl rounded-2xl p-1.5 shadow-[0_8px_40px_rgba(0,0,0,0.06)] border border-slate-200/50 focus-within:border-teal-500/60 focus-within:ring-2 focus-within:ring-teal-500/20 transition-all duration-300 group hover:shadow-[0_8px_50px_rgba(13,148,136,0.08)]">
+            <div className="relative flex items-center bg-white/90 backdrop-blur-xl rounded-2xl p-2 shadow-[0_12px_45px_rgba(0,0,0,0.06)] border border-slate-200/80 focus-within:border-teal-500/60 focus-within:ring-4 focus-within:ring-teal-500/10 transition-all duration-300 group hover:shadow-[0_12px_50px_rgba(13,148,136,0.12)]">
               <div className="pl-5 pr-3">
                 <Search className="w-5 h-5 text-slate-400 group-focus-within:text-teal-500 shrink-0 transition-colors" />
               </div>
               <input
                 type="text"
-                placeholder="Search for tools, smart devices, safety gear..."
+                placeholder="Search tools, smart valve controllers, cordless drills, safety gear..."
                 value={searchQuery}
                 onFocus={() => setShowSuggestions(true)}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setShowSuggestions(true);
                 }}
-                className="w-full bg-transparent border-none outline-none py-3.5 sm:py-3 text-sm font-semibold text-slate-900 placeholder:text-slate-400 tracking-wide"
+                className="w-full bg-transparent border-none outline-none py-3 sm:py-2.5 text-sm font-semibold text-slate-900 placeholder:text-slate-400 tracking-wide"
               />
               {searchQuery && (
                 <button
                   onClick={() => { setSearchQuery(""); setShowSuggestions(false); }}
-                  className="text-slate-400 hover:text-slate-600 transition p-2.5 sm:p-2 bg-slate-50 hover:bg-slate-100 rounded-xl mr-2"
+                  className="text-slate-400 hover:text-slate-600 transition p-2 bg-slate-100 hover:bg-slate-200 rounded-xl mr-2"
                 >
                   <X className="w-4 h-4" />
                 </button>
               )}
-              <button className="hidden sm:flex bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 hover:-translate-y-0.5 cursor-pointer ml-auto border-none">
+              <button className="hidden sm:flex bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 hover:-translate-y-0.5 cursor-pointer ml-auto border-none">
                 <Search className="w-4 h-4 mr-2" /> Search
               </button>
             </div>
 
+            {/* Suggestions Dropdown */}
             {showSuggestions && searchSuggestions.length > 0 && (
-              <div className="absolute top-[calc(100%+12px)] left-0 right-0 bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100/60">
+              <div className="absolute top-[calc(100%+12px)] left-0 right-0 bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100">
                 {searchSuggestions.map((prod) => (
                   <button
                     key={prod.id}
@@ -1648,103 +1702,149 @@ AI Assistant Rules:
                       setSearchQuery(prod.name);
                       setShowSuggestions(false);
                     }}
-                    className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-slate-50/80 transition text-left cursor-pointer font-bold text-sm group"
+                    className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-teal-50/50 transition text-left cursor-pointer font-bold text-sm group"
                   >
-                    <span className="text-slate-900 truncate pr-4">{prod.name}</span>
-                    <span className="text-[10px] bg-slate-100 text-slate-500 px-3 py-1 rounded-full uppercase tracking-wider shrink-0 font-black group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">
-                      {prod.category}
+                    <div className="flex items-center gap-3">
+                      <img src={prod.image} className="w-8 h-8 rounded-lg object-cover bg-slate-100 border" alt="" />
+                      <span className="text-slate-900 truncate">{prod.name}</span>
+                    </div>
+                    <span className="text-[10px] bg-slate-100 text-slate-500 px-3 py-1 rounded-full uppercase tracking-wider shrink-0 font-black group-hover:bg-teal-100 group-hover:text-teal-700 transition-colors">
+                      {prod.category} • ₹{prod.price}
                     </span>
                   </button>
                 ))}
               </div>
             )}
-
-            {/* Quick category shortcuts */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-              {categoriesList.slice(0, 5).map((cat) => (
-                <button
-                  key={cat.name}
-                  onClick={() => setSelectedCategory(cat.name)}
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ${selectedCategory === cat.name
-                      ? "bg-teal-600 text-white shadow-lg shadow-teal-500/20"
-                      : "bg-white/70 backdrop-blur-sm text-slate-600 hover:bg-teal-50 hover:text-teal-600 border border-slate-200/50"
-                    }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 
-        {/* ─── STICKY CATEGORY BAR ─── */}
-        <div className="sticky top-20 z-40 bg-white/90 backdrop-blur-lg border-y border-slate-200/50 py-3 mb-8 -mx-5 px-5 sm:mx-0 sm:px-0 shadow-sm">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-              <Link href="/" className="hover:text-slate-600 transition">Home</Link> &gt;{" "}
-              <Link href="/shop" className="hover:text-slate-600 transition">Shop</Link> &gt;{" "}
-              <span className="text-teal-500">{selectedCategory}</span>
+        {/* ─── ULTRA-REFINED STICKY CATALOG CONTROL BAR ─── */}
+        <div className="sticky top-20 z-40 bg-white/95 backdrop-blur-xl border border-slate-200/80 p-2.5 mb-8 rounded-2xl shadow-md shadow-slate-900/5">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+
+            {/* Left: Category Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar scroll-smooth py-0.5">
+              <span className="bg-teal-50 text-teal-700 font-black uppercase text-[10px] tracking-wider px-3 py-1.5 rounded-xl border border-teal-200/60 shrink-0 hidden lg:flex items-center gap-1.5">
+                <LayoutGrid className="w-3.5 h-3.5 text-teal-600" /> Catalog
+              </span>
+
+              {categoriesList.map((cat) => (
+                <button
+                  key={cat.name}
+                  onClick={() => setSelectedCategory(cat.name)}
+                  className={`px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition cursor-pointer shrink-0 flex items-center gap-1.5 ${selectedCategory === cat.name
+                    ? "bg-gradient-to-r from-teal-600 to-teal-500 text-white shadow-sm"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                >
+                  <span>{cat.name}</span>
+                  <span className={`px-1.5 py-0.2 rounded-md text-[9px] ${selectedCategory === cat.name ? "bg-white/25 text-white" : "bg-slate-200 text-slate-500"}`}>
+                    {cat.name === "All" ? products.length : (cat.name === "Wishlist" ? wishlist.length : products.filter(p => p.category === cat.name).length)}
+                  </span>
+                </button>
+              ))}
             </div>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar scroll-smooth shrink-0 py-0.5 max-w-[calc(100vw-140px)] sm:max-w-none">
-                {categoriesList.map((cat) => (
-                  <button
-                    key={cat.name}
-                    onClick={() => setSelectedCategory(cat.name)}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition cursor-pointer shrink-0 ${selectedCategory === cat.name
-                        ? "bg-gradient-to-r from-teal-600 to-teal-500 text-white shadow-md shadow-teal-500/20"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                      }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
+            {/* Right: Actions, Stationary Cart, Orders, View Toggle, Sort */}
+            <div className="flex items-center gap-2.5 justify-between md:justify-end shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+
+              {/* View Orders Button */}
+              <Link
+                href="/dashboard"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition cursor-pointer border border-slate-200/60 shrink-0"
+              >
+                <Package className="w-3.5 h-3.5 text-teal-600" />
+                <span className="hidden sm:inline">View My Orders</span>
+                <span className="sm:hidden">Orders</span>
+              </Link>
+
+              {/* STATIONARY Cart Button */}
+              <button
+                type="button"
+                onClick={() => setCartOpen(true)}
+                className="bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] uppercase tracking-wider px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-sm border-none shrink-0"
+              >
+                <ShoppingCart className="w-3.5 h-3.5 text-teal-400" />
+                <span>Cart</span>
+                <span className="bg-teal-500 text-slate-950 font-black px-1.5 py-0.2 rounded-md text-[9px]">
+                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                </span>
+              </button>
 
               <button
                 type="button"
                 onClick={() => setFilterDrawerOpen(true)}
-                className="lg:hidden flex items-center gap-1 bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider hover:opacity-90 active:scale-95 transition ml-auto border-none cursor-pointer"
+                className="lg:hidden flex items-center gap-1 bg-teal-50 border border-teal-200/60 text-teal-700 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-teal-100 transition cursor-pointer shrink-0"
               >
-                <SlidersHorizontal className="w-3 h-3 text-teal-400" />
+                <SlidersHorizontal className="w-3 h-3 text-teal-600" />
                 <span>Filters</span>
               </button>
+
+              {/* Grid / List View Toggle */}
+              <div className="flex items-center gap-1 bg-slate-100 border border-slate-200/80 rounded-xl p-0.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grid")}
+                  className={`p-1.5 rounded-lg transition ${viewMode === "grid" ? "bg-slate-900 text-white" : "text-slate-400 hover:text-slate-600"}`}
+                >
+                  <Grid3x3 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("list")}
+                  className={`p-1.5 rounded-lg transition ${viewMode === "list" ? "bg-slate-900 text-white" : "text-slate-400 hover:text-slate-600"}`}
+                >
+                  <List className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Sort Dropdown */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-1.5 bg-slate-100 border border-slate-200/80 rounded-xl text-[10px] font-black uppercase tracking-wider outline-none cursor-pointer text-slate-800 transition-colors shrink-0"
+              >
+                <option value="popularity">Top Rated ★</option>
+                <option value="price_asc">Price: Low → High</option>
+                <option value="price_desc">Price: High → Low</option>
+              </select>
+
             </div>
+
           </div>
         </div>
 
-        <div id="supplies-grid" className="flex flex-col lg:flex-row gap-10 lg:gap-12">
+        <div id="supplies-grid" className="flex flex-col lg:flex-row gap-8 lg:gap-10">
 
           {/* ─── SIDEBAR ─── */}
-          <aside className="lg:w-60 shrink-0 space-y-8 lg:sticky lg:top-28 h-fit">
+          <aside className="lg:w-64 shrink-0 space-y-6 lg:sticky lg:top-36 h-fit">
 
-            <div className="space-y-3">
+            {/* Category Filter Card */}
+            <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl border border-slate-200/70 shadow-sm space-y-4 text-left">
               <h3 className="font-black text-[11px] uppercase tracking-widest text-slate-400 px-1 flex items-center gap-2">
-                <Filter className="w-3.5 h-3.5" /> Categories
+                <Filter className="w-3.5 h-3.5 text-teal-500" /> Catalog Categories
               </h3>
-              <div className="flex flex-col gap-1 flex-wrap sm:flex-nowrap flex-row sm:flex-col overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 hide-scrollbar">
+              <div className="flex flex-col gap-1.5">
                 {categoriesList.map((cat) => {
                   const Icon = cat.icon;
                   const isSelected = selectedCategory === cat.name;
+                  const count = cat.name === "All" ? products.length : (cat.name === "Wishlist" ? wishlist.length : products.filter(p => p.category === cat.name).length);
                   return (
                     <button
                       key={cat.name}
                       onClick={() => setSelectedCategory(cat.name)}
-                      className={`shrink-0 sm:w-full flex items-center justify-between px-3.5 py-2.5 font-bold text-xs transition-all duration-200 cursor-pointer rounded-xl ${isSelected
-                          ? "bg-gradient-to-r from-teal-50 to-teal-100/80 text-teal-600 shadow-sm"
-                          : "bg-white sm:bg-transparent border border-slate-200 sm:border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 font-bold text-xs transition-all duration-200 cursor-pointer rounded-xl ${isSelected
+                        ? "bg-teal-50 text-teal-700 shadow-sm border-l-4 border-teal-500"
+                        : "bg-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent"
                         }`}
                     >
-                      <div className="flex items-center gap-2.5 mr-3 sm:mr-0">
-                        <Icon className={`w-4 h-4 ${isSelected ? "text-teal-550" : "text-slate-450"}`} />
+                      <div className="flex items-center gap-2.5">
+                        <Icon className={`w-4 h-4 ${isSelected ? "text-teal-600" : "text-slate-400"}`} />
                         <span>{cat.name}</span>
                       </div>
-                      <span className={`text-[9.5px] px-2 py-0.5 rounded-md font-bold hidden sm:block ${isSelected ? "bg-teal-100 text-teal-700" : "bg-slate-100 text-slate-500"
+                      <span className={`text-[9.5px] px-2 py-0.5 rounded-md font-extrabold ${isSelected ? "bg-teal-100 text-teal-800" : "bg-slate-100 text-slate-500"
                         }`}>
-                        {cat.name === "All"
-                          ? products.length
-                          : products.filter((p) => p.category === cat.name).length}
+                        {count}
                       </span>
                     </button>
                   );
@@ -1752,10 +1852,11 @@ AI Assistant Rules:
               </div>
             </div>
 
-            <div className="space-y-4 px-1 hidden sm:block">
+            {/* Price Slider */}
+            <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl border border-slate-200/70 shadow-sm space-y-4 text-left hidden sm:block">
               <div className="flex justify-between items-end">
                 <h3 className="font-black text-[11px] uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                  <DollarSign className="w-3.5 h-3.5" /> Max Price
+                  <DollarSign className="w-3.5 h-3.5 text-teal-500" /> Max Price
                 </h3>
                 <span className="text-xs font-black text-slate-900">
                   ₹{Math.min(maxPriceFilter, products.length > 0 ? Math.max(2000, ...products.map(p => p.price)) : 2000).toLocaleString()}
@@ -1771,7 +1872,7 @@ AI Assistant Rules:
                   onChange={(e) => setMaxPriceFilter(Number(e.target.value))}
                   className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600"
                 />
-                <div className="flex justify-between text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                <div className="flex justify-between text-[9px] text-slate-400 font-black uppercase tracking-wider">
                   <span>Min: ₹100</span>
                   <span>Max: ₹{(products.length > 0 ? Math.max(2000, ...products.map(p => p.price)) : 2000).toLocaleString()}</span>
                 </div>
@@ -1779,120 +1880,99 @@ AI Assistant Rules:
             </div>
 
             {/* Track Order */}
-            <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl border border-slate-200/60 shadow-sm space-y-4 text-left hidden sm:block">
-              <h3 className="font-black text-[10px] uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-                <Truck className="w-3.5 h-3.5 text-teal-500" />
-                <span>Track My Order</span>
+            <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl border border-slate-200/70 shadow-sm space-y-4 text-left hidden sm:block">
+              <h3 className="font-black text-[11px] uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <Truck className="w-3.5 h-3.5 text-teal-500" /> Track My Order
               </h3>
               <div className="space-y-3">
                 <input
                   type="text"
-                  placeholder="Enter 10-digit Phone"
+                  placeholder="Enter 10-digit Mobile"
                   value={trackPhone}
                   onChange={(e) => setTrackPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none text-slate-850 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none text-slate-900 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                 />
                 <button
                   type="button"
                   onClick={handleTrackOrder}
-                  className="w-full bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white py-2 rounded-lg font-bold text-xs uppercase tracking-wide transition active:scale-95 cursor-pointer border-none shadow-sm"
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition cursor-pointer border-none shadow-sm"
                 >
-                  Track Order
+                  Track Status
                 </button>
               </div>
 
               {trackingResult && (
-                <div className="bg-slate-50 p-3 rounded-lg border text-[11px] space-y-1.5 animate-fade-up shadow-sm">
+                <div className="bg-teal-50 p-3.5 rounded-xl border border-teal-200/60 text-[11px] space-y-1.5 animate-fade-up text-slate-800">
                   <div className="flex justify-between font-bold">
                     <span>Status:</span>
-                    <span className="text-indigo-650 font-extrabold">{trackingResult.status}</span>
+                    <span className="text-teal-700 font-black">{trackingResult.status}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Amount:</span>
-                    <span>₹{trackingResult.totalAmount}</span>
+                    <span>Total Amount:</span>
+                    <span className="font-black">₹{trackingResult.totalAmount}</span>
                   </div>
                   <div className="flex justify-between text-[9px] text-slate-400">
-                    <span>Date:</span>
+                    <span>Placed Date:</span>
                     <span>{new Date(trackingResult.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               )}
               {trackingError && (
-                <p className="text-[10px] text-red-500 font-bold animate-pulse">{trackingError}</p>
+                <p className="text-[10px] text-rose-500 font-bold animate-pulse">{trackingError}</p>
               )}
             </div>
-          </aside>
 
-          {/* ─── PRODUCT GRID ─── */}
-          <div className="flex-1 min-w-0 flex flex-col space-y-6">
-
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pb-3 border-b border-slate-200/60">
-              <span className="text-xs font-semibold text-slate-500 w-full sm:w-auto text-left">
-                Showing <strong className="text-slate-900">{filteredProducts.length}</strong> supplies
-              </span>
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                <button
-                  type="button"
-                  onClick={() => setFilterDrawerOpen(true)}
-                  className="sm:hidden flex items-center gap-1.5 px-3 py-1.5 bg-white border rounded-lg text-xs font-bold text-slate-700 cursor-pointer shadow-sm"
-                >
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-teal-500" />
-                  <span>Filters</span>
-                </button>
-
-                <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg p-0.5 shadow-sm">
-                  <button
-                    type="button"
-                    onClick={() => setViewMode("grid")}
-                    className={`p-1.5 rounded-md transition ${viewMode === "grid" ? "bg-slate-900 text-white" : "text-slate-400 hover:text-slate-600"}`}
-                  >
-                    <Grid3x3 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode("list")}
-                    className={`p-1.5 rounded-md transition ${viewMode === "list" ? "bg-slate-900 text-white" : "text-slate-400 hover:text-slate-600"}`}
-                  >
-                    <List className="w-3.5 h-3.5" />
-                  </button>
+            {/* Store Perks Section */}
+            <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-5 rounded-2xl text-white space-y-3.5 text-left shadow-lg hidden sm:block">
+              <span className="text-[9px] font-black uppercase tracking-widest text-teal-400 block">Zenzy Store Promises</span>
+              <div className="space-y-2.5 text-xs font-bold">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle className="w-4 h-4 text-teal-400 shrink-0" />
+                  <span>100% Genuine Trade Gear</span>
                 </div>
-
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">Sort:</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-1.5 bg-transparent hover:bg-slate-100 rounded-lg text-xs font-bold outline-none cursor-pointer text-slate-800 transition-colors border-none"
-                >
-                  <option value="popularity">Top Rated</option>
-                  <option value="price_asc">Price: Low → High</option>
-                  <option value="price_desc">Price: High → Low</option>
-                </select>
+                <div className="flex items-center gap-2.5">
+                  <Zap className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Dispatch within 24 Hours</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <span>GST Tax Invoice Included</span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <RotateCcw className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>7-Day Easy Replacement</span>
+                </div>
               </div>
             </div>
 
+          </aside>
+
+          {/* ─── MAIN PRODUCT GRID ─── */}
+          <div className="flex-1 min-w-0 flex flex-col space-y-6">
+
             {/* Filter Chips */}
             {(selectedCategory !== "All" || searchQuery || maxPriceFilter < 100000) && (
-              <div className="flex flex-wrap gap-2 pt-2">
+              <div className="flex flex-wrap gap-2 pt-1">
                 {selectedCategory !== "All" && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-teal-50 text-teal-600 border border-teal-200/50 text-[10px] font-black uppercase tracking-wider rounded-lg">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-teal-50 text-teal-700 border border-teal-200/60 text-[10px] font-black uppercase tracking-wider rounded-lg">
                     Category: {selectedCategory}
-                    <button onClick={() => setSelectedCategory("All")} className="hover:text-teal-800 ml-1">
+                    <button onClick={() => setSelectedCategory("All")} className="hover:text-teal-900 ml-1">
                       <X className="w-3 h-3" />
                     </button>
                   </span>
                 )}
                 {searchQuery && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200/50 text-[10px] font-black uppercase tracking-wider rounded-lg">
-                    Search: "{searchQuery}"
-                    <button onClick={() => setSearchQuery("")} className="hover:text-blue-800 ml-1">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200/60 text-[10px] font-black uppercase tracking-wider rounded-lg">
+                    Query: "{searchQuery}"
+                    <button onClick={() => setSearchQuery("")} className="hover:text-blue-900 ml-1">
                       <X className="w-3 h-3" />
                     </button>
                   </span>
                 )}
                 {maxPriceFilter < 100000 && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-600 border border-amber-200/50 text-[10px] font-black uppercase tracking-wider rounded-lg">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200/60 text-[10px] font-black uppercase tracking-wider rounded-lg">
                     Max Price: ₹{maxPriceFilter.toLocaleString()}
-                    <button onClick={() => setMaxPriceFilter(100000)} className="hover:text-amber-800 ml-1">
+                    <button onClick={() => setMaxPriceFilter(100000)} className="hover:text-amber-900 ml-1">
                       <X className="w-3 h-3" />
                     </button>
                   </span>
@@ -1904,59 +1984,42 @@ AI Assistant Rules:
                     setSearchQuery("");
                     setMaxPriceFilter(100000);
                   }}
-                  className="text-[10px] text-slate-405 hover:text-slate-600 font-black uppercase tracking-wider px-2 py-1 cursor-pointer border-none bg-transparent"
+                  className="text-[10px] text-slate-400 hover:text-slate-600 font-black uppercase tracking-wider px-2 py-1 cursor-pointer border-none bg-transparent"
                 >
                   Clear All
                 </button>
               </div>
             )}
 
+            {/* Skeleton Loading State */}
             {loading ? (
               <div className={`grid ${viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"} gap-6`}>
                 {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="bg-white/40 border border-slate-200/50 rounded-xl overflow-hidden flex flex-col h-[360px]">
-                    <div className="relative h-44 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 overflow-hidden">
-                      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                  <div key={i} className="bg-white/60 border border-slate-200/70 rounded-2xl overflow-hidden flex flex-col h-[380px]">
+                    <div className="relative h-48 bg-slate-200 overflow-hidden">
+                      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
                     </div>
                     <div className="p-5 space-y-3 flex-1">
-                      <div className="h-3 w-16 bg-gradient-to-r from-slate-200 to-slate-150 rounded-full overflow-hidden relative">
-                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_0.1s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                      </div>
-                      <div className="h-4 w-3/4 bg-gradient-to-r from-slate-200 to-slate-150 rounded overflow-hidden relative">
-                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_0.2s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                      </div>
-                      <div className="h-3 w-full bg-slate-200/80 rounded overflow-hidden relative">
-                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_0.3s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                      </div>
-                      <div className="h-3 w-5/6 bg-slate-200/80 rounded overflow-hidden relative">
-                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_0.35s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                      </div>
+                      <div className="h-3 w-16 bg-slate-200 rounded-full" />
+                      <div className="h-4 w-3/4 bg-slate-200 rounded" />
+                      <div className="h-3 w-full bg-slate-200 rounded" />
                     </div>
                     <div className="p-5 pt-4 border-t border-slate-100 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="h-5 w-20 bg-slate-200 rounded overflow-hidden relative">
-                          <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_0.4s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                        </div>
-                        <div className="h-4 w-10 bg-amber-100 rounded overflow-hidden relative">
-                          <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_0.45s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                        </div>
-                      </div>
-                      <div className="h-10 w-full bg-slate-200 rounded-xl overflow-hidden relative">
-                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_0.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                      </div>
+                      <div className="h-5 w-20 bg-slate-200 rounded" />
+                      <div className="h-10 w-full bg-slate-200 rounded-xl" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 space-y-5 text-center">
-                <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100">
+              <div className="flex flex-col items-center justify-center py-24 space-y-5 text-center bg-white/60 rounded-3xl border border-slate-200/70 p-8">
+                <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center border border-slate-200/60">
                   <ShoppingBag className="w-8 h-8 text-slate-300" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-slate-900 mb-1">No matching products</h3>
+                  <h3 className="text-lg font-black text-slate-900 mb-1">No matching supplies found</h3>
                   <p className="text-slate-500 text-xs max-w-sm mx-auto leading-relaxed">
-                    We couldn't find any supplies matching your current filters. Try adjusting categories or clearing the search.
+                    We couldn't find any products matching your selected category or price filter. Try adjusting your search query.
                   </p>
                 </div>
                 <button
@@ -1965,7 +2028,7 @@ AI Assistant Rules:
                     setSearchQuery("");
                     setMaxPriceFilter(100000);
                   }}
-                  className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition hover:-translate-y-0.5 shadow-sm cursor-pointer border-none"
+                  className="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition hover:-translate-y-0.5 shadow-md cursor-pointer border-none"
                 >
                   Clear All Filters
                 </button>
@@ -1981,26 +2044,26 @@ AI Assistant Rules:
                         setSelectedImageIdx(0);
                         setDetailQty(1);
                       }}
-                      className={`bg-white/80 backdrop-blur-md border border-slate-200/60 rounded-xl overflow-hidden flex flex-col justify-between hover:border-teal-500/50 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_rgba(13,148,136,0.15)] transition-all duration-300 group cursor-pointer relative ${viewMode === "list" ? "flex-row items-center p-4" : ""
+                      className={`bg-white/90 backdrop-blur-md border border-slate-200/70 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-teal-500/50 hover:-translate-y-1.5 hover:shadow-[0_20px_45px_rgba(13,148,136,0.12)] transition-all duration-300 group cursor-pointer relative ${viewMode === "list" ? "flex-row items-center p-4" : ""
                         }`}
                     >
                       {viewMode === "list" ? (
                         // ── LIST VIEW ──
                         <>
-                          <div className="relative h-32 w-32 shrink-0 bg-slate-50 rounded-lg overflow-hidden border border-slate-100">
+                          <div className="relative h-32 w-32 shrink-0 bg-slate-50 rounded-xl overflow-hidden border border-slate-100">
                             <img src={prod.image} alt={prod.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                             {prod.stock <= 0 && (
-                              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center text-white text-[8px] font-black uppercase tracking-widest">
+                              <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center text-white text-[8px] font-black uppercase tracking-widest">
                                 Out of Stock
                               </div>
                             )}
                           </div>
-                          <div className="flex-1 p-4 space-y-2">
+                          <div className="flex-1 p-4 space-y-2 text-left">
                             <div className="flex items-start justify-between gap-3">
                               <h4 className="font-extrabold text-sm text-slate-900 leading-snug line-clamp-1 group-hover:text-teal-600 transition-colors">
                                 {prod.name}
                               </h4>
-                              <span className="text-amber-500 font-bold text-xs shrink-0 flex items-center gap-0.5">
+                              <span className="text-amber-500 font-bold text-xs shrink-0 flex items-center gap-0.5 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">
                                 ★ {prod.rating || 4.5}
                               </span>
                             </div>
@@ -2008,10 +2071,13 @@ AI Assistant Rules:
                               {prod.description}
                             </p>
                             <div className="flex items-center justify-between pt-2">
-                              <span className="text-lg font-black text-slate-900">₹{prod.price.toLocaleString()}</span>
-                              <span className="text-[10px] text-slate-400 line-through font-semibold">
-                                ₹{Math.round(prod.price * 1.35).toLocaleString()}
-                              </span>
+                              <div className="flex items-baseline gap-2">
+                                <span className="text-lg font-black text-slate-900">₹{prod.price.toLocaleString()}</span>
+                                <span className="text-[10px] text-slate-400 line-through font-semibold">
+                                  ₹{Math.round(prod.price * 1.35).toLocaleString()}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-2 py-0.5 rounded-md">25% OFF</span>
                             </div>
                           </div>
                           <div className="p-4 shrink-0">
@@ -2022,7 +2088,7 @@ AI Assistant Rules:
                                   e.stopPropagation();
                                   handleNotifyMe(prod.id, prod.name, e);
                                 }}
-                                className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-2 px-4 rounded-lg font-extrabold text-xs uppercase tracking-widest transition-all duration-150 shadow-sm cursor-pointer hover:scale-[1.02] active:scale-95 border-none"
+                                className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 px-4 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-150 shadow-sm cursor-pointer hover:scale-[1.02] border-none"
                               >
                                 <Info className="w-3.5 h-3.5" />
                                 <span>Notify Me</span>
@@ -2034,9 +2100,9 @@ AI Assistant Rules:
                                   e.stopPropagation();
                                   handleAddToCart(prod);
                                 }}
-                                className="flex items-center justify-center gap-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white py-2 px-4 rounded-lg font-extrabold text-xs uppercase tracking-widest transition-all duration-150 shadow-sm cursor-pointer hover:scale-[1.02] active:scale-95 border-none"
+                                className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white py-2.5 px-5 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-150 shadow-md cursor-pointer border-none"
                               >
-                                <ShoppingCart className="w-3.5 h-3.5" />
+                                <ShoppingCart className="w-3.5 h-3.5 text-teal-400" />
                                 <span>Add</span>
                               </button>
                             )}
@@ -2045,13 +2111,13 @@ AI Assistant Rules:
                       ) : (
                         // ── GRID VIEW ──
                         <>
-                          <div>
-                            <div className="relative h-44 bg-slate-50 overflow-hidden border-b border-slate-100">
+                          <div className="text-left">
+                            <div className="relative h-48 bg-slate-50 overflow-hidden border-b border-slate-100">
                               <img
                                 src={prod.image}
                                 alt={prod.name}
                                 loading="lazy"
-                                className={`w-full h-full object-cover transition-all duration-500 ${prod.variants && prod.variants.length > 0 && (prod as any).images && (prod as any).images.length > 1
+                                className={`w-full h-full object-cover transition-all duration-700 ${prod.variants && prod.variants.length > 0 && (prod as any).images && (prod as any).images.length > 1
                                   ? "group-hover:opacity-0 group-hover:scale-105"
                                   : "group-hover:scale-105"
                                   }`}
@@ -2061,19 +2127,21 @@ AI Assistant Rules:
                                   src={(prod as any).images[1]}
                                   alt={prod.name}
                                   loading="lazy"
-                                  className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-all duration-500 scale-100 group-hover:scale-105"
+                                  className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-all duration-700 scale-100 group-hover:scale-105"
                                 />
                               )}
 
+                              {/* Wishlist Heart Button */}
                               <button
                                 type="button"
                                 onClick={(e) => handleToggleWishlist(prod.id, e)}
-                                className="absolute top-3 right-3 z-30 p-2 rounded-lg bg-white/95 text-slate-500 hover:text-rose-500 hover:scale-105 transition-all duration-200 shadow-lg border border-slate-150"
+                                className="absolute top-3 right-3 z-30 p-2.5 rounded-xl bg-white/95 backdrop-blur-md text-slate-400 hover:text-rose-500 hover:scale-110 transition-all duration-200 shadow-md border border-slate-100"
                               >
-                                <Heart className={`w-3.5 h-3.5 ${wishlist.includes(prod.id) ? "fill-rose-500 text-rose-500" : "text-slate-450"}`} />
+                                <Heart className={`w-4 h-4 ${wishlist.includes(prod.id) ? "fill-rose-500 text-rose-500" : "text-slate-400"}`} />
                               </button>
 
-                              <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-300 z-20">
+                              {/* Quick View Button on Hover */}
+                              <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-300 z-20">
                                 <button
                                   type="button"
                                   onClick={(e) => {
@@ -2082,19 +2150,20 @@ AI Assistant Rules:
                                     setSelectedImageIdx(0);
                                     setDetailQty(1);
                                   }}
-                                  className="p-2.5 rounded-xl bg-white text-slate-950 hover:bg-slate-50 transition transform translate-y-2 group-hover:translate-y-0 duration-300 shadow-lg flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider cursor-pointer border-none"
+                                  className="px-4 py-2.5 rounded-xl bg-white/95 text-slate-900 hover:bg-white transition transform translate-y-2 group-hover:translate-y-0 duration-300 shadow-xl flex items-center gap-2 text-xs font-black uppercase tracking-wider cursor-pointer border-none"
                                 >
-                                  <Eye className="w-3.5 h-3.5 text-indigo-600" />
+                                  <Eye className="w-4 h-4 text-teal-600" />
                                   <span>Quick View</span>
                                 </button>
                               </div>
 
+                              {/* Badges */}
                               <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-                                <span className="bg-black/70 backdrop-blur-md text-white px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">
+                                <span className="bg-slate-900/90 backdrop-blur-md text-white px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider">
                                   {prod.category}
                                 </span>
                                 {prod.stock > 0 && prod.stock <= 5 && (
-                                  <span className="bg-red-600 text-white px-2 py-0.5 rounded text-[8.5px] font-black uppercase tracking-widest animate-pulse">
+                                  <span className="bg-rose-600 text-white px-2 py-0.5 rounded-md text-[8.5px] font-black uppercase tracking-widest animate-pulse">
                                     Only {prod.stock} Left
                                   </span>
                                 )}
@@ -2103,7 +2172,7 @@ AI Assistant Rules:
                               <ProductTimer productId={prod.id} />
 
                               {prod.stock <= 0 && (
-                                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center text-white text-xs font-black uppercase tracking-widest z-20">
+                                <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center text-white text-xs font-black uppercase tracking-widest z-20">
                                   🚫 Out of Stock
                                 </div>
                               )}
@@ -2114,7 +2183,7 @@ AI Assistant Rules:
                                 <h4 className="font-extrabold text-[13px] text-slate-900 leading-snug line-clamp-1 group-hover:text-teal-600 transition-colors">
                                   {prod.name}
                                 </h4>
-                                <span className="text-amber-500 font-bold text-xs shrink-0 flex items-center gap-0.5">
+                                <span className="text-amber-500 font-bold text-xs shrink-0 flex items-center gap-0.5 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/50">
                                   ★ {prod.rating || 4.5}
                                 </span>
                               </div>
@@ -2124,9 +2193,9 @@ AI Assistant Rules:
                             </div>
                           </div>
 
-                          <div className="p-5 pt-4 border-t border-slate-100 space-y-3 bg-slate-50/30">
+                          <div className="p-5 pt-4 border-t border-slate-100 space-y-3 bg-slate-50/40 text-left">
                             <div className="flex justify-between items-center">
-                              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Price</span>
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Special Price</span>
                               <div className="text-right">
                                 <span className="text-[10px] text-slate-400 line-through mr-1.5 font-semibold">
                                   ₹{Math.round(prod.price * 1.35).toLocaleString()}
@@ -2142,7 +2211,7 @@ AI Assistant Rules:
                                   e.stopPropagation();
                                   handleNotifyMe(prod.id, prod.name, e);
                                 }}
-                                className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-150 shadow-sm cursor-pointer hover:scale-[1.02] active:scale-95 border-none"
+                                className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-150 shadow-sm cursor-pointer border-none"
                               >
                                 <Info className="w-4 h-4" />
                                 <span>Notify Me</span>
@@ -2154,15 +2223,15 @@ AI Assistant Rules:
                                   e.stopPropagation();
                                   handleAddToCart(prod);
                                 }}
-                                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white py-3 rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-150 shadow-sm cursor-pointer hover:scale-[1.02] active:scale-95 border-none"
+                                className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-150 shadow-md cursor-pointer border-none"
                               >
                                 {cartAnimProductId === prod.id ? (
                                   <span className="flex items-center gap-1.5 text-teal-400 font-black">
-                                    <CheckCircle className="w-4 h-4 text-teal-400 animate-bounce" /> Added!
+                                    <CheckCircle className="w-4 h-4 text-teal-400 animate-bounce" /> Added to Cart!
                                   </span>
                                 ) : (
                                   <>
-                                    <ShoppingCart className="w-4 h-4" />
+                                    <ShoppingCart className="w-4 h-4 text-teal-400" />
                                     <span>Add to Cart</span>
                                   </>
                                 )}
@@ -2176,17 +2245,17 @@ AI Assistant Rules:
                 </div>
 
                 {filteredProducts.length > visibleCount && (
-                  <div className="py-10 border-t border-slate-200/50 flex flex-col items-center justify-center gap-4 text-slate-500 text-xs font-bold animate-fade-up">
+                  <div className="py-10 border-t border-slate-200/60 flex flex-col items-center justify-center gap-4 text-slate-500 text-xs font-bold animate-fade-up">
                     <div className="flex items-center gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-ping" />
-                      <span>Scroll or click below to load more supplies...</span>
+                      <span className="w-2 h-2 rounded-full bg-teal-500 animate-ping" />
+                      <span>More certified supplies available below...</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setVisibleCount((prev) => Math.min(prev + 12, filteredProducts.length))}
-                      className="bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white px-5 py-2.5 rounded-xl font-bold uppercase tracking-wider transition hover:-translate-y-0.5 shadow-md cursor-pointer border-none"
+                      className="bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white px-6 py-3 rounded-xl font-black uppercase tracking-wider transition hover:-translate-y-0.5 shadow-md cursor-pointer border-none"
                     >
-                      Load More Products
+                      Load More Supplies
                     </button>
                   </div>
                 )}
@@ -2196,61 +2265,61 @@ AI Assistant Rules:
         </div>
 
         {/* ─── TRUST BADGES ─── */}
-        <div className="mt-20 pt-10 border-t border-slate-200/60 grid grid-cols-2 md:grid-cols-5 gap-6 text-center animate-fade-up">
-          <div className="flex flex-col items-center gap-2.5 group">
-            <div className="w-12 h-12 rounded-xl bg-white border border-slate-200/60 flex items-center justify-center text-slate-700 group-hover:text-teal-500 group-hover:scale-105 group-hover:shadow-lg transition-all duration-300">
-              <Truck className="w-5 h-5" />
+        <div className="mt-24 pt-12 border-t border-slate-200/70 grid grid-cols-2 md:grid-cols-5 gap-6 text-center animate-fade-up">
+          <div className="flex flex-col items-center gap-3 group p-4 bg-white/80 rounded-2xl border border-slate-200/60 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+              <Truck className="w-6 h-6" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Free Shipping</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">Free Express Shipping</span>
           </div>
-          <div className="flex flex-col items-center gap-2.5 group">
-            <div className="w-12 h-12 rounded-xl bg-white border border-slate-200/60 flex items-center justify-center text-slate-700 group-hover:text-teal-500 group-hover:scale-105 group-hover:shadow-lg transition-all duration-300">
-              <ShieldCheck className="w-5 h-5" />
+          <div className="flex flex-col items-center gap-3 group p-4 bg-white/80 rounded-2xl border border-slate-200/60 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+              <ShieldCheck className="w-6 h-6" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Secure Payments</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">100% Secure Checkout</span>
           </div>
-          <div className="flex flex-col items-center gap-2.5 group">
-            <div className="w-12 h-12 rounded-xl bg-white border border-slate-200/60 flex items-center justify-center text-slate-700 group-hover:text-teal-500 group-hover:scale-105 group-hover:shadow-lg transition-all duration-300">
-              <RefreshCw className="w-5 h-5" />
+          <div className="flex flex-col items-center gap-3 group p-4 bg-white/80 rounded-2xl border border-slate-200/60 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+              <RotateCcw className="w-6 h-6" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Easy Returns</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">7 Days Easy Return</span>
           </div>
-          <div className="flex flex-col items-center gap-2.5 group">
-            <div className="w-12 h-12 rounded-xl bg-white border border-slate-200/60 flex items-center justify-center text-slate-700 group-hover:text-teal-500 group-hover:scale-105 group-hover:shadow-lg transition-all duration-300">
-              <Zap className="w-5 h-5" />
+          <div className="flex flex-col items-center gap-3 group p-4 bg-white/80 rounded-2xl border border-slate-200/60 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+              <Zap className="w-6 h-6" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Fast Delivery</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">Dispatch in 24 Hours</span>
           </div>
-          <div className="flex flex-col items-center gap-2.5 group">
-            <div className="w-12 h-12 rounded-xl bg-white border border-slate-200/60 flex items-center justify-center text-slate-700 group-hover:text-teal-500 group-hover:scale-105 group-hover:shadow-lg transition-all duration-300">
-              <Headphones className="w-5 h-5" />
+          <div className="flex flex-col items-center gap-3 group p-4 bg-white/80 rounded-2xl border border-slate-200/60 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+              <Headphones className="w-6 h-6" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">24/7 Support</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-700">24/7 Verified Support</span>
           </div>
         </div>
 
       </main>
 
-      {/* ─── ZEN AI CHAT MODAL ─── */}
+      {/* ─── ZEN AI CHAT MODAL / DRAWER ─── */}
       {zenAiOpen && (
-        <div className="fixed inset-0 z-[200] bg-slate-900/40 backdrop-blur-sm flex justify-end animate-fade-in">
+        <div className="fixed inset-0 z-[200] bg-slate-950/60 backdrop-blur-sm flex justify-end animate-fade-in">
           <div className="absolute inset-0 cursor-pointer" onClick={() => setZenAiOpen(false)} />
 
-          <div className="relative bg-white w-full max-w-sm h-full flex flex-col shadow-2xl border-l border-slate-200/50 animate-slide-left">
+          <div className="relative bg-white w-full max-w-sm h-full flex flex-col shadow-2xl border-l border-slate-200/80 animate-slide-left">
 
             <div className="p-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-teal-500/20">
-                  <Sparkles className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-teal-500/20">
+                  <Sparkles className="w-5 h-5 fill-current" />
                 </div>
-                <div>
+                <div className="text-left">
                   <h4 className="font-black text-sm text-slate-900 tracking-tight">Zen AI Assistant</h4>
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Always here to help</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Marketplace Guide</p>
                 </div>
               </div>
               <button
                 onClick={() => setZenAiOpen(false)}
-                className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 flex items-center justify-center transition cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 flex items-center justify-center transition cursor-pointer border-none"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2260,19 +2329,18 @@ AI Assistant Rules:
               {aiMessages.map((m, idx) => (
                 <div
                   key={idx}
-                  className={`flex max-w-[82%] ${m.role === "user" ? "ml-auto" : "mr-auto"}`}
+                  className={`flex max-w-[85%] ${m.role === "user" ? "ml-auto" : "mr-auto"}`}
                 >
                   <div
-                    className={`p-3.5 rounded-2xl text-xs font-semibold leading-relaxed text-left ${m.role === "user"
-                      ? "bg-gradient-to-r from-teal-600 to-teal-500 text-white rounded-tr-none shadow-lg shadow-teal-500/20"
-                      : "bg-white/80 backdrop-blur-md text-slate-800 rounded-tl-none shadow-sm border border-slate-100/80"
+                    className={`p-4 rounded-2xl text-xs font-semibold leading-relaxed text-left ${m.role === "user"
+                      ? "bg-slate-900 text-white rounded-tr-none shadow-md"
+                      : "bg-white text-slate-800 rounded-tl-none shadow-sm border border-slate-200/70"
                       }`}
-                    style={m.role === "user" ? { backgroundColor: "#0d9488", color: "#ffffff" } : undefined}
                   >
                     {m.role === "assistant" && m.content === "" && aiIsTyping ? (
-                      <div className="text-teal-600 whitespace-pre-wrap">
+                      <div className="text-teal-600 whitespace-pre-wrap font-mono">
                         {aiDisplayedMessage}
-                        <span className="inline-block w-0.5 h-3 bg-teal-500 animate-pulse ml-0.5"></span>
+                        <span className="inline-block w-1 h-3 bg-teal-500 animate-pulse ml-0.5"></span>
                       </div>
                     ) : (
                       <div className="whitespace-pre-wrap">
@@ -2284,7 +2352,7 @@ AI Assistant Rules:
               ))}
 
               {aiLoading && !aiIsTyping && (
-                <div className="max-w-[85%] mr-auto p-3.5 bg-white/80 backdrop-blur-md rounded-2xl rounded-tl-none flex flex-col gap-2 animate-fade-in border border-slate-100/80 shadow-sm">
+                <div className="max-w-[85%] mr-auto p-4 bg-white rounded-2xl rounded-tl-none flex flex-col gap-2 animate-fade-in border border-slate-200/70 shadow-sm text-left">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1 shrink-0">
                       <div className="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
@@ -2295,26 +2363,21 @@ AI Assistant Rules:
                       {loadingStatuses[loadingStatusIdx]}
                     </span>
                   </div>
-                  <div className="space-y-1.5 w-36 sm:w-48 pt-1">
-                    <div className="h-1.5 bg-slate-200 rounded-full w-full animate-pulse"></div>
-                    <div className="h-1.5 bg-slate-200 rounded-full w-[85%] animate-pulse"></div>
-                    <div className="h-1.5 bg-slate-200 rounded-full w-[60%] animate-pulse"></div>
-                  </div>
                 </div>
               )}
               <div ref={aiChatEndRef} />
 
               {aiMessages.length === 1 && (
-                <div className="flex flex-wrap gap-2 pt-2 animate-fade-up" style={{ animationDelay: '100ms' }}>
+                <div className="flex flex-wrap gap-2 pt-2 animate-fade-up">
                   <button
                     onClick={(e) => handleAiSend(e, "Where is my order?")}
-                    className="text-[10px] font-bold bg-white border border-slate-200 px-3 py-1.5 rounded-full text-slate-600 hover:text-teal-500 hover:border-teal-500 transition-colors shadow-sm"
+                    className="text-[10px] font-bold bg-white border border-slate-200 px-3 py-1.5 rounded-full text-slate-600 hover:text-teal-600 hover:border-teal-400 transition-colors shadow-sm cursor-pointer"
                   >
                     Where is my order?
                   </button>
                   <button
-                    onClick={(e) => handleAiSend(e, "Find best tools")}
-                    className="text-[10px] font-bold bg-white border border-slate-200 px-3 py-1.5 rounded-full text-slate-600 hover:text-teal-500 hover:border-teal-500 transition-colors shadow-sm"
+                    onClick={(e) => handleAiSend(e, "Find best cordless drills")}
+                    className="text-[10px] font-bold bg-white border border-slate-200 px-3 py-1.5 rounded-full text-slate-600 hover:text-teal-600 hover:border-teal-400 transition-colors shadow-sm cursor-pointer"
                   >
                     Find best tools
                   </button>
@@ -2324,23 +2387,23 @@ AI Assistant Rules:
 
             <div className="p-4 bg-white border-t border-slate-100 shrink-0">
               {(aiLoading || aiIsTyping) && (
-                <div className="flex justify-center pb-2.5 bg-transparent shrink-0">
+                <div className="flex justify-center pb-2.5">
                   <button
                     type="button"
                     onClick={handleStopResponse}
-                    className="flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3.5 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider transition-all shadow-sm hover:shadow active:scale-95 cursor-pointer border-none"
+                    className="flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition cursor-pointer"
                   >
-                    <span className="w-1.5 h-1.5 bg-rose-650 rounded-sm animate-pulse"></span>
-                    Stop Generating
+                    <span className="w-1.5 h-1.5 bg-rose-600 rounded-sm animate-pulse"></span>
+                    Stop Response
                   </button>
                 </div>
               )}
               {!user ? (
                 <div className="text-center space-y-2 py-1">
-                  <p className="text-[10px] font-semibold text-slate-500">Authenticate to use ZEN AI</p>
+                  <p className="text-[10px] font-semibold text-slate-500">Log in to consult Zen AI</p>
                   <button
                     onClick={() => openAuthModal("login")}
-                    className="bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition cursor-pointer border-none shadow-sm"
+                    className="bg-slate-900 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition cursor-pointer border-none shadow-sm"
                   >
                     Log In
                   </button>
@@ -2349,35 +2412,16 @@ AI Assistant Rules:
                 <form onSubmit={(e) => handleAiSend(e)} className="relative flex items-center bg-slate-50 rounded-xl p-1.5 border border-slate-200 focus-within:border-teal-500 transition-all">
                   <input
                     type="text"
-                    placeholder={
-                      (aiQueriesUsed >= (siteConfig?.aiUsageLimit ?? 10) && !((user?.email && [
-                        "ishantpbupadhyay@gmail.com",
-                        "25tec2cs089@vgu.ac.in",
-                        "ibpoffecial@gmail.com",
-                        "ibpofficial@gmail.com"
-                      ].includes(user.email.toLowerCase()))))
-                        ? "Limit reached"
-                        : "Ask Zen AI..."
-                    }
-                    disabled={(aiQueriesUsed >= (siteConfig?.aiUsageLimit ?? 10) && !((user?.email && [
-                      "ishantpbupadhyay@gmail.com",
-                      "25tec2cs089@vgu.ac.in",
-                      "ibpoffecial@gmail.com",
-                      "ibpofficial@gmail.com"
-                    ].includes(user.email.toLowerCase())))) || aiLoading}
+                    placeholder="Ask Zen AI about products, stock..."
+                    disabled={aiLoading}
                     value={aiInputValue}
                     onChange={(e) => setAiInputValue(e.target.value)}
                     className="w-full bg-transparent px-3 py-2 text-xs font-semibold text-slate-900 placeholder-slate-400 outline-none"
                   />
                   <button
                     type="submit"
-                    disabled={!aiInputValue.trim() || aiLoading || (aiQueriesUsed >= (siteConfig?.aiUsageLimit ?? 10) && !((user?.email && [
-                      "ishantpbupadhyay@gmail.com",
-                      "25tec2cs089@vgu.ac.in",
-                      "ibpoffecial@gmail.com",
-                      "ibpofficial@gmail.com"
-                    ].includes(user.email.toLowerCase()))))}
-                    className="p-2.5 bg-gradient-to-r from-slate-900 to-slate-800 text-white hover:from-teal-600 hover:to-teal-500 hover:text-white rounded-lg transition-all duration-200 cursor-pointer shrink-0 border-none shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                    disabled={!aiInputValue.trim() || aiLoading}
+                    className="p-2.5 bg-slate-900 text-white hover:bg-teal-600 rounded-lg transition-all duration-200 cursor-pointer shrink-0 border-none shadow-sm disabled:opacity-40"
                   >
                     {aiLoading ? (
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -2393,24 +2437,24 @@ AI Assistant Rules:
         </div>
       )}
 
-      {/* ─── SHOPPING CART SHEET ─── */}
+      {/* ─── SHOPPING CART DRAWER ─── */}
       {cartOpen && (
-        <div className="fixed inset-0 z-[150] bg-slate-900/40 backdrop-blur-sm flex justify-end animate-fade-in">
+        <div className="fixed inset-0 z-[150] bg-slate-950/60 backdrop-blur-sm flex justify-end animate-fade-in">
           <div className="absolute inset-0 cursor-pointer" onClick={() => setCartOpen(false)} />
 
-          <div className="relative bg-white w-full max-w-sm h-full flex flex-col shadow-2xl border-l border-slate-200/50 animate-slide-left">
+          <div className="relative bg-white w-full max-w-sm h-full flex flex-col shadow-2xl border-l border-slate-200/80 animate-slide-left">
 
             <div className="p-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
               <div className="flex items-center gap-2.5">
-                <ShoppingCart className="w-4.5 h-4.5 text-slate-900" />
+                <ShoppingCart className="w-5 h-5 text-slate-900" />
                 <h4 className="font-black text-base text-slate-900 tracking-tight">Your Cart</h4>
-                <span className="bg-slate-100 text-slate-650 text-[10px] font-black px-2 py-0.5 rounded-md">
-                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                <span className="bg-teal-50 text-teal-700 text-[10px] font-black px-2.5 py-0.5 rounded-md border border-teal-200/50">
+                  {cart.reduce((sum, item) => sum + item.quantity, 0)} Items
                 </span>
               </div>
               <button
                 onClick={() => setCartOpen(false)}
-                className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-505 hover:text-slate-900 flex items-center justify-center transition cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-900 flex items-center justify-center transition cursor-pointer border-none"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2418,24 +2462,27 @@ AI Assistant Rules:
 
             <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-slate-50 to-white space-y-4">
               {cart.length > 0 && cartInvoice.subtotal < 499 && (
-                <div className="bg-teal-500/5 p-3.5 rounded-xl border border-teal-500/10 text-[10px] font-bold space-y-2 text-left">
+                <div className="bg-teal-50 p-4 rounded-2xl border border-teal-200/60 text-[10px] font-bold space-y-2 text-left">
                   <div className="flex justify-between text-slate-700">
                     <span>Add <strong className="text-slate-900">₹{(499 - cartInvoice.subtotal).toLocaleString()}</strong> more for free delivery</span>
-                    <span>{Math.round((cartInvoice.subtotal / 499) * 100)}%</span>
+                    <span className="font-black text-teal-700">{Math.round((cartInvoice.subtotal / 499) * 100)}%</span>
                   </div>
-                  <div className="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
-                    <div className="bg-gradient-to-r from-teal-500 to-cyan-500 h-full rounded-full transition-all duration-300" style={{ width: `${Math.min(100, (cartInvoice.subtotal / 499) * 100)}%` }} />
+                  <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                    <div className="bg-gradient-to-r from-teal-500 to-emerald-500 h-full rounded-full transition-all duration-300" style={{ width: `${Math.min(100, (cartInvoice.subtotal / 499) * 100)}%` }} />
                   </div>
                 </div>
               )}
 
               {cart.length === 0 ? (
-                <div className="text-center py-24 text-slate-500 font-medium text-xs space-y-3 flex flex-col items-center">
-                  <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mb-1">
-                    <ShoppingBag className="w-5 h-5 opacity-40" />
+                <div className="text-center py-24 text-slate-500 font-medium text-xs space-y-4 flex flex-col items-center">
+                  <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center border border-slate-200/60">
+                    <ShoppingBag className="w-7 h-7 opacity-30" />
                   </div>
-                  <p>Your shopping cart is empty</p>
-                  <button onClick={() => setCartOpen(false)} className="text-teal-600 font-bold hover:underline cursor-pointer border-none bg-transparent">Continue shopping</button>
+                  <div>
+                    <p className="font-bold text-slate-800 text-sm">Your shopping cart is empty</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Explore our trade supplies catalog</p>
+                  </div>
+                  <button onClick={() => setCartOpen(false)} className="text-teal-600 font-black hover:underline cursor-pointer border-none bg-transparent text-xs uppercase tracking-wider">Start Shopping →</button>
                 </div>
               ) : (
                 <>
@@ -2443,37 +2490,37 @@ AI Assistant Rules:
                     {cart.map((item) => (
                       <div
                         key={item.product.id}
-                        className="bg-white border border-slate-200/60 p-3.5 rounded-xl flex items-center justify-between gap-3 shadow-sm hover:shadow-md transition-all"
+                        className="bg-white border border-slate-200/70 p-4 rounded-2xl flex items-center justify-between gap-3 shadow-sm hover:shadow-md transition-all text-left"
                       >
-                        <img src={item.product.image} className="w-12 h-12 rounded-lg object-cover border border-slate-100 shrink-0 bg-slate-50" alt="" />
-                        <div className="flex-1 min-w-0 text-left">
-                          <h5 className="font-bold text-xs text-slate-900 truncate">{item.product.name}</h5>
-                          <span className="text-[11px] text-slate-500 block mt-0.5 font-semibold">₹{item.product.price.toLocaleString()} each</span>
+                        <img src={item.product.image} className="w-14 h-14 rounded-xl object-cover border border-slate-100 shrink-0 bg-slate-50" alt="" />
+                        <div className="flex-1 min-w-0">
+                          <h5 className="font-extrabold text-xs text-slate-900 truncate">{item.product.name}</h5>
+                          <span className="text-[11px] text-slate-500 block mt-0.5 font-bold">₹{item.product.price.toLocaleString()} each</span>
                         </div>
 
-                        <div className="flex flex-col items-end gap-2.5 shrink-0">
+                        <div className="flex flex-col items-end gap-2 shrink-0">
                           <button
                             type="button"
                             onClick={() => handleRemoveFromCart(item.product.id)}
-                            className="text-slate-400 hover:text-red-500 transition p-1 cursor-pointer bg-transparent border-none"
+                            className="text-slate-400 hover:text-rose-500 transition p-1 cursor-pointer bg-transparent border-none"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
-                          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+                          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-1">
                             <button
                               type="button"
                               onClick={() => handleUpdateQty(item.product.id, -1)}
-                              className="w-5 h-5 rounded-md hover:bg-white flex items-center justify-center transition cursor-pointer text-slate-600 border-none bg-transparent"
+                              className="w-5 h-5 rounded-lg hover:bg-white flex items-center justify-center transition cursor-pointer text-slate-600 border-none bg-transparent"
                             >
-                              <Minus className="w-2.5 h-2.5" />
+                              <Minus className="w-3 h-3" />
                             </button>
-                            <span className="text-[11px] font-black text-slate-900 min-w-[14px] text-center">{item.quantity}</span>
+                            <span className="text-[11px] font-black text-slate-900 min-w-[16px] text-center">{item.quantity}</span>
                             <button
                               type="button"
                               onClick={() => handleUpdateQty(item.product.id, 1)}
-                              className="w-5 h-5 rounded-md hover:bg-white flex items-center justify-center transition cursor-pointer text-slate-600 border-none bg-transparent"
+                              className="w-5 h-5 rounded-lg hover:bg-white flex items-center justify-center transition cursor-pointer text-slate-600 border-none bg-transparent"
                             >
-                              <Plus className="w-2.5 h-2.5" />
+                              <Plus className="w-3 h-3" />
                             </button>
                           </div>
                         </div>
@@ -2481,24 +2528,27 @@ AI Assistant Rules:
                     ))}
                   </div>
 
+                  {/* Frequently Bought Together Recommendation */}
                   {(() => {
                     const bundleItem = getBundleSuggestion();
                     if (!bundleItem) return null;
                     return (
-                      <div className="p-3.5 bg-indigo-500/5 rounded-xl border border-indigo-500/10 text-left space-y-2 animate-fade-up">
-                        <span className="text-[9.5px] font-black uppercase tracking-widest text-indigo-650 block">Frequently Bought Together</span>
+                      <div className="p-4 bg-gradient-to-r from-teal-500/10 via-cyan-500/10 to-transparent rounded-2xl border border-teal-500/20 text-left space-y-2.5 animate-fade-up">
+                        <span className="text-[9.5px] font-black uppercase tracking-widest text-teal-700 block flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-teal-500" /> Frequently Bought Together
+                        </span>
                         <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2">
-                            <img src={bundleItem.image} className="w-9 h-9 rounded-lg object-cover bg-slate-50 border" alt="" />
+                          <div className="flex items-center gap-2.5">
+                            <img src={bundleItem.image} className="w-10 h-10 rounded-xl object-cover bg-white border shrink-0" alt="" />
                             <div className="min-w-0">
-                              <h6 className="font-extrabold text-[11px] text-slate-800 truncate max-w-[150px]">{bundleItem.name}</h6>
-                              <span className="text-[10px] text-indigo-600 font-bold block">₹{bundleItem.price}</span>
+                              <h6 className="font-extrabold text-[11px] text-slate-900 truncate max-w-[140px]">{bundleItem.name}</h6>
+                              <span className="text-[10px] text-teal-600 font-black block">₹{bundleItem.price}</span>
                             </div>
                           </div>
                           <button
                             type="button"
                             onClick={() => handleAddToCart(bundleItem, false)}
-                            className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider cursor-pointer border-none shadow-sm"
+                            className="bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider cursor-pointer border-none shadow-sm shrink-0"
                           >
                             + Add
                           </button>
@@ -2511,10 +2561,10 @@ AI Assistant Rules:
             </div>
 
             {cart.length > 0 && (
-              <div className="p-6 border-t border-slate-100 bg-white shrink-0 space-y-5 shadow-[0_-10px_30px_rgba(0,0,0,0.03)]">
-                <div className="space-y-2.5 text-xs font-semibold text-slate-650">
+              <div className="p-6 border-t border-slate-100 bg-white shrink-0 space-y-5 shadow-[0_-10px_30px_rgba(0,0,0,0.03)] text-left">
+                <div className="space-y-2.5 text-xs font-semibold text-slate-600">
                   <div className="flex justify-between">
-                    <span>Subtotal</span>
+                    <span>Items Subtotal</span>
                     <span className="text-slate-900 font-bold">₹{cartInvoice.subtotal.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
@@ -2526,7 +2576,7 @@ AI Assistant Rules:
                     <span className="text-teal-600 font-bold">{cartInvoice.deliveryFee === 0 ? "FREE" : `₹${cartInvoice.deliveryFee}`}</span>
                   </div>
                   <div className="border-t border-slate-100 my-3 pt-3 flex justify-between items-end">
-                    <span className="font-bold text-slate-900 text-sm">Total</span>
+                    <span className="font-bold text-slate-900 text-sm">Grand Total</span>
                     <span className="text-xl font-black text-slate-900 tracking-tight">₹{cartInvoice.grandTotal.toLocaleString()}</span>
                   </div>
                 </div>
@@ -2537,7 +2587,7 @@ AI Assistant Rules:
                     setCartOpen(false);
                     handleOpenCartCheckout();
                   }}
-                  className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white py-4 rounded-xl font-black uppercase transition-all duration-200 cursor-pointer text-center block text-xs tracking-widest shadow-lg shadow-teal-500/20 hover:-translate-y-0.5 active:scale-[0.98] border-none"
+                  className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white py-4 rounded-2xl font-black uppercase transition-all duration-200 cursor-pointer text-center block text-xs tracking-widest shadow-xl shadow-teal-500/25 hover:-translate-y-0.5 active:scale-[0.98] border-none"
                 >
                   Proceed to Checkout
                 </button>
@@ -2549,13 +2599,13 @@ AI Assistant Rules:
 
       {/* ─── CHECKOUT MODAL ─── */}
       {checkoutOpen && (
-        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-fade-in">
-          <div className={`bg-white w-full rounded-2xl overflow-hidden shadow-2xl relative transition-all duration-300 animate-fade-up ${orderPayment === "UPI QR" ? "max-w-[700px]" : "max-w-[420px]"
+        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className={`bg-white w-full rounded-3xl overflow-hidden shadow-2xl relative transition-all duration-300 animate-scale-in border border-slate-200/80 ${orderPayment === "UPI QR" ? "max-w-[720px]" : "max-w-[440px]"
             }`}>
-            <div className="p-5 bg-gradient-to-r from-slate-900 to-slate-800 border-b border-white/10 text-white relative flex justify-between items-center">
+            <div className="p-6 bg-slate-900 border-b border-white/10 text-white flex justify-between items-center text-left">
               <div>
-                <h3 className="font-black text-base tracking-tight">Complete Order</h3>
-                <p className="text-[11px] text-slate-400 font-semibold mt-0.5">Total to pay: <span className="text-teal-400">₹{activeInvoice.grandTotal.toLocaleString()}</span></p>
+                <h3 className="font-black text-lg tracking-tight">Complete Your Order</h3>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">Grand Total: <span className="text-teal-400 font-bold">₹{activeInvoice.grandTotal.toLocaleString()}</span></p>
               </div>
               <button
                 type="button"
@@ -2563,33 +2613,33 @@ AI Assistant Rules:
                   setCheckoutOpen(false);
                   setOrderSuccess(false);
                 }}
-                className="w-8 h-8 rounded-lg bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition cursor-pointer border-none"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {orderSuccess ? (
-              <div className="p-8 text-center space-y-5">
-                <div className="w-16 h-16 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-teal-500/20">
-                  <CheckCircle className="w-8 h-8" />
+              <div className="p-8 text-center space-y-6">
+                <div className="w-20 h-20 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-teal-500/20 border border-teal-200/60">
+                  <CheckCircle className="w-10 h-10 text-teal-600" />
                 </div>
                 <div>
-                  <h4 className="font-black text-slate-900 text-lg mb-1.5">Order Confirmed!</h4>
-                  <p className="text-slate-500 text-xs font-medium leading-relaxed max-w-[280px] mx-auto">
-                    Your order has been successfully placed. {orderPayment === "UPI QR" ? "We are verifying your transaction ID." : "Prepare cash on delivery."}
+                  <h4 className="font-black text-slate-900 text-xl mb-1.5">Order Confirmed!</h4>
+                  <p className="text-slate-500 text-xs font-medium leading-relaxed max-w-[300px] mx-auto">
+                    Your order has been received and sent for dispatch processing. {orderPayment === "UPI QR" ? "We are verifying your transaction ID." : "Prepare cash on delivery."}
                   </p>
                 </div>
-                <div className="flex flex-col gap-2.5 pt-3 max-w-[240px] mx-auto">
+                <div className="flex flex-col gap-3 pt-2 max-w-[260px] mx-auto">
                   <Link
                     href="/dashboard"
                     onClick={() => {
                       setCheckoutOpen(false);
                       setOrderSuccess(false);
                     }}
-                    className="w-full bg-gradient-to-r from-slate-900 to-slate-800 text-white py-3.5 rounded-xl font-bold uppercase transition text-center text-xs tracking-widest shadow-sm hover:-translate-y-0.5"
+                    className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase transition text-center text-xs tracking-widest shadow-md hover:-translate-y-0.5"
                   >
-                    Track Order
+                    Track Order Status
                   </Link>
                   <button
                     type="button"
@@ -2597,7 +2647,7 @@ AI Assistant Rules:
                       setCheckoutOpen(false);
                       setOrderSuccess(false);
                     }}
-                    className="w-full bg-slate-50 hover:bg-slate-100 py-3.5 rounded-xl font-bold uppercase transition text-xs tracking-widest text-slate-700"
+                    className="w-full bg-slate-100 hover:bg-slate-200 py-3.5 rounded-2xl font-bold uppercase transition text-xs tracking-widest text-slate-700 border-none cursor-pointer"
                   >
                     Continue Shopping
                   </button>
@@ -2605,10 +2655,10 @@ AI Assistant Rules:
               </div>
             ) : (
               <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x border-slate-200 max-h-[85vh] overflow-y-auto">
-                <form onSubmit={handlePlaceOrder} className="flex-1 p-6 space-y-4 text-xs font-medium">
+                <form onSubmit={handlePlaceOrder} className="flex-1 p-6 space-y-4 text-xs font-medium text-left">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                      <User className="w-3 h-3" /> Full Name
+                      <User className="w-3.5 h-3.5 text-teal-500" /> Full Name
                     </label>
                     <input
                       type="text"
@@ -2616,12 +2666,12 @@ AI Assistant Rules:
                       value={orderName}
                       onChange={(e) => setOrderName(e.target.value)}
                       placeholder="e.g. Jane Doe"
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 text-slate-900 transition-all"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 text-slate-900 transition-all font-semibold"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                      <Phone className="w-3 h-3" /> Phone (10 Digits)
+                      <Phone className="w-3.5 h-3.5 text-teal-500" /> 10-Digit Mobile Number
                     </label>
                     <input
                       type="tel"
@@ -2636,21 +2686,21 @@ AI Assistant Rules:
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                      <MapPin className="w-3 h-3" /> Delivery Address
+                      <MapPin className="w-3.5 h-3.5 text-teal-500" /> Shipping Address
                     </label>
                     <textarea
                       required
                       rows={3}
                       value={orderAddress}
                       onChange={(e) => setOrderAddress(e.target.value)}
-                      placeholder="Flat, building, street, PIN code..."
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 text-slate-900 resize-none transition-all leading-relaxed"
+                      placeholder="Flat/House No., Street, City, PIN Code..."
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 text-slate-900 resize-none transition-all leading-relaxed font-semibold"
                     />
                   </div>
 
                   <div className="space-y-1.5 pt-1">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block flex items-center gap-1.5">
-                      <Tag className="w-3 h-3" /> Coupon Code
+                      <Tag className="w-3.5 h-3.5 text-teal-500" /> Apply Promo Code
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -2658,31 +2708,31 @@ AI Assistant Rules:
                         placeholder="e.g. SAVE10"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                        className="flex-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold uppercase tracking-wider text-slate-900 focus:border-teal-500"
+                        className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-black uppercase tracking-wider text-slate-900 focus:border-teal-500"
                       />
                       <button
                         type="button"
                         onClick={handleApplyCoupon}
-                        className="bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition active:scale-95 cursor-pointer border-none shadow-sm"
+                        className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition active:scale-95 cursor-pointer border-none shadow-sm"
                       >
                         Apply
                       </button>
                     </div>
                     {appliedCoupon ? (
-                      <p className="text-[10px] text-teal-650 font-bold flex items-center gap-1 mt-1 animate-pulse">
+                      <p className="text-[10px] text-teal-600 font-bold flex items-center gap-1 mt-1 animate-pulse">
                         <Check className="w-3.5 h-3.5 text-teal-500" /> Coupon "{appliedCoupon.code}" applied! Saved ₹{activeInvoice.discount.toLocaleString()}
                       </p>
                     ) : couponError ? (
-                      <p className="text-[10px] text-red-500 font-bold mt-1 animate-pulse">{couponError}</p>
+                      <p className="text-[10px] text-rose-500 font-bold mt-1 animate-pulse">{couponError}</p>
                     ) : null}
                   </div>
 
                   <div className="space-y-2 pt-1">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Payment Method</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Select Payment Method</label>
                     <div className="grid grid-cols-2 gap-2.5">
                       {[
                         { id: "COD", label: "Cash on Delivery", icon: Wallet },
-                        { id: "UPI QR", label: "UPI / QR Code", icon: QrCode }
+                        { id: "UPI QR", label: "UPI Scan & Pay", icon: QrCode }
                       ].map((method) => {
                         const Icon = method.icon;
                         const isSelected = orderPayment === method.id;
@@ -2694,13 +2744,13 @@ AI Assistant Rules:
                               setOrderPayment(method.id);
                               setTransactionId("");
                             }}
-                            className={`py-3 px-2 rounded-xl font-bold border-2 transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${isSelected
-                              ? "border-teal-500 bg-teal-50 text-teal-705 shadow-sm"
+                            className={`py-3.5 px-3 rounded-2xl font-bold border-2 transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${isSelected
+                              ? "border-teal-500 bg-teal-50 text-teal-700 shadow-sm"
                               : "border-slate-100 bg-white text-slate-500 hover:border-slate-200"
                               }`}
                           >
-                            <Icon className="w-4.5 h-4.5" />
-                            <span className="text-[10px]">{method.label}</span>
+                            <Icon className="w-5 h-5" />
+                            <span className="text-[10px] font-black">{method.label}</span>
                           </button>
                         );
                       })}
@@ -2708,15 +2758,15 @@ AI Assistant Rules:
                   </div>
 
                   {orderPayment === "UPI QR" && (
-                    <div className="space-y-2 bg-slate-50 p-4 border border-slate-200 rounded-xl animate-fade-up mt-3">
-                      <label className="text-[10px] font-black text-slate-700 uppercase tracking-widest block">12-Digit Reference ID *</label>
+                    <div className="space-y-2 bg-teal-50/70 p-4 border border-teal-200/60 rounded-2xl animate-fade-up mt-3">
+                      <label className="text-[10px] font-black text-slate-700 uppercase tracking-widest block">12-Digit Reference UTR/Transaction ID *</label>
                       <input
                         type="text"
                         required
                         value={transactionId}
                         onChange={(e) => setTransactionId(e.target.value.replace(/\D/g, "").slice(0, 12))}
-                        placeholder="Enter exactly 12 digits"
-                        className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-mono font-bold outline-none text-slate-900 focus:border-teal-500 transition-all tracking-widest"
+                        placeholder="12-digit transaction ID"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-black outline-none text-slate-900 focus:border-teal-500 transition-all tracking-widest"
                       />
                     </div>
                   )}
@@ -2724,48 +2774,43 @@ AI Assistant Rules:
                   <button
                     type="submit"
                     disabled={submittingOrder}
-                    className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white py-4 mt-4 rounded-xl font-black uppercase transition-all shadow-lg shadow-teal-500/20 hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer tracking-widest text-xs border-none"
+                    className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white py-4 mt-4 rounded-2xl font-black uppercase transition-all shadow-xl shadow-teal-500/25 hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer tracking-widest text-xs border-none"
                   >
-                    {submittingOrder ? "Processing..." : `Place Order & Pay ₹${activeInvoice.grandTotal.toLocaleString()}`}
+                    {submittingOrder ? "Processing..." : `Place Order • ₹${activeInvoice.grandTotal.toLocaleString()}`}
                   </button>
                 </form>
 
                 {orderPayment === "UPI QR" && (
-                  <div className="flex-1 p-6 flex flex-col items-center justify-center bg-slate-50 md:max-w-[280px] gap-5">
-                    <div className="text-center space-y-1.5">
-                      <span className="bg-gradient-to-r from-teal-600 to-teal-500 text-white text-[9px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest shadow-sm">
-                        Secure UPI Payment
+                  <div className="flex-1 p-6 flex flex-col items-center justify-center bg-slate-50 md:max-w-[280px] gap-5 text-center">
+                    <div className="space-y-1.5">
+                      <span className="bg-gradient-to-r from-teal-600 to-teal-500 text-white text-[9px] font-black px-3 py-1 rounded-md uppercase tracking-widest shadow-sm">
+                        UPI QR Code
                       </span>
-                      <p className="text-xs text-slate-600 font-medium">Scan to pay from any UPI app</p>
+                      <p className="text-xs text-slate-600 font-medium">Scan using GPay, PhonePe, Paytm</p>
                     </div>
 
-                    <div className="relative w-40 h-40 bg-white p-3 rounded-xl shadow-lg shadow-slate-200/50 border border-slate-100 flex items-center justify-center">
-                      <div className="absolute top-0 left-0 w-5 h-5 border-t-4 border-l-4 border-teal-500 rounded-tl-lg"></div>
-                      <div className="absolute top-0 right-0 w-5 h-5 border-t-4 border-r-4 border-teal-500 rounded-tr-lg"></div>
-                      <div className="absolute bottom-0 left-0 w-5 h-5 border-b-4 border-l-4 border-teal-500 rounded-bl-lg"></div>
-                      <div className="absolute bottom-0 right-0 w-5 h-5 border-b-4 border-r-4 border-teal-500 rounded-br-lg"></div>
-
+                    <div className="relative w-44 h-44 bg-white p-3 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/70 flex items-center justify-center">
                       {siteConfig?.qrCode ? (
-                        <img src={siteConfig.qrCode} className="w-full h-full object-contain rounded-md" alt="Store Payment QR" />
+                        <img src={siteConfig.qrCode} className="w-full h-full object-contain rounded-xl" alt="Store Payment QR" />
                       ) : (
                         <div className="text-center text-slate-400 flex flex-col items-center gap-1.5">
-                          <QrCode className="w-8 h-8 opacity-30" />
+                          <QrCode className="w-10 h-10 opacity-30" />
                           <span className="text-[10px] font-bold uppercase tracking-wider">QR Not Configured</span>
                         </div>
                       )}
                     </div>
 
                     {siteConfig?.upiId && (
-                      <div className="w-full text-center space-y-1.5">
+                      <div className="w-full space-y-1.5">
                         <span className="text-[9px] text-slate-400 block font-black uppercase tracking-widest">Store UPI ID</span>
-                        <div className="flex items-center justify-center bg-white border border-slate-200 py-2 px-3 rounded-xl gap-2 text-xs font-mono font-black text-slate-800 shadow-sm">
+                        <div className="flex items-center justify-center bg-white border border-slate-200 py-2 px-3.5 rounded-xl gap-2 text-xs font-mono font-black text-slate-900 shadow-sm">
                           <span>{siteConfig.upiId}</span>
                           <button
                             type="button"
                             onClick={handleCopyUpi}
-                            className="text-slate-400 hover:text-teal-500 transition-colors p-1"
+                            className="text-slate-400 hover:text-teal-600 transition-colors p-1"
                           >
-                            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copied ? <Check className="w-4 h-4 text-teal-500" /> : <Copy className="w-4 h-4" />}
                           </button>
                         </div>
                       </div>
@@ -2778,19 +2823,12 @@ AI Assistant Rules:
         </div>
       )}
 
-      {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-5 py-3.5 rounded-xl font-bold text-xs shadow-xl flex items-center gap-2 animate-fade-up">
-          <CheckCircle className="w-4 h-4 text-teal-500" />
-          {toast}
-        </div>
-      )}
-
       {/* ─── MOBILE FILTER SHEET ─── */}
       {filterDrawerOpen && (
-        <div className="fixed inset-0 z-[150] bg-slate-955/60 backdrop-blur-sm sm:hidden flex items-end justify-center">
-          <div className="bg-white w-full max-h-[85vh] overflow-y-auto rounded-t-2xl p-6 space-y-6 shadow-2xl border-t text-left">
+        <div className="fixed inset-0 z-[150] bg-slate-950/60 backdrop-blur-sm sm:hidden flex items-end justify-center">
+          <div className="bg-white w-full max-h-[85vh] overflow-y-auto rounded-t-3xl p-6 space-y-6 shadow-2xl border-t text-left">
             <div className="flex justify-between items-center border-b pb-3">
-              <h3 className="text-sm font-black uppercase tracking-wider text-slate-850 flex items-center gap-1.5">
+              <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                 <SlidersHorizontal className="w-4 h-4 text-teal-500" /> Filter Options
               </h3>
               <button onClick={() => setFilterDrawerOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 bg-transparent border-none">
@@ -2799,7 +2837,7 @@ AI Assistant Rules:
             </div>
 
             <div className="space-y-2.5">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-405 block">Category</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Category</span>
               <div className="grid grid-cols-2 gap-2">
                 {categoriesList.map((cat) => {
                   const isSelected = selectedCategory === cat.name;
@@ -2810,9 +2848,9 @@ AI Assistant Rules:
                       onClick={() => {
                         setSelectedCategory(cat.name);
                       }}
-                      className={`px-3 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${isSelected
-                          ? "bg-gradient-to-r from-teal-600 to-teal-500 text-white border-none shadow-sm"
-                          : "bg-slate-50 border text-slate-700 hover:bg-slate-100"
+                      className={`px-3.5 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${isSelected
+                        ? "bg-gradient-to-r from-teal-600 to-teal-500 text-white border-none shadow-sm"
+                        : "bg-slate-50 border text-slate-700 hover:bg-slate-100"
                         }`}
                     >
                       {cat.name}
@@ -2824,7 +2862,7 @@ AI Assistant Rules:
 
             <div className="space-y-2.5">
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-405">Max Price</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Max Price</span>
                 <span className="text-xs font-black text-slate-900">₹{maxPriceFilter.toLocaleString()}</span>
               </div>
               <input
@@ -2840,9 +2878,10 @@ AI Assistant Rules:
 
             <button
               onClick={() => setFilterDrawerOpen(false)}
-              className="w-full bg-gradient-to-r from-slate-900 to-slate-800 text-white py-3 rounded-xl font-extrabold text-xs uppercase tracking-widest active:scale-95 transition-all border-none cursor-pointer shadow-sm"
+              className="w-full bg-slate-900 text-white py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all border-none cursor-pointer shadow-md"
             >
-              Apply Filters            </button>
+              Apply Filters
+            </button>
           </div>
         </div>
       )}
@@ -2850,9 +2889,9 @@ AI Assistant Rules:
       {/* ─── RECENTLY VIEWED ─── */}
       {!selectedProduct && recentlyViewedIds.length > 0 && (
         <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-10 animate-fade-up">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-200/60">
             <h3 className="text-lg font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <Clock className="w-4 h-4 text-teal-500" /> Recently Viewed
+              <Clock className="w-4 h-4 text-teal-500" /> Recently Viewed Supplies
             </h3>
             <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Your browsing history</span>
           </div>
@@ -2869,16 +2908,16 @@ AI Assistant Rules:
                     setDetailQty(1);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
-                  className="min-w-[180px] bg-white/80 backdrop-blur-md p-4 rounded-xl border border-slate-200/50 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer text-left space-y-3 shrink-0 group"
+                  className="min-w-[200px] bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer text-left space-y-3 shrink-0 group"
                 >
-                  <div className="h-28 bg-slate-50 rounded-lg overflow-hidden relative">
+                  <div className="h-32 bg-slate-50 rounded-xl overflow-hidden relative border border-slate-100">
                     <img src={prod.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
-                    <span className="absolute top-2 left-2 bg-gradient-to-r from-teal-600 to-teal-500 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded">
+                    <span className="absolute top-2 left-2 bg-slate-900/90 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md">
                       ₹{prod.price}
                     </span>
                   </div>
-                  <h4 className="font-extrabold text-xs text-slate-900 line-clamp-1">{prod.name}</h4>
-                  <span className="text-[10px] text-amber-550 font-bold block">★ {prod.rating || 4.5}</span>
+                  <h4 className="font-extrabold text-xs text-slate-900 line-clamp-1 group-hover:text-teal-600 transition-colors">{prod.name}</h4>
+                  <span className="text-[10px] text-amber-500 font-bold block">★ {prod.rating || 4.5}</span>
                 </div>
               ))}
           </div>
@@ -2888,18 +2927,18 @@ AI Assistant Rules:
       {/* ─── COMPARE MODAL ─── */}
       {compareOpen && (
         <div className="fixed inset-0 z-[220] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-4xl rounded-2xl p-6 space-y-6 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto border">
-            <div className="flex justify-between items-center border-b pb-3 text-left">
-              <h3 className="text-sm font-black uppercase tracking-wider text-slate-850 flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-teal-500" /> Compare Products ({compareIds.length})
+          <div className="bg-white w-full max-w-4xl rounded-3xl p-6 space-y-6 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto border border-slate-200/80">
+            <div className="flex justify-between items-center border-b pb-4 text-left">
+              <h3 className="text-sm font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4 text-teal-500" /> Product Comparison ({compareIds.length})
               </h3>
-              <button onClick={() => setCompareOpen(false)} className="text-slate-400 hover:text-slate-655 p-1 cursor-pointer bg-transparent border-none">
+              <button onClick={() => setCompareOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer bg-transparent border-none">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 divide-y md:divide-y-0 md:divide-x border-slate-200">
-              <div className="space-y-6 hidden md:block pt-32 text-xs font-black text-slate-405 uppercase tracking-widest leading-relaxed text-left pl-2">
+              <div className="space-y-6 hidden md:block pt-32 text-xs font-black text-slate-400 uppercase tracking-widest leading-relaxed text-left pl-2">
                 <div className="h-10">Name</div>
                 <div className="h-6">Category</div>
                 <div className="h-6">Price</div>
@@ -2912,7 +2951,7 @@ AI Assistant Rules:
                 .filter(p => compareIds.includes(p.id))
                 .map(prod => (
                   <div key={prod.id} className="p-4 space-y-6 text-left">
-                    <div className="aspect-square bg-slate-50 rounded-xl overflow-hidden shadow-sm">
+                    <div className="aspect-square bg-slate-50 rounded-2xl overflow-hidden shadow-sm border border-slate-100">
                       <img src={prod.image} className="w-full h-full object-cover" alt="" />
                     </div>
                     <div className="text-xs font-bold space-y-6">
@@ -2922,9 +2961,9 @@ AI Assistant Rules:
                       <div className="h-6 text-amber-500">★ {prod.rating || 4.5}</div>
                       <div className="h-12">
                         {prod.stock > 0 ? (
-                          <span className="bg-teal-50 text-teal-600 px-2 py-0.5 rounded text-[10px] font-black uppercase">In Stock ({prod.stock})</span>
+                          <span className="bg-teal-50 text-teal-700 border border-teal-200/50 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase">In Stock ({prod.stock})</span>
                         ) : (
-                          <span className="bg-red-50 text-red-500 px-2 py-0.5 rounded text-[10px] font-black uppercase">Out of Stock</span>
+                          <span className="bg-rose-50 text-rose-600 border border-rose-200/50 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase">Out of Stock</span>
                         )}
                       </div>
                       <div className="pt-2 flex flex-col gap-2">
@@ -2935,14 +2974,14 @@ AI Assistant Rules:
                             setCompareOpen(false);
                           }}
                           disabled={prod.stock <= 0}
-                          className="w-full bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white py-2 rounded-lg font-bold text-xs uppercase tracking-wide cursor-pointer border-none shadow-sm"
+                          className="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl font-black text-xs uppercase tracking-wide cursor-pointer border-none shadow-sm"
                         >
                           Add to Cart
                         </button>
                         <button
                           type="button"
                           onClick={() => setCompareIds(prev => prev.filter(id => id !== prod.id))}
-                          className="w-full bg-slate-50 hover:bg-slate-100 py-2 rounded-lg font-bold text-xs text-red-500 uppercase tracking-wide cursor-pointer border-none"
+                          className="w-full bg-slate-100 hover:bg-slate-200 py-2.5 rounded-xl font-bold text-xs text-rose-600 uppercase tracking-wide cursor-pointer border-none"
                         >
                           Remove
                         </button>
@@ -2955,16 +2994,16 @@ AI Assistant Rules:
         </div>
       )}
 
-      {/* ─── FLOATING COMPARE BUTTON ─── */}
+      {/* ─── FLOATING COMPARE BAR ─── */}
       {!selectedProduct && compareIds.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-[140] bg-gradient-to-r from-slate-900 to-slate-800 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-4 animate-fade-up border border-white/10">
-          <span className="text-xs font-black uppercase tracking-wider">{compareIds.length} items selected</span>
+        <div className="fixed bottom-6 right-6 z-[140] bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-fade-up border border-white/10">
+          <span className="text-xs font-black uppercase tracking-wider">{compareIds.length} items to compare</span>
           <button
             type="button"
             onClick={() => setCompareOpen(true)}
-            className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer border-none shadow-sm"
+            className="bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-500 hover:to-teal-400 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer border-none shadow-md"
           >
-            Compare
+            Compare Now
           </button>
           <button
             type="button"
