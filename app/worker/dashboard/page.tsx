@@ -48,6 +48,7 @@ import {
   DollarSign,
   MapPin,
   Sliders,
+  Wrench,
   Globe,
   Award,
   BookOpen,
@@ -76,6 +77,7 @@ type Tab =
   | "requests"
   | "jobs"
   | "availability"
+  | "services"
   | "profile"
   | "portfolio"
   | "reviews"
@@ -242,6 +244,9 @@ export default function ProviderDashboardPage() {
   const [pBlockedDates, setPBlockedDates] = useState<string[]>([]);
   const [pWhatsapp, setPWhatsapp] = useState("");
   const [pWebsite, setPWebsite] = useState("");
+  const [pGoogleMapsUrl, setPGoogleMapsUrl] = useState("");
+  const [pResponseTime, setPResponseTime] = useState("Within 30 mins");
+  const [profileSubTab, setProfileSubTab] = useState<"basic" | "contact" | "professional" | "settings" | "social" | "verification">("basic");
   const [pDocumentVerifications, setPDocumentVerifications] = useState<{
     aadhar?: string;
     aadharDoc?: string;
@@ -269,6 +274,34 @@ export default function ProviderDashboardPage() {
 
   // Portfolio Management States
   const [pProjectsShowcase, setPProjectsShowcase] = useState<any[]>([]);
+  
+  // Dedicated Services Module States
+  const [servicesList, setServicesList] = useState<any[]>([]);
+  const [serviceModalOpen, setServiceModalOpen] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+
+  const [sName, setSName] = useState("");
+  const [sCategory, setSCategory] = useState("");
+  const [sSubcategory, setSSubcategory] = useState("");
+  const [sShortDesc, setSShortDesc] = useState("");
+  const [sDetailedDesc, setSDetailedDesc] = useState("");
+  const [sPrice, setSPrice] = useState("299");
+  const [sPricingType, setSPricingType] = useState<"fixed" | "hourly" | "custom">("fixed");
+  const [sDuration, setSDuration] = useState("1-2 Hours");
+  const [sServiceArea, setSServiceArea] = useState("");
+  const [sTags, setSTags] = useState("");
+  const [sIsPopular, setSIsPopular] = useState(false);
+  const [sIsFeatured, setSIsFeatured] = useState(false);
+  const [sIsEmergency, setSIsEmergency] = useState(false);
+  const [sIsCustomQuoteOnly, setSIsCustomQuoteOnly] = useState(false);
+  const [sBookingMode, setSBookingMode] = useState<"online_booking" | "request_quote">("online_booking");
+  const [sStatus, setSStatus] = useState<"active" | "inactive">("active");
+  const [sCoverImage, setSCoverImage] = useState("");
+  const [sGalleryImages, setSGalleryImages] = useState<string[]>([]);
+  const [sUploadingCover, setSUploadingCover] = useState(false);
+  const [sUploadingGallery, setSUploadingGallery] = useState(false);
+  const [sOrderIndex, setSOrderIndex] = useState(0);
+  const [savingService, setSavingService] = useState(false);
   const [portfolioModalOpen, setPortfolioModalOpen] = useState(false);
   const [editingProjectIdx, setEditingProjectIdx] = useState<number | null>(null);
   const [projTitle, setProjTitle] = useState("");
@@ -486,6 +519,8 @@ export default function ProviderDashboardPage() {
         setPBlockedDates(userData.blockedDates || []);
         setPWhatsapp(userData.whatsapp || "");
         setPWebsite(userData.website || "");
+        setPGoogleMapsUrl(userData.googleMapsUrl || "");
+        setPResponseTime(userData.responseTime || "Within 30 mins");
         setPDocumentVerifications(userData.documentVerifications || { aadhar: "", pan: "", gstNumber: "", licenseNumber: "" });
         setPProjectsShowcase(userData.projectsShowcase || []);
 
@@ -578,6 +613,15 @@ export default function ProviderDashboardPage() {
       setEnquiries(list);
     });
 
+    // 7. Sync Professional Services Module List
+    const qServices = query(collection(db, "professionalServices"), where("workerId", "==", user.uid));
+    const unsubServices = onSnapshot(qServices, (snap) => {
+      const list: any[] = [];
+      snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+      list.sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+      setServicesList(list);
+    });
+
     return () => {
       unsubCategories();
       unsubJobs();
@@ -585,6 +629,7 @@ export default function ProviderDashboardPage() {
       unsubTickets();
       unsubShopOrders();
       unsubEnquiries();
+      unsubServices();
     };
   }, [user?.uid, role]);
 
@@ -723,6 +768,8 @@ export default function ProviderDashboardPage() {
           blockedDates: pBlockedDates,
           whatsapp: pWhatsapp,
           website: pWebsite,
+          googleMapsUrl: pGoogleMapsUrl,
+          responseTime: pResponseTime,
           documentVerifications: pDocumentVerifications,
           projectsShowcase: pProjectsShowcase,
           // Additional custom states
@@ -748,7 +795,7 @@ export default function ProviderDashboardPage() {
     pShowTrustLedger, pShowCareerHistory, pShowPortal, pCareerHistory,
     pCustomSections, pQuotations, pGstVerified, pOfficeVerified,
     pEducation, pCertifications, pAwards, pFaqs, pSocialLinks, pWorkingHours,
-    pOwnerName, pSubcategory, pServiceRadius, pEmergencyService, pPriceStartingFrom, pBlockedDates, pWhatsapp, pWebsite, pDocumentVerifications, pProjectsShowcase, user
+    pOwnerName, pSubcategory, pServiceRadius, pEmergencyService, pPriceStartingFrom, pBlockedDates, pWhatsapp, pWebsite, pGoogleMapsUrl, pResponseTime, pDocumentVerifications, pProjectsShowcase, user
   ]);
 
   const handleSendChatMessage = async (text: string) => {
@@ -1199,6 +1246,240 @@ export default function ProviderDashboardPage() {
     showToast("Removed certification.");
   };
 
+  // --- DEDICATED SERVICES MANAGEMENT MODULE HANDLERS ---
+  const handleOpenAddService = () => {
+    setEditingServiceId(null);
+    setSName("");
+    setSCategory(pCategories[0] || userData?.category || "General Services");
+    setSSubcategory(pSubcategory || "");
+    setSShortDesc("");
+    setSDetailedDesc("");
+    setSPrice("299");
+    setSPricingType("fixed");
+    setSDuration("1-2 Hours");
+    setSServiceArea(pArea || "Service Area");
+    setSTags("");
+    setSIsPopular(false);
+    setSIsFeatured(false);
+    setSIsEmergency(false);
+    setSIsCustomQuoteOnly(false);
+    setSBookingMode("online_booking");
+    setSStatus("active");
+    setSCoverImage("");
+    setSGalleryImages([]);
+    setSOrderIndex(servicesList.length);
+    setServiceModalOpen(true);
+  };
+
+  const handleOpenEditService = (service: any) => {
+    setEditingServiceId(service.id);
+    setSName(service.name || service.title || "");
+    setSCategory(service.category || pCategories[0] || "");
+    setSSubcategory(service.subcategory || "");
+    setSShortDesc(service.shortDescription || service.desc || "");
+    setSDetailedDesc(service.detailedDescription || service.description || "");
+    setSPrice(String(service.price ?? "299"));
+    setSPricingType(service.pricingType || "fixed");
+    setSDuration(service.duration || "1-2 Hours");
+    setSServiceArea(service.serviceArea || pArea || "");
+    setSTags(Array.isArray(service.tags) ? service.tags.join(", ") : (service.tags || ""));
+    setSIsPopular(!!service.isPopular);
+    setSIsFeatured(!!service.isFeatured);
+    setSIsEmergency(!!service.isEmergency);
+    setSIsCustomQuoteOnly(!!service.isCustomQuoteOnly);
+    setSBookingMode(service.bookingMode || "online_booking");
+    setSStatus(service.status || "active");
+    setSCoverImage(service.coverImage || "");
+    setSGalleryImages(service.galleryImages || []);
+    setSOrderIndex(service.orderIndex ?? 0);
+    setServiceModalOpen(true);
+  };
+
+  const handleSaveService = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !sName.trim()) {
+      showToast("Please enter a valid Service Name.");
+      return;
+    }
+
+    setSavingService(true);
+    try {
+      const parsedTags = sTags.split(",").map((t) => t.trim()).filter(Boolean);
+      const servicePayload = {
+        workerId: user.uid,
+        workerName: userData?.name || pName || "Professional",
+        name: sName.trim(),
+        title: sName.trim(),
+        category: sCategory.trim() || "General",
+        subcategory: sSubcategory.trim(),
+        shortDescription: sShortDesc.trim(),
+        desc: sShortDesc.trim(),
+        detailedDescription: sDetailedDesc.trim(),
+        description: sDetailedDesc.trim() || sShortDesc.trim(),
+        price: sPrice,
+        pricingType: sPricingType,
+        duration: sDuration,
+        serviceArea: sServiceArea,
+        tags: parsedTags,
+        isPopular: sIsPopular,
+        isFeatured: sIsFeatured,
+        isEmergency: sIsEmergency,
+        isCustomQuoteOnly: sIsCustomQuoteOnly,
+        bookingMode: sIsCustomQuoteOnly ? "request_quote" : sBookingMode,
+        status: sStatus,
+        coverImage: sCoverImage,
+        galleryImages: sGalleryImages,
+        orderIndex: sOrderIndex,
+        updatedAt: new Date().toISOString()
+      };
+
+      let newDocId = editingServiceId;
+      if (editingServiceId) {
+        await updateDoc(doc(db, "professionalServices", editingServiceId), servicePayload);
+        showToast("✓ Service updated successfully!");
+      } else {
+        const docRef = await addDoc(collection(db, "professionalServices"), {
+          ...servicePayload,
+          createdAt: new Date().toISOString()
+        });
+        newDocId = docRef.id;
+        showToast("✓ New Service created successfully!");
+      }
+
+      // Also mirror to worker document for backward compatibility
+      const updatedList = editingServiceId
+        ? servicesList.map((s) => (s.id === editingServiceId ? { id: editingServiceId, ...servicePayload } : s))
+        : [...servicesList, { id: newDocId, ...servicePayload }];
+
+      await updateDoc(doc(db, "workers", user.uid), {
+        services: updatedList,
+        marketplaceItems: updatedList
+      });
+
+      setServiceModalOpen(false);
+    } catch (err) {
+      console.error("Save Service Error:", err);
+      showToast("Failed to save service. Please try again.");
+    } finally {
+      setSavingService(false);
+    }
+  };
+
+  const handleDeleteService = async (serviceId: string) => {
+    if (!user || !confirm("Are you sure you want to delete this service?")) return;
+    try {
+      await deleteDoc(doc(db, "professionalServices", serviceId));
+      const updatedList = servicesList.filter((s) => s.id !== serviceId);
+      await updateDoc(doc(db, "workers", user.uid), {
+        services: updatedList,
+        marketplaceItems: updatedList
+      });
+      showToast("Service deleted.");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to delete service.");
+    }
+  };
+
+  const handleDuplicateService = async (service: any) => {
+    if (!user) return;
+    try {
+      const dupPayload = {
+        ...service,
+        name: `${service.name || service.title} (Copy)`,
+        title: `${service.name || service.title} (Copy)`,
+        orderIndex: servicesList.length,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      delete dupPayload.id;
+      const docRef = await addDoc(collection(db, "professionalServices"), dupPayload);
+      const updatedList = [...servicesList, { id: docRef.id, ...dupPayload }];
+      await updateDoc(doc(db, "workers", user.uid), { services: updatedList });
+      showToast("Service duplicated!");
+    } catch {
+      showToast("Failed to duplicate service.");
+    }
+  };
+
+  const handleToggleServiceStatus = async (service: any) => {
+    if (!user) return;
+    try {
+      const newStatus = service.status === "active" ? "inactive" : "active";
+      await updateDoc(doc(db, "professionalServices", service.id), { status: newStatus });
+      const updatedList = servicesList.map((s) => (s.id === service.id ? { ...s, status: newStatus } : s));
+      await updateDoc(doc(db, "workers", user.uid), { services: updatedList });
+      showToast(`Service status set to ${newStatus}`);
+    } catch {
+      showToast("Failed to update service status.");
+    }
+  };
+
+  const handleReorderService = async (index: number, direction: "up" | "down") => {
+    if (!user) return;
+    const targetIdx = direction === "up" ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= servicesList.length) return;
+
+    const list = [...servicesList];
+    const temp = list[index];
+    list[index] = list[targetIdx];
+    list[targetIdx] = temp;
+
+    const updatedList = list.map((item, i) => ({ ...item, orderIndex: i }));
+    setServicesList(updatedList);
+
+    try {
+      await Promise.all(
+        updatedList.map((s) => updateDoc(doc(db, "professionalServices", s.id), { orderIndex: s.orderIndex }))
+      );
+      await updateDoc(doc(db, "workers", user.uid), { services: updatedList });
+      showToast("Reordered services!");
+    } catch {
+      showToast("Failed to save reordered services.");
+    }
+  };
+
+  const handleServiceCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setSUploadingCover(true);
+    try {
+      showToast("Uploading service cover image...");
+      const storageRef = ref(storage, `services/${user.uid}/cover_${Date.now()}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+      setSCoverImage(downloadURL);
+      showToast("Cover image uploaded!");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to upload image.");
+    } finally {
+      setSUploadingCover(false);
+    }
+  };
+
+  const handleServiceGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !user) return;
+    setSUploadingGallery(true);
+    try {
+      showToast("Uploading gallery images...");
+      const urls = await Promise.all(
+        files.map(async (file) => {
+          const storageRef = ref(storage, `services/${user.uid}/gallery_${Date.now()}_${Math.random()}`);
+          await uploadBytes(storageRef, file);
+          return getDownloadURL(storageRef);
+        })
+      );
+      setSGalleryImages((prev) => [...prev, ...urls].slice(0, 8));
+      showToast(`${urls.length} gallery photo(s) uploaded!`);
+    } catch {
+      showToast("Failed to upload gallery images.");
+    } finally {
+      setSUploadingGallery(false);
+    }
+  };
+
   const handleAddAward = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!awardName.trim() || !awardYear.trim()) return;
@@ -1289,6 +1570,8 @@ export default function ProviderDashboardPage() {
         blockedDates: pBlockedDates,
         whatsapp: pWhatsapp,
         website: pWebsite,
+        googleMapsUrl: pGoogleMapsUrl,
+        responseTime: pResponseTime,
         documentVerifications: pDocumentVerifications,
         projectsShowcase: pProjectsShowcase
       };
@@ -1409,6 +1692,15 @@ export default function ProviderDashboardPage() {
                 <p className="text-emerald-100/80 text-xs font-semibold mt-1.5 flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5" /> Verified Professional Account
                 </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <Link
+                    href="/worker/quote-generator"
+                    className="bg-white hover:bg-emerald-50 text-emerald-950 px-3.5 py-1.5 rounded-xl text-xs font-black transition shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 border border-white/40"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Quote Generator ⚡</span>
+                  </Link>
+                </div>
               </div>
             </div>
             <div className="flex flex-wrap gap-3 w-full md:w-auto">
@@ -1470,6 +1762,7 @@ export default function ProviderDashboardPage() {
                 { id: "jobs", label: "Active Workspaces", icon: Briefcase, badge: jobs.filter(j => ["Accepted", "OnTheWay", "Started", "Job Done"].includes(j.status)).length },
                 { id: "shop_orders", label: "Shop Bookings", icon: ShoppingBag, badge: shopOrders.filter(o => o.status === "Pending" || o.status === "Processing").length },
                 { id: "availability", label: "Availability Manager", icon: CheckCircle },
+                { id: "services", label: "Services Manager", icon: Wrench, badge: servicesList.length },
                 { id: "profile", label: "Profile Editor", icon: Sliders },
                 { id: "portfolio", label: "Portfolio Showcase", icon: Star },
                 { id: "support", label: "Helpdesk Support", icon: LifeBuoy }
@@ -2341,501 +2634,1115 @@ export default function ProviderDashboardPage() {
                       </div>
                     </div>
                   </div>
-
                 </div>
               </div>
             )}
-            {/* TAB: PROFILE MANAGEMENT */}
-            {activeTab === "profile" && (
-              <div className="space-y-5 animate-fade-up">
 
-                {/* Header */}
-                <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                  <div className="flex items-center gap-3 mb-1">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
-                      <Sliders className="w-4 h-4" />
+            {/* TAB: SERVICES MANAGEMENT MODULE */}
+            {activeTab === "services" && (
+              <div className="space-y-6 animate-fade-up">
+
+                {/* Top Module Header */}
+                <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200/60 text-teal-600 flex items-center justify-center shrink-0 shadow-inner">
+                      <Wrench className="w-6 h-6" />
                     </div>
-                    <h2 className="text-base font-black text-slate-900 tracking-tight">Profile Editor</h2>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-lg font-black text-slate-900 tracking-tight">Services Catalog Manager</h2>
+                        <span className="text-[10px] font-extrabold uppercase bg-teal-100 text-teal-800 px-2.5 py-0.5 rounded-full border border-teal-300">
+                          {servicesList.length} Active Services
+                        </span>
+                      </div>
+                      <p className="text-slate-500 text-xs font-semibold mt-0.5">
+                        Manage services, pricing, durations, badges, and booking options for your business identity.
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-slate-400 text-xs font-semibold ml-11">Manage your professional identity, portfolio, and public page settings.</p>
+
+                  <button
+                    type="button"
+                    onClick={handleOpenAddService}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-5 py-3 rounded-2xl transition shadow-lg shadow-emerald-600/20 flex items-center gap-2 cursor-pointer shrink-0"
+                  >
+                    <Plus className="w-4 h-4" /> Add New Service
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                  {/* LEFT: Profile Preview */}
-                  <div className="lg:col-span-1 space-y-4">
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                      <div className="h-20 bg-gradient-to-br from-emerald-500 via-emerald-400 to-teal-400 relative">
-                        <div className="absolute inset-0 opacity-20" style={{backgroundImage: 'repeating-linear-gradient(45deg, white 0, white 1px, transparent 0, transparent 50%)', backgroundSize: '10px 10px'}} />
-                      </div>
-                      <div className="flex flex-col items-center px-5 pb-5">
-                        <div className="relative -mt-10 mb-3 group">
-                          <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-white shadow-lg">
-                            <img
-                              src={pAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=200&h=200&q=80"}
-                              className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                              alt="Professional Profile"
-                            />
-                          </div>
-                          <label htmlFor="avatarUploadWorkerProfile" className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-300">
-                            <Camera className="w-4 h-4 text-white" />
-                            <span className="text-[8px] text-white font-bold">Change</span>
-                          </label>
-                          <input id="avatarUploadWorkerProfile" type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                          <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" />
-                        </div>
-                        <p className="font-black text-sm text-slate-900 text-center">{pName || userData?.name || "Your Name"}</p>
-                        <p className="text-[10px] text-emerald-500 font-bold mt-0.5 uppercase tracking-wider">{pCategories[0] || userData?.category || "Professional"}</p>
-                        {pBio && <p className="text-[10px] text-slate-500 text-center mt-2 leading-relaxed italic">&ldquo;{pBio.slice(0,80)}{pBio.length > 80 ? '…' : ''}&rdquo;</p>}
-                        <div className="w-full mt-4 pt-4 border-t border-slate-100 space-y-2">
-                          <div className="flex items-center gap-2 text-[10px] text-slate-500 font-semibold">
-                            <span className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
-                              <Star className="w-3 h-3" />
-                            </span>
-                            ★ {avgRating} avg rating
-                          </div>
-                          <div className="flex items-center gap-2 text-[10px] text-slate-500 font-semibold">
-                            <span className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
-                              <Briefcase className="w-3 h-3" />
-                            </span>
-                            {completedJobs.length} jobs completed
-                          </div>
-                          <div className="flex items-center gap-2 text-[10px] text-slate-500 font-semibold">
-                            <span className="w-6 h-6 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">🌐</span>
-                            <a href={`/${pSlug || userData?.slug}`} target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline font-mono truncate">
-                              zenzy.in/{pSlug || userData?.slug || "your-profile"}
-                            </a>
-                          </div>
-                        </div>
-                        <a
-                          href={`/${pSlug || userData?.slug || ""}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-4 w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold py-2.5 rounded-xl transition-all shadow-md shadow-emerald-500/25"
-                        >
-                          View Public Profile ↗
-                        </a>
-                      </div>
+                {/* Services Cards Grid */}
+                {servicesList.length === 0 ? (
+                  <div className="bg-white rounded-3xl p-12 border border-slate-200 text-center space-y-4 shadow-sm">
+                    <div className="w-16 h-16 rounded-3xl bg-teal-50 text-teal-600 border border-teal-100 flex items-center justify-center mx-auto">
+                      <Wrench className="w-8 h-8" />
                     </div>
+                    <div className="max-w-md mx-auto space-y-1">
+                      <h3 className="text-base font-black text-slate-900">No Services Configured Yet</h3>
+                      <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                        Start building your service catalog by adding your first service package, pricing, duration, and cover photo.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleOpenAddService}
+                      className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-6 py-3 rounded-2xl shadow-md transition inline-flex items-center gap-2 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4 text-emerald-400" /> Create First Service
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {servicesList.map((service, idx) => (
+                      <div
+                        key={service.id || idx}
+                        className={`bg-white rounded-3xl border transition-all duration-200 shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden group ${
+                          service.status === "inactive" ? "opacity-60 border-slate-200" : "border-slate-200/90 hover:border-teal-400"
+                        }`}
+                      >
+                        {/* Cover Image & Badges Banner */}
+                        <div className="h-40 bg-gradient-to-br from-slate-800 to-slate-900 relative overflow-hidden">
+                          {service.coverImage ? (
+                            <img src={service.coverImage} alt={service.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs font-bold">No Cover Image</div>
+                          )}
 
-                    {/* Earnings stat */}
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-3">Your Stats</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="bg-slate-50 rounded-xl p-3 text-center">
-                          <span className="text-sm font-black text-emerald-500 block">₹{totalEarnings.toLocaleString()}</span>
-                          <span className="text-[9px] text-slate-400 font-semibold">Earnings</span>
+                          {/* Top Status & Feature Badges */}
+                          <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-1 flex-wrap">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                              service.status === "active" ? "bg-emerald-500 text-white shadow-sm" : "bg-slate-700 text-slate-200"
+                            }`}>
+                              {service.status === "active" ? "Active" : "Inactive"}
+                            </span>
+
+                            <div className="flex items-center gap-1">
+                              {service.isPopular && <span className="bg-amber-500 text-white text-[8.5px] font-black uppercase px-2 py-0.5 rounded-full shadow-xs">Popular</span>}
+                              {service.isFeatured && <span className="bg-purple-600 text-white text-[8.5px] font-black uppercase px-2 py-0.5 rounded-full shadow-xs">Featured</span>}
+                              {service.isEmergency && <span className="bg-red-600 text-white text-[8.5px] font-black uppercase px-2 py-0.5 rounded-full shadow-xs">24/7 Urgent</span>}
+                            </div>
+                          </div>
+
+                          <div className="absolute bottom-3 left-3">
+                            <span className="bg-slate-950/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-xl border border-white/10">
+                              ⏰ {service.duration || "1-2 Hours"}
+                            </span>
+                          </div>
                         </div>
-                        <div className="bg-slate-50 rounded-xl p-3 text-center">
-                          <span className="text-sm font-black text-amber-500 block">★ {avgRating}</span>
-                          <span className="text-[9px] text-slate-400 font-semibold">Rating</span>
-                        </div>
-                        <div className="bg-slate-50 rounded-xl p-3 text-center">
-                          <span className="text-sm font-black text-indigo-500 block">{completedJobs.length}</span>
-                          <span className="text-[9px] text-slate-400 font-semibold">Completed</span>
-                        </div>
-                        <div className="bg-slate-50 rounded-xl p-3 text-center">
-                          <span className="text-sm font-black text-slate-700 block">{reviews.length}</span>
-                          <span className="text-[9px] text-slate-400 font-semibold">Reviews</span>
+
+                        {/* Card Body */}
+                        <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between items-start gap-2">
+                              <h3 className="font-extrabold text-sm text-slate-900 line-clamp-1">{service.name || service.title}</h3>
+                              <span className="font-black text-sm text-teal-700 shrink-0">
+                                {service.pricingType === "custom" || service.isCustomQuoteOnly
+                                  ? "On Request"
+                                  : service.pricingType === "fixed"
+                                  ? `₹${service.price}`
+                                  : `From ₹${service.price}`}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold">
+                              <span className="text-teal-600 font-extrabold uppercase bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">{service.category || "General"}</span>
+                              {service.subcategory && <span>• {service.subcategory}</span>}
+                            </div>
+
+                            <p className="text-xs text-slate-500 font-normal leading-relaxed line-clamp-2 pt-1">
+                              {service.shortDescription || service.desc || service.detailedDescription || "No description provided."}
+                            </p>
+
+                            {/* Tags */}
+                            {Array.isArray(service.tags) && service.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 pt-1">
+                                {service.tags.map((tag: string, tIdx: number) => (
+                                  <span key={tIdx} className="bg-slate-100 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                                    #{tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Quick Actions Footer */}
+                          <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-1">
+                            <div className="flex items-center gap-1">
+                              {/* Enable / Disable Toggle */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleServiceStatus(service)}
+                                className={`text-[10px] font-bold px-2.5 py-1 rounded-xl transition ${
+                                  service.status === "active"
+                                    ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                                    : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
+                                }`}
+                                title="Toggle Active Status"
+                              >
+                                {service.status === "active" ? "Disable" : "Enable"}
+                              </button>
+
+                              {/* Reorder Buttons */}
+                              <button
+                                type="button"
+                                onClick={() => handleReorderService(idx, "up")}
+                                disabled={idx === 0}
+                                className="p-1 text-slate-400 hover:text-slate-800 disabled:opacity-30 rounded-lg hover:bg-slate-100 text-xs font-bold"
+                                title="Move Up"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleReorderService(idx, "down")}
+                                disabled={idx === servicesList.length - 1}
+                                className="p-1 text-slate-400 hover:text-slate-800 disabled:opacity-30 rounded-lg hover:bg-slate-100 text-xs font-bold"
+                                title="Move Down"
+                              >
+                                ▼
+                              </button>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleDuplicateService(service)}
+                                className="p-1.5 text-slate-500 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 text-xs font-bold transition"
+                                title="Duplicate Service"
+                              >
+                                📋
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditService(service)}
+                                className="p-1.5 text-slate-500 hover:text-teal-600 rounded-lg hover:bg-teal-50 text-xs font-bold transition"
+                                title="Edit Service"
+                              >
+                                ✏️
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteService(service.id)}
+                                className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 text-xs font-bold transition"
+                                title="Delete Service"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                )}
+
+              </div>
+            )}
+            {/* TAB: PROFESSIONAL BUSINESS PROFILE MODULE */}
+            {activeTab === "profile" && (
+              <div className="space-y-6 animate-fade-up">
+
+                {/* Top Module Header */}
+                <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200/60 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
+                      <Sliders className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-lg font-black text-slate-900 tracking-tight">Professional Business Profile</h2>
+                        <span className="text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                          Complete Identity
+                        </span>
+                      </div>
+                      <p className="text-slate-500 text-xs font-semibold mt-0.5">
+                        Build your business presence. Saved details auto-generate your public website & client booking page.
+                      </p>
                     </div>
                   </div>
 
-                  {/* RIGHT: Edit Sections */}
-                  <div className="lg:col-span-2 space-y-4">
+                  <div className="flex items-center gap-3 self-end md:self-auto">
+                    {hasUnsavedChanges ? (
+                      <span className="text-[10px] text-amber-600 font-extrabold bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl animate-pulse flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-500" /> Unsaved changes...
+                      </span>
+                    ) : lastSavedTime ? (
+                      <span className="text-[10px] text-emerald-700 font-extrabold bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                        <Check className="w-3 h-3 text-emerald-600" /> Auto-saved at {lastSavedTime}
+                      </span>
+                    ) : null}
+                    
+                    <a
+                      href={`/${pSlug || userData?.slug || ""}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition shadow-md flex items-center gap-1.5 shrink-0"
+                    >
+                      <Globe className="w-3.5 h-3.5 text-emerald-400" /> Public Website ↗
+                    </a>
+                  </div>
+                </div>
 
-                    {/* Personal & Professional Info Form */}
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-6">
-                      <form onSubmit={handleUpdateProfile} className="space-y-6">
-                        
-                        {/* Section 1: Basic Information */}
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span className="w-1.5 h-3 bg-emerald-500 rounded-full" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Basic Information</span>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Business / Company Name <span className="text-red-400">*</span></label>
-                              <input type="text" required value={pName} onChange={(e) => setPName(e.target.value)} placeholder="e.g. PowerFix Electrical Solutions"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Owner Name <span className="text-red-400">*</span></label>
-                              <input type="text" required value={pOwnerName} onChange={(e) => setPOwnerName(e.target.value)} placeholder="e.g. Rahul Sharma"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                          </div>
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tagline <span className="text-red-400">*</span></label>
-                            <input type="text" required value={pTagline} onChange={(e) => setPTagline(e.target.value)} placeholder="e.g. Vetted electrical repairs, wiring & CCTV services"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-355" />
-                          </div>
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between items-center">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Professional Bio (About) <span className="text-red-400">*</span></label>
-                              <span className="text-[9px] text-slate-400 font-semibold">{(pBio || "").length}/300</span>
-                            </div>
-                            <textarea rows={3} maxLength={300} required value={pBio} onChange={(e) => setPBio(e.target.value)}
-                              placeholder="Describe your credentials, response times, safety standards, and team expertise..."
-                              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none resize-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                          </div>
+                {/* Sub-Navigation Cards Switcher */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 bg-slate-100/80 p-2 rounded-2xl border border-slate-200/60">
+                  {[
+                    { id: "basic", label: "Basic Info", icon: User, desc: "Name, Logo, Banner & Bio" },
+                    { id: "contact", label: "Contact Info", icon: Phone, desc: "Phone, WhatsApp & Map" },
+                    { id: "professional", label: "Professional", icon: Briefcase, desc: "Category & Certs" },
+                    { id: "settings", label: "Business Hours", icon: Clock, desc: "Schedule & Radius" },
+                    { id: "social", label: "Social Links", icon: Globe, desc: "Instagram & Media" },
+                    { id: "verification", label: "Verification", icon: ShieldCheck, desc: "ID Proofs & Docs" },
+                  ].map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = profileSubTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setProfileSubTab(tab.id as any)}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl font-bold text-xs transition-all duration-200 cursor-pointer ${
+                          isActive
+                            ? "bg-white text-emerald-700 shadow-md border border-slate-200 scale-[1.02]"
+                            : "text-slate-600 hover:bg-white/60 hover:text-slate-900"
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 mb-1 ${isActive ? "text-emerald-600" : "text-slate-400"}`} />
+                        <span className="text-[11px] font-extrabold text-center leading-tight">{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Main 2-Column Grid: Editor Sub-Module (Left) + Live Preview Card (Right) */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                  {/* LEFT COLUMN: Structured Profile Sub-Tab Cards */}
+                  <div className="lg:col-span-2 space-y-6">
+
+                    {/* SUB-TAB 1: BASIC INFORMATION */}
+                    {profileSubTab === "basic" && (
+                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6 animate-fade-in">
+                        <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                          <span className="w-2 h-4 bg-emerald-500 rounded-full" />
+                          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Basic Identity & Branding</h3>
                         </div>
 
-                        {/* Section 2: Contact Details */}
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span className="w-1.5 h-3 bg-indigo-500 rounded-full" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Contact Details</span>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phone Number <span className="text-red-400">*</span></label>
-                              <input type="tel" required value={pPhone} onChange={(e) => setPPhone(e.target.value)} placeholder="+91 98765 43210"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">WhatsApp Number</label>
-                              <input type="tel" value={pWhatsapp} onChange={(e) => setPWhatsapp(e.target.value)} placeholder="+91 98765 43210 (Leave blank if same as phone)"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Website Link</label>
-                              <input type="url" value={pWebsite} onChange={(e) => setPWebsite(e.target.value)} placeholder="e.g. https://powerfix.in"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
-                              <input type="email" disabled value={user?.email || ""}
-                                className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-400 outline-none cursor-not-allowed" />
+                        {/* Logo & Cover Upload Row */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Business Logo Upload */}
+                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                            <label className="text-[10px] font-extrabold uppercase text-slate-500 tracking-wider block">Business Logo / Profile Photo</label>
+                            <div className="flex items-center gap-3">
+                              <div className="w-16 h-16 rounded-2xl overflow-hidden ring-2 ring-emerald-500/30 shadow-md shrink-0 bg-white relative group">
+                                <img
+                                  src={pAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=200&h=200&q=80"}
+                                  alt="Business Logo"
+                                  className="w-full h-full object-cover"
+                                />
+                                {avatarUploading && (
+                                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-[9px] font-bold">Uploading...</div>
+                                )}
+                              </div>
+                              <div className="space-y-1">
+                                <label htmlFor="profileLogoFile" className="bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-[11px] font-extrabold px-3 py-1.5 rounded-xl cursor-pointer shadow-xs inline-flex items-center gap-1.5 transition">
+                                  <Camera className="w-3.5 h-3.5 text-emerald-600" />
+                                  {pAvatar ? "Change Logo" : "Upload Logo"}
+                                  <input id="profileLogoFile" type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                                </label>
+                                <p className="text-[9px] text-slate-400 font-semibold">Square JPG, PNG or WebP. Max 5MB.</p>
+                              </div>
                             </div>
                           </div>
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Location / Service Area <span className="text-red-400">*</span></label>
-                            <input type="text" required value={pArea} onChange={(e) => setPArea(e.target.value)} placeholder="e.g. Jaipur, Rajasthan"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                          </div>
-                        </div>
 
-                        {/* Section 3: Professional Credentials */}
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span className="w-1.5 h-3 bg-violet-500 rounded-full" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Professional Credentials & Pricing</span>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Primary Category</label>
-                              <input type="text" value={pCategories[0] || ""} onChange={(e) => setPCategories([e.target.value])} placeholder="e.g. Electricians"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Subcategory</label>
-                              <input type="text" value={pSubcategory} onChange={(e) => setPSubcategory(e.target.value)} placeholder="e.g. Industrial Wiring, Smart Homes"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Years of Experience</label>
-                              <input type="text" value={pExp} onChange={(e) => setPExp(e.target.value)} placeholder="e.g. 8+"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-355" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Languages Spoken</label>
-                              <input type="text" value={pLanguages} onChange={(e) => setPLanguages(e.target.value)} placeholder="e.g. Hindi, English"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Price Starting From</label>
-                              <input type="text" value={pPriceStartingFrom} onChange={(e) => setPPriceStartingFrom(e.target.value)} placeholder="e.g. ₹299"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Service Radius (in KM)</label>
-                              <input type="number" min={1} max={100} value={pServiceRadius} onChange={(e) => setPServiceRadius(e.target.value)} placeholder="15"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Emergency Service Available?</label>
-                              <label className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer border transition-all ${pEmergencyService ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-500"}`}>
-                                <input type="checkbox" checked={pEmergencyService} onChange={(e) => setPEmergencyService(e.target.checked)} className="rounded text-emerald-600 focus:ring-emerald-500 shrink-0" />
-                                <span className="text-xs font-bold">Yes, offer 24/7 emergency</span>
+                          {/* Cover Image Upload */}
+                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                            <label className="text-[10px] font-extrabold uppercase text-slate-500 tracking-wider block">Hero Cover Banner</label>
+                            <div className="space-y-2">
+                              <div className="w-full h-16 rounded-xl overflow-hidden border border-slate-200 relative bg-gradient-to-r from-emerald-600 to-teal-500">
+                                {pCover ? (
+                                  <img src={pCover} alt="Cover Banner" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-white/80 text-[10px] font-bold">Default Banner</div>
+                                )}
+                                {coverUploading && (
+                                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-[9px] font-bold">Uploading...</div>
+                                )}
+                              </div>
+                              <label htmlFor="profileCoverFile" className="w-full bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-[11px] font-extrabold py-1.5 rounded-xl cursor-pointer shadow-xs flex items-center justify-center gap-1.5 transition">
+                                <Upload className="w-3.5 h-3.5 text-emerald-600" />
+                                {pCover ? "Update Cover Banner" : "Upload Cover Banner"}
+                                <input id="profileCoverFile" type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
                               </label>
                             </div>
                           </div>
                         </div>
 
-                        {/* Section 4: Document Verification */}
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                            <div className="flex items-center gap-2">
-                              <span className="w-1.5 h-3 bg-amber-500 rounded-full" />
-                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Document Verifications</span>
-                            </div>
-                            <span className="text-[9px] font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                              Max File Size: 5MB Per Upload
-                            </span>
+                        {/* Name & Owner Fields */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Business / Organization Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={pName}
+                              onChange={(e) => setPName(e.target.value)}
+                              placeholder="e.g. Zenzy PowerFix Electricians"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+                            />
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2">
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Aadhaar Card Number & File</label>
-                              <input type="text" value={pDocumentVerifications.aadhar || ""} onChange={(e) => setPDocumentVerifications({...pDocumentVerifications, aadhar: e.target.value})} placeholder="XXXX XXXX XXXX"
-                                className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400" />
-                              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                                <span className="text-[9px] text-slate-400 font-bold">Limit: 5MB (JPG/PNG/PDF)</span>
-                                <label className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-extrabold cursor-pointer transition flex items-center gap-1">
-                                  <Upload className="w-3 h-3" />
-                                  {pDocumentVerifications.aadharDoc ? "✓ Uploaded (Change)" : "Upload Proof"}
-                                  <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "aadharDoc")} />
-                                </label>
-                              </div>
-                            </div>
-
-                            <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2">
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">PAN Card Number & File</label>
-                              <input type="text" value={pDocumentVerifications.pan || ""} onChange={(e) => setPDocumentVerifications({...pDocumentVerifications, pan: e.target.value.toUpperCase()})} placeholder="ABCDE1234F"
-                                className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400" />
-                              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                                <span className="text-[9px] text-slate-400 font-bold">Limit: 5MB (JPG/PNG/PDF)</span>
-                                <label className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-extrabold cursor-pointer transition flex items-center gap-1">
-                                  <Upload className="w-3 h-3" />
-                                  {pDocumentVerifications.panDoc ? "✓ Uploaded (Change)" : "Upload Proof"}
-                                  <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "panDoc")} />
-                                </label>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2">
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">GSTIN Number & File</label>
-                              <input type="text" value={pDocumentVerifications.gstNumber || ""} onChange={(e) => setPDocumentVerifications({...pDocumentVerifications, gstNumber: e.target.value.toUpperCase()})} placeholder="29GGGGG1314R9Z6"
-                                className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400" />
-                              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                                <span className="text-[9px] text-slate-400 font-bold">Limit: 5MB (JPG/PNG/PDF)</span>
-                                <label className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-extrabold cursor-pointer transition flex items-center gap-1">
-                                  <Upload className="w-3 h-3" />
-                                  {pDocumentVerifications.gstDoc ? "✓ Uploaded (Change)" : "Upload Proof"}
-                                  <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "gstDoc")} />
-                                </label>
-                              </div>
-                            </div>
-
-                            <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2">
-                              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Business License & File</label>
-                              <input type="text" value={pDocumentVerifications.licenseNumber || ""} onChange={(e) => setPDocumentVerifications({...pDocumentVerifications, licenseNumber: e.target.value})} placeholder="Reg No. / License ID"
-                                className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400" />
-                              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                                <span className="text-[9px] text-slate-400 font-bold">Limit: 5MB (JPG/PNG/PDF)</span>
-                                <label className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-extrabold cursor-pointer transition flex items-center gap-1">
-                                  <Upload className="w-3 h-3" />
-                                  {pDocumentVerifications.licenseDoc ? "✓ Uploaded (Change)" : "Upload Proof"}
-                                  <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "licenseDoc")} />
-                                </label>
-                              </div>
-                            </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Owner / Founder Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={pOwnerName}
+                              onChange={(e) => setPOwnerName(e.target.value)}
+                              placeholder="e.g. Rahul Sharma"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+                            />
                           </div>
                         </div>
 
-                        {/* Section 5: Social Channels */}
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span className="w-1.5 h-3 bg-pink-500 rounded-full" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Social Links</span>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Instagram URL</label>
-                              <input type="url" value={pSocialLinks.instagram || ""} onChange={(e) => setPSocialLinks({...pSocialLinks, instagram: e.target.value})} placeholder="https://instagram.com/handle"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Facebook URL</label>
-                              <input type="url" value={pSocialLinks.facebook || ""} onChange={(e) => setPSocialLinks({...pSocialLinks, facebook: e.target.value})} placeholder="https://facebook.com/page"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">LinkedIn Profile URL</label>
-                              <input type="url" value={pSocialLinks.linkedin || ""} onChange={(e) => setPSocialLinks({...pSocialLinks, linkedin: e.target.value})} placeholder="https://linkedin.com/in/profile"
-                                className="w-full px-4 py-2.5 bg-slate-55 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">YouTube Channel URL</label>
-                              <input type="url" value={pSocialLinks.twitter || ""} onChange={(e) => setPSocialLinks({...pSocialLinks, twitter: e.target.value})} placeholder="https://youtube.com/c/channel (stored in twitter key)"
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/10 transition-all placeholder:text-slate-350" />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Save Action */}
-                        <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-                          <button type="submit" disabled={savingProfile}
-                            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 shadow-md shadow-emerald-500/25 hover:-translate-y-px cursor-pointer">
-                            <Save className="w-3.5 h-3.5" />
-                            {savingProfile ? "Saving..." : "Save Profile Details"}
-                          </button>
-                          <span className="text-[10px] text-slate-400 font-semibold">Changes are saved automatically every few seconds</span>
-                        </div>
-
-                      </form>
-                    </div>
-
-                    {/* Public URL Manager */}
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-                        <Globe className="w-3.5 h-3.5 text-indigo-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Public Profile URL</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 mb-4">
-                        <span className="text-[10px] text-slate-500 font-semibold shrink-0">zenzy.in/</span>
-                        <span className="text-[10px] text-emerald-600 font-black font-mono truncate">{pSlug || userData?.slug || "your-handle"}</span>
-                        <a href={`/${pSlug || userData?.slug}`} target="_blank" rel="noopener noreferrer" className="ml-auto text-[9px] text-indigo-500 font-bold hover:underline shrink-0">Visit ↗</a>
-                      </div>
-                      <div className="flex gap-2">
-                        <input type="text" value={slugInput} onChange={(e) => handleSlugInputChange(e.target.value)} placeholder="e.g. john-designer"
-                          className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10 transition-all" />
-                        <button onClick={handleSaveSlug} disabled={slugCheckStatus !== "available" || savingSlug}
-                          className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-xl text-[11px] font-black transition-all cursor-pointer shadow-md shadow-indigo-500/20">
-                          {savingSlug ? "Saving..." : "Update"}
-                        </button>
-                      </div>
-                      {slugCheckStatus === "available" && slugInput && <p className="text-[10px] text-emerald-500 font-bold mt-1.5">✓ This URL is available</p>}
-                      {slugCheckStatus === "taken" && <p className="text-[10px] text-red-500 font-bold mt-1.5">✗ This URL is already taken</p>}
-                    </div>
-
-                    {/* Portfolio Visibility Toggles */}
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-                        <Eye className="w-3.5 h-3.5 text-violet-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Portfolio Section Visibility</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {[
-                          { label: "Marketplace Packages", desc: "Show pricing packages on your public page", val: pShowMarketplace, set: setPShowMarketplace },
-                          { label: "Professional Team", desc: "Display your team members section", val: pShowTeam, set: setPShowTeam },
-                          { label: "Trust Ledger", desc: "Show client trust and fidelity scores", val: pShowTrustLedger, set: setPShowTrustLedger },
-                          { label: "Career Milestones", desc: "Highlight career history and awards", val: pShowCareerHistory, set: setPShowCareerHistory },
-                          { label: "Client Portal", desc: "Enable the client workspace portal", val: pShowPortal, set: setPShowPortal },
-                        ].map((tog, idx) => (
-                          <label key={idx} className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer border transition-all ${tog.val ? "bg-violet-50 border-violet-200" : "bg-slate-50 border-transparent hover:border-slate-200"}`}>
-                            <div className="relative mt-0.5 shrink-0">
-                              <input type="checkbox" checked={tog.val} onChange={(e) => tog.set(e.target.checked)} className="sr-only" />
-                              <div className={`w-9 h-5 rounded-full transition-all ${tog.val ? "bg-violet-500" : "bg-slate-200"}`}>
-                                <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${tog.val ? "translate-x-4" : "translate-x-0"}`} />
-                              </div>
-                            </div>
-                            <div>
-                              <span className={`text-xs font-bold block ${tog.val ? "text-violet-700" : "text-slate-600"}`}>{tog.label}</span>
-                              <span className="text-[9px] text-slate-400 font-medium">{tog.desc}</span>
-                            </div>
+                        {/* Tagline */}
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                            Business Tagline <span className="text-red-500">*</span>
                           </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Quotation Cards Manager */}
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-                        <FileText className="w-3.5 h-3.5 text-amber-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Service Quotation Cards</span>
-                      </div>
-                      <div className="bg-slate-50 rounded-xl p-4 mb-4 space-y-3">
-                        <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">Add New Quote</p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <input type="text" value={cQuoteTitle} onChange={(e) => setCQuoteTitle(e.target.value)} placeholder="e.g. Interior Consultation"
-                            className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-amber-400 transition-all" />
-                          <input type="text" value={cQuoteRate} onChange={(e) => setCQuoteRate(e.target.value)} placeholder="e.g. ₹4,500/hr"
-                            className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-amber-400 transition-all" />
+                          <input
+                            type="text"
+                            required
+                            value={pTagline}
+                            onChange={(e) => setPTagline(e.target.value)}
+                            placeholder="e.g. Certified residential & commercial electrical engineering specialists"
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+                          />
                         </div>
-                        <textarea rows={2} value={cQuoteDesc} onChange={(e) => setCQuoteDesc(e.target.value)} placeholder="Brief description of what this service includes..."
-                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none resize-none focus:border-amber-400 transition-all" />
-                        <button type="button" onClick={() => {
-                            if (!cQuoteTitle.trim() || !cQuoteRate.trim() || !cQuoteDesc.trim()) { alert("Please fill all quote card details."); return; }
-                            const item = { id: `quote-${Date.now()}`, title: cQuoteTitle, rate: cQuoteRate, description: cQuoteDesc };
-                            setPQuotations([...pQuotations, item]);
-                            setCQuoteTitle(""); setCQuoteRate(""); setCQuoteDesc("");
-                            showToast("✅ Quotation added!");
-                          }}
-                          className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all shadow-md shadow-amber-500/20 cursor-pointer">
-                          + Add Quote Card
-                        </button>
+
+                        {/* Bio / About */}
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Short About / Professional Bio <span className="text-red-500">*</span>
+                            </label>
+                            <span className="text-[9px] text-slate-400 font-bold">{(pBio || "").length}/300 chars</span>
+                          </div>
+                          <textarea
+                            rows={3}
+                            maxLength={300}
+                            required
+                            value={pBio}
+                            onChange={(e) => setPBio(e.target.value)}
+                            placeholder="Highlight your safety standards, response times, licensed team experience, and core mission..."
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none resize-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+                          />
+                        </div>
+
+                        {/* Detailed Overview */}
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                            Detailed Overview & Services Description
+                          </label>
+                          <textarea
+                            rows={4}
+                            value={pDesc}
+                            onChange={(e) => setPDesc(e.target.value)}
+                            placeholder="Full detailed overview of your business operations, equipment, warranty terms, and client guarantees..."
+                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none resize-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        {pQuotations.length === 0 ? (
-                          <p className="text-slate-400 text-[10px] font-semibold text-center py-3 italic">No quotation cards yet. Add one above.</p>
-                        ) : (
-                          pQuotations.map((quote, idx) => (
-                            <div key={quote.id || idx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-bold text-xs text-slate-900">{quote.title}</span>
-                                  <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-lg text-[9px] font-black">{quote.rate}</span>
-                                </div>
-                                <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">{quote.description}</p>
-                              </div>
-                              <button type="button" onClick={() => { const list = [...pQuotations]; list.splice(idx, 1); setPQuotations(list); showToast("Removed."); }}
-                                className="text-red-400 hover:text-red-600 text-[10px] font-black shrink-0 cursor-pointer hover:bg-red-50 rounded-lg px-2 py-1 transition-all">
-                                ✕
+                    )}
+
+                    {/* SUB-TAB 2: CONTACT INFORMATION */}
+                    {profileSubTab === "contact" && (
+                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6 animate-fade-in">
+                        <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                          <span className="w-2 h-4 bg-indigo-500 rounded-full" />
+                          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Contact & Location Details</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Primary Phone */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Primary Phone Number <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="tel"
+                              required
+                              value={pPhone}
+                              onChange={(e) => setPPhone(e.target.value)}
+                              placeholder="+91 98765 43210"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
+                            />
+                          </div>
+
+                          {/* WhatsApp Number */}
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between items-center">
+                              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                                WhatsApp Business Number
+                              </label>
+                              {pWhatsapp && (
+                                <a
+                                  href={`https://wa.me/${pWhatsapp.replace(/[^0-9]/g, '')}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[9px] text-emerald-600 font-extrabold hover:underline flex items-center gap-1"
+                                >
+                                  Test Chat ↗
+                                </a>
+                              )}
+                            </div>
+                            <input
+                              type="tel"
+                              value={pWhatsapp}
+                              onChange={(e) => setPWhatsapp(e.target.value)}
+                              placeholder="+91 98765 43210"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Official Website */}
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between items-center">
+                              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                                Official Website Link
+                              </label>
+                              {pWebsite && (
+                                <a
+                                  href={pWebsite.startsWith('http') ? pWebsite : `https://${pWebsite}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[9px] text-indigo-600 font-extrabold hover:underline"
+                                >
+                                  Open Website ↗
+                                </a>
+                              )}
+                            </div>
+                            <input
+                              type="url"
+                              value={pWebsite}
+                              onChange={(e) => setPWebsite(e.target.value)}
+                              placeholder="https://powerfix.in"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
+                            />
+                          </div>
+
+                          {/* Email Address (Bound read-only) */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Account Email (Verified)
+                            </label>
+                            <input
+                              type="email"
+                              disabled
+                              value={user?.email || ""}
+                              className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-500 outline-none cursor-not-allowed"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Complete Address */}
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                            Complete Office / Service Address <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={pArea}
+                            onChange={(e) => setPArea(e.target.value)}
+                            placeholder="Plot 45, Sector 12, Malviya Nagar, Jaipur, Rajasthan 302017"
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
+                          />
+                        </div>
+
+                        {/* Google Maps Embed / Link */}
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between items-center">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Google Maps Location Link / Embed URL
+                            </label>
+                            {pGoogleMapsUrl && (
+                              <a
+                                href={pGoogleMapsUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[9px] text-emerald-600 font-extrabold hover:underline"
+                              >
+                                View Map Pin ↗
+                              </a>
+                            )}
+                          </div>
+                          <input
+                            type="url"
+                            value={pGoogleMapsUrl}
+                            onChange={(e) => setPGoogleMapsUrl(e.target.value)}
+                            placeholder="https://maps.google.com/?q=..."
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SUB-TAB 3: PROFESSIONAL DETAILS & CERTS */}
+                    {profileSubTab === "professional" && (
+                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6 animate-fade-in">
+                        <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                          <span className="w-2 h-4 bg-violet-500 rounded-full" />
+                          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Professional Specs & Certifications</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Category */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Primary Service Category <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={pCategories[0] || ""}
+                              onChange={(e) => setPCategories([e.target.value])}
+                              placeholder="e.g. Electricians"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                            />
+                          </div>
+
+                          {/* Subcategory */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Subcategory / Specialization
+                            </label>
+                            <input
+                              type="text"
+                              value={pSubcategory}
+                              onChange={(e) => setPSubcategory(e.target.value)}
+                              placeholder="e.g. Industrial Wiring, Smart Automation"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Experience */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Years of Industry Experience
+                            </label>
+                            <input
+                              type="text"
+                              value={pExp}
+                              onChange={(e) => setPExp(e.target.value)}
+                              placeholder="e.g. 8+ years"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                            />
+                          </div>
+
+                          {/* Languages Spoken */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Languages Spoken (comma separated)
+                            </label>
+                            <input
+                              type="text"
+                              value={pLanguages}
+                              onChange={(e) => setPLanguages(e.target.value)}
+                              placeholder="English, Hindi, Rajasthani"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Skills */}
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                            Key Skills & Expertise Tags (comma separated)
+                          </label>
+                          <input
+                            type="text"
+                            value={pSkills}
+                            onChange={(e) => setPSkills(e.target.value)}
+                            placeholder="Circuit Repair, DB Box Installation, CCTV, Inverter Wiring"
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                          />
+                          {pSkills && (
+                            <div className="flex flex-wrap gap-1.5 pt-2">
+                              {pSkills.split(",").map((s, idx) => s.trim() ? (
+                                <span key={idx} className="bg-violet-50 border border-violet-200 text-violet-700 text-[10px] font-bold px-2.5 py-0.5 rounded-lg">
+                                  #{s.trim()}
+                                </span>
+                              ) : null)}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Certifications Manager */}
+                        <div className="space-y-3 pt-3 border-t border-slate-100">
+                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
+                            Certifications & Diplomas Manager
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                            <input
+                              type="text"
+                              value={certName}
+                              onChange={(e) => setCertName(e.target.value)}
+                              placeholder="Cert Title (e.g. Master Electrician)"
+                              className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                            />
+                            <input
+                              type="text"
+                              value={certIssuer}
+                              onChange={(e) => setCertIssuer(e.target.value)}
+                              placeholder="Issuer (e.g. Govt. ITI Institute)"
+                              className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                            />
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={certYear}
+                                onChange={(e) => setCertYear(e.target.value)}
+                                placeholder="Year (2022)"
+                                className="w-1/2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={handleAddCertification}
+                                className="w-1/2 bg-violet-600 hover:bg-violet-700 text-white text-[11px] font-extrabold rounded-xl transition shadow-sm"
+                              >
+                                + Add
                               </button>
                             </div>
-                          ))
-                        )}
+                          </div>
+
+                          {/* List */}
+                          <div className="space-y-2">
+                            {pCertifications.length === 0 ? (
+                              <p className="text-[10px] text-slate-400 italic">No certifications added yet.</p>
+                            ) : (
+                              pCertifications.map((cert) => (
+                                <div key={cert.id} className="flex justify-between items-center p-3 bg-white border border-slate-200 rounded-xl shadow-xs">
+                                  <div>
+                                    <span className="font-extrabold text-xs text-slate-900 block">{cert.name}</span>
+                                    <span className="text-[10px] text-slate-500 font-semibold">{cert.issuer} • {cert.year}</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveCertification(cert.id)}
+                                    className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg text-xs font-bold transition"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
                       </div>
+                    )}
+
+                    {/* SUB-TAB 4: BUSINESS SETTINGS & WORKING HOURS */}
+                    {profileSubTab === "settings" && (
+                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6 animate-fade-in">
+                        <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                          <span className="w-2 h-4 bg-teal-500 rounded-full" />
+                          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Business Operating Settings</h3>
+                        </div>
+
+                        {/* Working Hours Schedule for Each Day */}
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
+                            Daily Working Hours Schedule
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => {
+                              const config = (pWorkingHours as any)?.[day] || { active: true, start: "09:00 AM", end: "06:00 PM" };
+                              const toggleDay = (checked: boolean) => {
+                                setPWorkingHours((prev: any) => ({
+                                  ...prev,
+                                  [day]: { ...config, active: checked }
+                                }));
+                              };
+                              const updateTime = (key: "start" | "end", val: string) => {
+                                setPWorkingHours((prev: any) => ({
+                                  ...prev,
+                                  [day]: { ...config, [key]: val }
+                                }));
+                              };
+
+                              return (
+                                <div key={day} className={`p-3.5 rounded-2xl border transition-all ${config.active ? "bg-slate-50 border-slate-200" : "bg-slate-100/50 border-transparent opacity-60"}`}>
+                                  <div className="flex justify-between items-center">
+                                    <span className="font-black text-xs uppercase tracking-wider text-slate-800">{day}</span>
+                                    <label className="flex items-center gap-1.5 cursor-pointer">
+                                      <input type="checkbox" checked={config.active} onChange={(e) => toggleDay(e.target.checked)} className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5" />
+                                      <span className="text-[10px] font-bold text-slate-500">{config.active ? "Open" : "Closed"}</span>
+                                    </label>
+                                  </div>
+                                  {config.active && (
+                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                      <input
+                                        type="text"
+                                        value={config.start}
+                                        onChange={(e) => updateTime("start", e.target.value)}
+                                        placeholder="09:00 AM"
+                                        className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-900 outline-none"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={config.end}
+                                        onChange={(e) => updateTime("end", e.target.value)}
+                                        placeholder="06:00 PM"
+                                        className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-900 outline-none"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Settings Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
+                          {/* Service Radius */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Service Radius (in KM)
+                            </label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={100}
+                              value={pServiceRadius}
+                              onChange={(e) => setPServiceRadius(e.target.value)}
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                            />
+                          </div>
+
+                          {/* Starting Price */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Starting Price (₹)
+                            </label>
+                            <input
+                              type="text"
+                              value={pPriceStartingFrom}
+                              onChange={(e) => setPPriceStartingFrom(e.target.value)}
+                              placeholder="₹299"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                            />
+                          </div>
+
+                          {/* Response Time */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              Expected Response Time
+                            </label>
+                            <select
+                              value={pResponseTime}
+                              onChange={(e) => setPResponseTime(e.target.value)}
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                            >
+                              <option value="Within 15 mins">Within 15 mins</option>
+                              <option value="Within 30 mins">Within 30 mins</option>
+                              <option value="Within 1 hour">Within 1 hour</option>
+                              <option value="Within 2 hours">Within 2 hours</option>
+                              <option value="Same Day">Same Day Response</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Emergency Toggle Card */}
+                        <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-2xl flex items-center justify-between gap-4">
+                          <div>
+                            <span className="font-extrabold text-xs text-slate-900 block">24/7 Emergency Service Support</span>
+                            <span className="text-[10px] text-slate-500 font-semibold">Flag your profile as available for urgent breakdown and emergency service calls.</span>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input
+                              type="checkbox"
+                              checked={pEmergencyService}
+                              onChange={(e) => setPEmergencyService(e.target.checked)}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600" />
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SUB-TAB 5: SOCIAL LINKS */}
+                    {profileSubTab === "social" && (
+                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6 animate-fade-in">
+                        <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                          <span className="w-2 h-4 bg-pink-500 rounded-full" />
+                          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Social Channels & Portfolios</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Instagram */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Instagram Handle / URL</label>
+                            <input
+                              type="url"
+                              value={pSocialLinks.instagram || ""}
+                              onChange={(e) => setPSocialLinks({...pSocialLinks, instagram: e.target.value})}
+                              placeholder="https://instagram.com/yourhandle"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-pink-500"
+                            />
+                          </div>
+
+                          {/* Facebook */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Facebook Page URL</label>
+                            <input
+                              type="url"
+                              value={pSocialLinks.facebook || ""}
+                              onChange={(e) => setPSocialLinks({...pSocialLinks, facebook: e.target.value})}
+                              placeholder="https://facebook.com/yourpage"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-pink-500"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* LinkedIn */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">LinkedIn Profile URL</label>
+                            <input
+                              type="url"
+                              value={pSocialLinks.linkedin || ""}
+                              onChange={(e) => setPSocialLinks({...pSocialLinks, linkedin: e.target.value})}
+                              placeholder="https://linkedin.com/in/profile"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-pink-500"
+                            />
+                          </div>
+
+                          {/* YouTube */}
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">YouTube Channel URL</label>
+                            <input
+                              type="url"
+                              value={pSocialLinks.twitter || ""}
+                              onChange={(e) => setPSocialLinks({...pSocialLinks, twitter: e.target.value})}
+                              placeholder="https://youtube.com/c/channel"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-pink-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SUB-TAB 6: VERIFICATION DETAILS */}
+                    {profileSubTab === "verification" && (
+                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6 animate-fade-in">
+                        <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                          <div className="flex items-center gap-3">
+                            <span className="w-2 h-4 bg-amber-500 rounded-full" />
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">KYC Verification & Legal Docs</h3>
+                          </div>
+
+                          {/* Status Badge */}
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                            userData?.documentStatus === "approved"
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                              : userData?.documentStatus === "submitted"
+                              ? "bg-blue-100 text-blue-800 border border-blue-300"
+                              : "bg-amber-100 text-amber-800 border border-amber-300"
+                          }`}>
+                            Status: {userData?.documentStatus ? userData.documentStatus.toUpperCase() : "PENDING"}
+                          </span>
+                        </div>
+
+                        {/* Aadhaar & PAN Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                            <label className="text-[10px] font-extrabold uppercase text-slate-500 block">Aadhaar Card ID & File</label>
+                            <input
+                              type="text"
+                              value={pDocumentVerifications.aadhar || ""}
+                              onChange={(e) => setPDocumentVerifications({...pDocumentVerifications, aadhar: e.target.value})}
+                              placeholder="XXXX XXXX XXXX"
+                              className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                            />
+                            <div className="flex justify-between items-center pt-2">
+                              <span className="text-[9px] text-slate-400 font-bold">Max: 5MB File</span>
+                              <label className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-extrabold cursor-pointer transition">
+                                {pDocumentVerifications.aadharDoc ? "✓ Uploaded" : "Upload File"}
+                                <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "aadharDoc")} />
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                            <label className="text-[10px] font-extrabold uppercase text-slate-500 block">PAN Card Number & File</label>
+                            <input
+                              type="text"
+                              value={pDocumentVerifications.pan || ""}
+                              onChange={(e) => setPDocumentVerifications({...pDocumentVerifications, pan: e.target.value.toUpperCase()})}
+                              placeholder="ABCDE1234F"
+                              className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                            />
+                            <div className="flex justify-between items-center pt-2">
+                              <span className="text-[9px] text-slate-400 font-bold">Max: 5MB File</span>
+                              <label className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-extrabold cursor-pointer transition">
+                                {pDocumentVerifications.panDoc ? "✓ Uploaded" : "Upload File"}
+                                <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "panDoc")} />
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* GSTIN & Business License */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                            <label className="text-[10px] font-extrabold uppercase text-slate-500 block">GSTIN Certificate ID & File</label>
+                            <input
+                              type="text"
+                              value={pDocumentVerifications.gstNumber || ""}
+                              onChange={(e) => setPDocumentVerifications({...pDocumentVerifications, gstNumber: e.target.value.toUpperCase()})}
+                              placeholder="29GGGGG1314R9Z6"
+                              className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                            />
+                            <div className="flex justify-between items-center pt-2">
+                              <span className="text-[9px] text-slate-400 font-bold">Max: 5MB File</span>
+                              <label className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-extrabold cursor-pointer transition">
+                                {pDocumentVerifications.gstDoc ? "✓ Uploaded" : "Upload File"}
+                                <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "gstDoc")} />
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                            <label className="text-[10px] font-extrabold uppercase text-slate-500 block">Business License Registration & File</label>
+                            <input
+                              type="text"
+                              value={pDocumentVerifications.licenseNumber || ""}
+                              onChange={(e) => setPDocumentVerifications({...pDocumentVerifications, licenseNumber: e.target.value})}
+                              placeholder="Reg No. / License ID"
+                              className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                            />
+                            <div className="flex justify-between items-center pt-2">
+                              <span className="text-[9px] text-slate-400 font-bold">Max: 5MB File</span>
+                              <label className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-extrabold cursor-pointer transition">
+                                {pDocumentVerifications.licenseDoc ? "✓ Uploaded" : "Upload File"}
+                                <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "licenseDoc")} />
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bottom Save Changes Action Bar */}
+                    <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+                      <div className="text-left">
+                        <span className="font-extrabold text-xs text-slate-900 block">Save Profile Identity</span>
+                        <span className="text-[10px] text-slate-500 font-semibold">Your changes will immediately populate on your public business page.</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleUpdateProfile}
+                        disabled={savingProfile}
+                        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold text-xs px-8 py-3 rounded-2xl shadow-lg shadow-emerald-600/20 transition cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <Save className="w-4 h-4" />
+                        {savingProfile ? "Saving Details..." : "Save Business Profile"}
+                      </button>
                     </div>
 
-                    {/* Custom Sections */}
-                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-                        <Sliders className="w-3.5 h-3.5 text-slate-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Custom Portfolio Sections</span>
+                  </div>
+
+                  {/* RIGHT COLUMN: Live Mobile/Desktop Profile Preview & Settings */}
+                  <div className="lg:col-span-1 space-y-6">
+
+                    {/* Live Card Preview */}
+                    <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden sticky top-28">
+                      <div className="h-24 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 relative">
+                        {pCover && <img src={pCover} alt="Cover" className="w-full h-full object-cover" />}
                       </div>
-                      <div className="bg-slate-50 rounded-xl p-4 mb-4 space-y-3">
-                        <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">Add Section</p>
-                        <input type="text" value={cSectionTitle} onChange={(e) => setCSectionTitle(e.target.value)} placeholder="e.g. Design Philosophy, Work Process"
-                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-slate-400 transition-all" />
-                        <textarea rows={3} value={cSectionContent} onChange={(e) => setCSectionContent(e.target.value)} placeholder="Describe this section — terms, process, philosophy, or any key info for clients..."
-                          className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none resize-none focus:border-slate-400 transition-all" />
-                        <button type="button" onClick={() => {
-                            if (!cSectionTitle.trim() || !cSectionContent.trim()) { alert("Please fill both fields."); return; }
-                            const item = { id: `sec-${Date.now()}`, title: cSectionTitle, content: cSectionContent };
-                            setPCustomSections([...pCustomSections, item]);
-                            setCSectionTitle(""); setCSectionContent("");
-                            showToast("✅ Section added!");
-                          }}
-                          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all cursor-pointer">
-                          + Add Section
-                        </button>
-                      </div>
-                      <div className="space-y-2">
-                        {pCustomSections.length === 0 ? (
-                          <p className="text-slate-400 text-[10px] font-semibold text-center py-3 italic">No custom sections yet.</p>
-                        ) : (
-                          pCustomSections.map((sec, idx) => (
-                            <div key={sec.id || idx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                              <div className="flex-1 min-w-0">
-                                <span className="font-bold text-xs text-slate-900 block">{sec.title}</span>
-                                <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed whitespace-pre-wrap">{sec.content}</p>
-                              </div>
-                              <button type="button" onClick={() => { const list = [...pCustomSections]; list.splice(idx, 1); setPCustomSections(list); showToast("Removed."); }}
-                                className="text-red-400 hover:text-red-600 text-[10px] font-black shrink-0 cursor-pointer hover:bg-red-50 rounded-lg px-2 py-1 transition-all">
-                                ✕
-                              </button>
-                            </div>
-                          ))
+
+                      <div className="flex flex-col items-center px-5 pb-6">
+                        <div className="relative -mt-10 mb-3">
+                          <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-white shadow-xl bg-white">
+                            <img
+                              src={pAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=200&h=200&q=80"}
+                              alt="Avatar"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" />
+                        </div>
+
+                        <h4 className="font-black text-base text-slate-900 text-center">{pName || "Business Name"}</h4>
+                        {pOwnerName && <p className="text-[10px] text-slate-400 font-bold">By {pOwnerName}</p>}
+                        <span className="text-[10px] text-emerald-600 font-extrabold mt-1 uppercase bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                          {pCategories[0] || "Professional"}
+                        </span>
+
+                        {pTagline && (
+                          <p className="text-[11px] text-slate-600 font-semibold text-center mt-2.5 leading-relaxed px-2">
+                            "{pTagline}"
+                          </p>
                         )}
+
+                        {/* Quick Stats */}
+                        <div className="w-full grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100 text-center">
+                          <div className="bg-slate-50 p-2.5 rounded-xl">
+                            <span className="text-xs font-black text-slate-900 block">{pPriceStartingFrom || "₹299"}</span>
+                            <span className="text-[9px] text-slate-400 font-bold uppercase">Starting Price</span>
+                          </div>
+                          <div className="bg-slate-50 p-2.5 rounded-xl">
+                            <span className="text-xs font-black text-emerald-600 block">{pServiceRadius || "15"} KM</span>
+                            <span className="text-[9px] text-slate-400 font-bold uppercase">Service Area</span>
+                          </div>
+                        </div>
+
+                        {/* Public URL Handle Preview */}
+                        <div className="w-full mt-4 p-3 bg-slate-900 text-white rounded-2xl space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[9px] text-slate-400 uppercase font-black">Public Address</span>
+                            {slugCheckStatus === "available" && <span className="text-[9px] text-emerald-400 font-bold">✓ Available</span>}
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <span className="text-[11px] font-mono text-emerald-400 font-bold truncate">zenzy.in/{pSlug || "handle"}</span>
+                          </div>
+                          <div className="flex gap-2 pt-1">
+                            <input
+                              type="text"
+                              value={slugInput}
+                              onChange={(e) => handleSlugInputChange(e.target.value)}
+                              placeholder="change-handle"
+                              className="flex-1 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-mono text-white outline-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleSaveSlug}
+                              disabled={slugCheckStatus !== "available" || savingSlug}
+                              className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-slate-950 px-3 py-1.5 rounded-xl text-[10px] font-extrabold transition"
+                            >
+                              Update
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
                   </div>
+
                 </div>
+
               </div>
             )}
 
@@ -4550,6 +5457,261 @@ export default function ProviderDashboardPage() {
       {/* Hidden Profile Inputs */}
       <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
       <input ref={portfolioInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePortfolioUpload} />
+
+      {/* ═══════ ADD / EDIT SERVICE MODAL ═══════ */}
+      {serviceModalOpen && (
+        <div className="fixed inset-0 z-[190] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 overflow-y-auto animate-fade-in text-left">
+          <div className="bg-white w-full max-w-[720px] my-8 rounded-3xl overflow-hidden border border-slate-200 shadow-2xl relative flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="p-6 bg-slate-900 text-white flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center font-bold">
+                  <Wrench className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base tracking-tight">
+                    {editingServiceId ? "Edit Service Package" : "Add New Service Package"}
+                  </h3>
+                  <p className="text-[10px] text-slate-300 font-semibold mt-0.5">
+                    Configure service name, category, pricing type, duration, tags, and booking rules.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setServiceModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer font-bold text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body Form */}
+            <form onSubmit={handleSaveService} className="flex-1 overflow-y-auto p-6 space-y-6 text-xs font-semibold text-slate-700">
+
+              {/* Cover Image Upload */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider block">Service Cover Image</label>
+                <div className="h-32 rounded-2xl border border-slate-200 overflow-hidden relative bg-slate-100 flex items-center justify-center">
+                  {sCoverImage ? (
+                    <img src={sCoverImage} alt="Service Cover" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-center space-y-1">
+                      <Camera className="w-6 h-6 text-slate-400 mx-auto" />
+                      <p className="text-[10px] text-slate-400 font-bold">No Cover Image Selected</p>
+                    </div>
+                  )}
+
+                  <label htmlFor="serviceCoverFileInput" className="absolute bottom-3 right-3 bg-slate-900/80 hover:bg-slate-900 text-white text-[10px] font-bold px-3.5 py-1.5 rounded-xl border border-white/20 cursor-pointer transition flex items-center gap-1.5 shadow-md">
+                    <Upload className="w-3.5 h-3.5 text-teal-400" />
+                    <span>{sUploadingCover ? "Uploading..." : sCoverImage ? "Change Cover" : "Upload Cover"}</span>
+                    <input id="serviceCoverFileInput" type="file" accept="image/*" className="hidden" onChange={handleServiceCoverUpload} />
+                  </label>
+                </div>
+              </div>
+
+              {/* Service Name */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
+                  Service Name / Package Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={sName}
+                  onChange={(e) => setSName(e.target.value)}
+                  placeholder="e.g. Complete 3-BHK Electrical Rewiring & Safety Audit"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10"
+                />
+              </div>
+
+              {/* Category & Subcategory */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Category <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    value={sCategory}
+                    onChange={(e) => setSCategory(e.target.value)}
+                    placeholder="e.g. Electricians"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Subcategory</label>
+                  <input
+                    type="text"
+                    value={sSubcategory}
+                    onChange={(e) => setSSubcategory(e.target.value)}
+                    placeholder="e.g. Residential Rewiring"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                  />
+                </div>
+              </div>
+
+              {/* Pricing & Duration */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Pricing Type</label>
+                  <select
+                    value={sPricingType}
+                    onChange={(e) => setSPricingType(e.target.value as any)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                  >
+                    <option value="fixed">Fixed Price</option>
+                    <option value="starting">Starting Price</option>
+                    <option value="custom">Custom Quote / Estimate</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Price (₹)</label>
+                  <input
+                    type="text"
+                    value={sPrice}
+                    onChange={(e) => setSPrice(e.target.value)}
+                    disabled={sPricingType === "custom"}
+                    placeholder="299"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500 disabled:opacity-50"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Estimated Duration</label>
+                  <input
+                    type="text"
+                    value={sDuration}
+                    onChange={(e) => setSDuration(e.target.value)}
+                    placeholder="e.g. 1-2 Hours"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                  />
+                </div>
+              </div>
+
+              {/* Short & Detailed Description */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Short Summary (1-2 sentences)</label>
+                <input
+                  type="text"
+                  value={sShortDesc}
+                  onChange={(e) => setSShortDesc(e.target.value)}
+                  placeholder="Quick summary displayed on card previews..."
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Detailed Description & Inclusions</label>
+                <textarea
+                  rows={4}
+                  value={sDetailedDesc}
+                  onChange={(e) => setSDetailedDesc(e.target.value)}
+                  placeholder="Full breakdown of scope, tools included, warranty, and client site requirements..."
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none resize-none focus:border-teal-500"
+                />
+              </div>
+
+              {/* Service Area & Tags */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Service Coverage Area</label>
+                  <input
+                    type="text"
+                    value={sServiceArea}
+                    onChange={(e) => setSServiceArea(e.target.value)}
+                    placeholder="e.g. Jaipur & 20km Radius"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Tags (comma separated)</label>
+                  <input
+                    type="text"
+                    value={sTags}
+                    onChange={(e) => setSTags(e.target.value)}
+                    placeholder="Wiring, Circuit, Urgent, Inspection"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                  />
+                </div>
+              </div>
+
+              {/* Feature Badges Toggles */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider block">Service Badges & Booking Rules</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <label className={`p-3 rounded-2xl border cursor-pointer flex items-center gap-2 transition ${sIsPopular ? "bg-amber-50 border-amber-300 text-amber-900" : "bg-slate-50 border-slate-200"}`}>
+                    <input type="checkbox" checked={sIsPopular} onChange={(e) => setSIsPopular(e.target.checked)} className="rounded text-amber-600 focus:ring-amber-500" />
+                    <span className="text-[11px] font-extrabold">Popular</span>
+                  </label>
+
+                  <label className={`p-3 rounded-2xl border cursor-pointer flex items-center gap-2 transition ${sIsFeatured ? "bg-purple-50 border-purple-300 text-purple-900" : "bg-slate-50 border-slate-200"}`}>
+                    <input type="checkbox" checked={sIsFeatured} onChange={(e) => setSIsFeatured(e.target.checked)} className="rounded text-purple-600 focus:ring-purple-500" />
+                    <span className="text-[11px] font-extrabold">Featured</span>
+                  </label>
+
+                  <label className={`p-3 rounded-2xl border cursor-pointer flex items-center gap-2 transition ${sIsEmergency ? "bg-red-50 border-red-300 text-red-900" : "bg-slate-50 border-slate-200"}`}>
+                    <input type="checkbox" checked={sIsEmergency} onChange={(e) => setSIsEmergency(e.target.checked)} className="rounded text-red-600 focus:ring-red-500" />
+                    <span className="text-[11px] font-extrabold">24/7 Urgent</span>
+                  </label>
+
+                  <label className={`p-3 rounded-2xl border cursor-pointer flex items-center gap-2 transition ${sIsCustomQuoteOnly ? "bg-indigo-50 border-indigo-300 text-indigo-900" : "bg-slate-50 border-slate-200"}`}>
+                    <input type="checkbox" checked={sIsCustomQuoteOnly} onChange={(e) => setSIsCustomQuoteOnly(e.target.checked)} className="rounded text-indigo-600 focus:ring-indigo-500" />
+                    <span className="text-[11px] font-extrabold">Quote Only</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Gallery Images Upload */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Service Gallery Photos (Max 8)</label>
+                  <label htmlFor="serviceGalleryFiles" className="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-bold px-3 py-1 rounded-xl cursor-pointer transition">
+                    + Add Photos
+                    <input id="serviceGalleryFiles" type="file" accept="image/*" multiple className="hidden" onChange={handleServiceGalleryUpload} />
+                  </label>
+                </div>
+
+                {sGalleryImages.length > 0 && (
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pt-1">
+                    {sGalleryImages.map((imgUrl, gIdx) => (
+                      <div key={gIdx} className="h-16 rounded-xl overflow-hidden relative border border-slate-200 group">
+                        <img src={imgUrl} alt="Gallery" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setSGalleryImages((prev) => prev.filter((_, i) => i !== gIdx))}
+                          className="absolute top-1 right-1 bg-red-600 text-white w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold opacity-0 group-hover:opacity-100 transition"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setServiceModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl font-bold text-xs text-slate-600 hover:bg-slate-100 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingService}
+                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold text-xs px-6 py-2.5 rounded-xl shadow-md transition cursor-pointer"
+                >
+                  {savingService ? "Saving Package..." : editingServiceId ? "Save Changes" : "Create Service"}
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Portfolio Lightbox Modal */}
       {activeLightboxImg && (

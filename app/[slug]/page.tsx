@@ -166,6 +166,10 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
   const [lightboxIdx, setLightboxIdx] = useState(0);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
 
+  // Dedicated Professional Services State
+  const [proServices, setProServices] = useState<any[]>([]);
+  const [selectedDetailService, setSelectedDetailService] = useState<any | null>(null);
+
   // Multi-Step Booking Wizard States
   const [bookingWizardOpen, setBookingWizardOpen] = useState(false);
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3 | 4 | 5>(1);
@@ -1302,7 +1306,18 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
             setReviews(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
           });
 
-          return () => unsubReviews();
+          const servQuery = query(collection(db, "professionalServices"), where("workerId", "==", docId));
+          const unsubProServices = onSnapshot(servQuery, (servSnap) => {
+            const list: any[] = [];
+            servSnap.forEach(d => list.push({ id: d.id, ...d.data() }));
+            list.sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+            setProServices(list.filter(s => s.status !== "inactive"));
+          });
+
+          return () => {
+            unsubReviews();
+            unsubProServices();
+          };
         } else {
           setWorker(null);
         }
@@ -2124,8 +2139,10 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                   <div className={`${theme.card} p-6 sm:p-7 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4`}>
                     <div>
                       <h3 className="text-base font-black text-slate-900">
-                        All Services {(() => {
-                          const realList = (worker.services && worker.services.length > 0)
+                        Services Catalog {(() => {
+                          const realList = proServices.length > 0
+                            ? proServices
+                            : (worker.services && worker.services.length > 0)
                             ? worker.services
                             : (worker.marketplaceItems && worker.marketplaceItems.length > 0)
                               ? worker.marketplaceItems
@@ -2133,20 +2150,22 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                           return realList.length > 0 ? `(${realList.length})` : "(0)";
                         })()}
                       </h3>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">Explore transparent pricing and instant booking for all services.</p>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">Explore transparent pricing, estimated durations, and instant booking options.</p>
                     </div>
                     {canEdit && (
                       <button
-                        onClick={handleOpenAddService}
+                        onClick={() => router.push("/worker/dashboard")}
                         className="bg-[#1a3a5c] hover:bg-[#0f2a4a] text-white font-bold text-xs px-4 py-2.5 rounded-[14px] transition cursor-pointer shadow-md flex items-center gap-1.5 shrink-0"
                       >
-                        <Plus className="w-4 h-4" /> Add Service
+                        <Sliders className="w-4 h-4" /> Manage Catalog
                       </button>
                     )}
                   </div>
 
                   {(() => {
-                    const realServices = (worker.services && worker.services.length > 0)
+                    const realServices = proServices.length > 0
+                      ? proServices
+                      : (worker.services && worker.services.length > 0)
                       ? worker.services
                       : (worker.marketplaceItems && worker.marketplaceItems.length > 0)
                         ? worker.marketplaceItems
@@ -2160,27 +2179,27 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                           </div>
                           <div className="max-w-md mx-auto space-y-1">
                             <h4 className="font-bold text-base text-slate-900">
-                              {canEdit ? "No Services Added Yet" : "Custom Quotes & Services"}
+                              {canEdit ? "No Active Services Listed" : "Custom Service Inquiries"}
                             </h4>
                             <p className="text-xs text-slate-500 font-medium leading-relaxed">
                               {canEdit
-                                ? "Your service list is currently empty. Click below to add your services, pricing, and descriptions for clients."
-                                : "This professional provides custom service quotes based on your specific requirements."}
+                                ? "Your service catalog is currently empty. Use the Services Manager in your dashboard to add service packages."
+                                : "This professional provides custom service estimates based on your project requirements."}
                             </p>
                           </div>
                           {canEdit ? (
                             <button
-                              onClick={handleOpenAddService}
+                              onClick={() => router.push("/worker/dashboard")}
                               className="bg-[#1a3a5c] hover:bg-[#0f2a4a] text-white font-bold text-xs px-6 py-3 rounded-[14px] transition cursor-pointer shadow-md inline-flex items-center gap-2"
                             >
-                              <Plus className="w-4 h-4" /> Add First Service
+                              <Plus className="w-4 h-4" /> Add Services in Dashboard
                             </button>
                           ) : (
                             <button
                               onClick={() => router.push(`/${slug}/inquire`)}
                               className="bg-[#1a3a5c] hover:bg-[#0f2a4a] text-white font-bold text-xs px-6 py-3 rounded-[14px] transition cursor-pointer shadow-md inline-flex items-center gap-2"
                             >
-                              <Zap className="w-4 h-4" /> Inquire / Request Custom Quote
+                              <Zap className="w-4 h-4" /> Request Custom Estimate
                             </button>
                           )}
                         </div>
@@ -2188,59 +2207,110 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                     }
 
                     return (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {realServices.map((serv: any, idx: number) => (
-                          <div key={idx} className={`${theme.card} p-5 hover:border-[#1a3a5c]/30 transition space-y-3 flex flex-col justify-between`}>
-                            <div className="space-y-2">
-                              <div className="flex justify-between items-start gap-2">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-2xl bg-[#1a3a5c]/10 border border-[#1a3a5c]/20 text-[#1a3a5c] flex items-center justify-center font-bold text-sm shrink-0">
-                                    {renderServiceIcon(serv.icon, "w-5 h-5")}
-                                  </div>
-                                  <div>
-                                    <h4 className="font-bold text-sm text-slate-900 leading-snug">{serv.title || serv.name}</h4>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{serv.category || worker.category || "General"}</span>
-                                  </div>
-                                </div>
-                                <span className="text-xs font-black text-[#1a3a5c] bg-[#1a3a5c]/10 border border-[#1a3a5c]/20 px-3 py-1 rounded-full shrink-0">
-                                  {serv.price || serv.priceStartingFrom || "On Request"}
-                                </span>
-                              </div>
-                              <p className="text-xs text-slate-600 font-medium leading-relaxed pt-1">
-                                {serv.desc || serv.description || "Professional service delivered with high quality standards."}
-                              </p>
-                            </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        {realServices.map((serv: any, idx: number) => {
+                          const isQuoteOnly = serv.isCustomQuoteOnly || serv.bookingMode === "request_quote" || serv.pricingType === "custom";
+                          const formattedPrice = serv.price
+                            ? (serv.pricingType === "starting" ? `From ₹${serv.price}` : serv.pricingType === "fixed" ? `₹${serv.price}` : "On Request")
+                            : (serv.priceStartingFrom || "On Request");
 
-                            <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                              <button
-                                onClick={() => {
-                                  router.push(`/${slug}/inquire?service=${encodeURIComponent(serv.title || serv.name)}`);
-                                }}
-                                className={btnPrimarySmall}
-                              >
-                                <Zap className="w-3.5 h-3.5" /> Book
-                              </button>
-                              {canEdit && (
-                                <div className="flex items-center gap-1.5">
-                                  <button
-                                    onClick={() => handleOpenEditService(idx, serv)}
-                                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition cursor-pointer"
-                                    title="Edit Service"
-                                  >
-                                    <Edit className="w-3.5 h-3.5 text-[#1a3a5c]" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteService(idx)}
-                                    className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 transition cursor-pointer"
-                                    title="Delete Service"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
+                          return (
+                            <div key={serv.id || idx} className={`${theme.card} overflow-hidden hover:border-[#1a3a5c]/40 transition-all duration-300 flex flex-col justify-between group shadow-sm`}>
+                              {/* Cover Banner */}
+                              {serv.coverImage ? (
+                                <div className="h-44 bg-slate-900 relative overflow-hidden">
+                                  <img src={serv.coverImage} alt={serv.name || serv.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-1 flex-wrap">
+                                    <span className="bg-[#1a3a5c]/90 text-white text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg backdrop-blur-md">
+                                      {serv.category || worker.category || "General"}
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                      {serv.isPopular && <span className="bg-amber-500 text-white text-[8.5px] font-black uppercase px-2 py-0.5 rounded-full shadow-xs">Popular</span>}
+                                      {serv.isFeatured && <span className="bg-purple-600 text-white text-[8.5px] font-black uppercase px-2 py-0.5 rounded-full shadow-xs">Featured</span>}
+                                      {serv.isEmergency && <span className="bg-red-600 text-white text-[8.5px] font-black uppercase px-2 py-0.5 rounded-full shadow-xs">24/7 Urgent</span>}
+                                    </div>
+                                  </div>
                                 </div>
-                              )}
+                              ) : null}
+
+                              {/* Card Content */}
+                              <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                                <div className="space-y-2">
+                                  <div className="flex justify-between items-start gap-2">
+                                    <div className="flex items-center gap-2.5">
+                                      {!serv.coverImage && (
+                                        <div className="w-9 h-9 rounded-xl bg-[#1a3a5c]/10 text-[#1a3a5c] flex items-center justify-center font-bold text-sm shrink-0">
+                                          {renderServiceIcon(serv.icon, "w-4 h-4")}
+                                        </div>
+                                      )}
+                                      <div>
+                                        <h4 className="font-extrabold text-sm text-slate-900 leading-snug">{serv.name || serv.title}</h4>
+                                        {serv.subcategory && <span className="text-[10px] font-bold text-slate-400 block">{serv.subcategory}</span>}
+                                      </div>
+                                    </div>
+
+                                    <span className="text-xs font-black text-[#1a3a5c] bg-[#1a3a5c]/10 border border-[#1a3a5c]/20 px-3 py-1 rounded-full shrink-0">
+                                      {formattedPrice}
+                                    </span>
+                                  </div>
+
+                                  <p className="text-xs text-slate-600 font-normal leading-relaxed line-clamp-2">
+                                    {serv.shortDescription || serv.desc || serv.description || "Professional service delivered with safety and quality guarantees."}
+                                  </p>
+
+                                  <div className="flex flex-wrap items-center gap-3 text-[10.5px] text-slate-500 font-bold pt-1">
+                                    <span className="flex items-center gap-1">⏰ {serv.duration || "1-2 Hours"}</span>
+                                    <span>•</span>
+                                    <span className="flex items-center gap-1">📍 {serv.serviceArea || worker.serviceArea || "City-wide"}</span>
+                                  </div>
+
+                                  {Array.isArray(serv.tags) && serv.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 pt-1">
+                                      {serv.tags.map((tag: string, tIdx: number) => (
+                                        <span key={tIdx} className="bg-slate-100 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                                          #{tag}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Card Actions */}
+                                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedDetailService(serv)}
+                                    className="text-[11px] font-bold text-slate-600 hover:text-[#1a3a5c] flex items-center gap-1 transition"
+                                  >
+                                    <Info className="w-3.5 h-3.5" /> Details
+                                  </button>
+
+                                  {isQuoteOnly ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => router.push(`/${slug}/inquire?service=${encodeURIComponent(serv.name || serv.title || "")}`)}
+                                      className={btnPrimarySmall}
+                                    >
+                                      <Zap className="w-3.5 h-3.5" /> Request Quote
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setWizardService(serv.name || serv.title || "");
+                                        setWizardStep(1);
+                                        setBookingWizardOpen(true);
+                                      }}
+                                      className={btnPrimarySmall}
+                                    >
+                                      <CheckCircle className="w-3.5 h-3.5" /> Book Now
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     );
                   })()}
@@ -2686,7 +2756,9 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">Step 1: Choose Service</span>
 
                   <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
-                    {(worker.marketplaceItems && worker.marketplaceItems.length > 0
+                    {(proServices.length > 0
+                      ? proServices
+                      : (worker.marketplaceItems && worker.marketplaceItems.length > 0)
                       ? worker.marketplaceItems
                       : [
                         { id: "default-1", title: `${worker.category || "Service"} Diagnostics & Minor Repair`, price: worker.pricing || "₹499", description: "Standard diagnostic site visit and troubleshooting." },
@@ -2694,21 +2766,23 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                       ]
                     ).map((pkg: any) => (
                       <div
-                        key={pkg.id || pkg.title}
+                        key={pkg.id || pkg.title || pkg.name}
                         onClick={() => {
-                          setWizardService(pkg.title);
+                          setWizardService(pkg.title || pkg.name);
                           setWizardCustomService("");
                         }}
-                        className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${wizardService === pkg.title
+                        className={`p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${wizardService === (pkg.title || pkg.name)
                           ? "bg-[#1a3a5c]/10 border-[#1a3a5c] shadow-sm"
                           : "bg-white border-slate-100 hover:border-slate-200"
                           }`}
                       >
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-slate-900 text-xs">{pkg.title}</span>
-                          <span className="font-black text-[#1a3a5c] text-xs">{pkg.price}</span>
+                          <span className="font-bold text-slate-900 text-xs">{pkg.title || pkg.name}</span>
+                          <span className="font-black text-[#1a3a5c] text-xs">
+                            {pkg.price ? (pkg.pricingType === "starting" ? `From ₹${pkg.price}` : pkg.pricingType === "fixed" ? `₹${pkg.price}` : "On Request") : (pkg.priceStartingFrom || "₹499")}
+                          </span>
                         </div>
-                        <p className="text-[10px] text-slate-500 font-normal mt-1 leading-relaxed">{pkg.description}</p>
+                        <p className="text-[10px] text-slate-500 font-normal mt-1 leading-relaxed">{pkg.shortDescription || pkg.desc || pkg.description}</p>
                       </div>
                     ))}
                   </div>
@@ -4420,6 +4494,133 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
         workerId={workerId}
         onReviewSubmitted={() => setReviewOpen(false)}
       />
+
+      {/* Service Detail Popover Modal */}
+      {selectedDetailService && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in font-sans"
+          onClick={() => setSelectedDetailService(null)}
+        >
+          <div
+            className="w-full max-w-xl bg-white rounded-[2rem] border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-scale-in text-left max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header / Cover */}
+            <div className="relative bg-slate-900 h-52 shrink-0">
+              {selectedDetailService.coverImage ? (
+                <img src={selectedDetailService.coverImage} alt={selectedDetailService.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold">No Cover Image</div>
+              )}
+              <button
+                type="button"
+                onClick={() => setSelectedDetailService(null)}
+                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center transition cursor-pointer font-bold border border-white/20"
+              >
+                ✕
+              </button>
+
+              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                <span className="bg-[#1a3a5c] text-white text-[10px] font-black uppercase px-3 py-1 rounded-xl shadow-md border border-white/20">
+                  {selectedDetailService.category || worker.category || "General"}
+                </span>
+                <span className="bg-emerald-600 text-white font-black text-sm px-3.5 py-1 rounded-xl shadow-md">
+                  {selectedDetailService.price
+                    ? (selectedDetailService.pricingType === "starting" ? `From ₹${selectedDetailService.price}` : selectedDetailService.pricingType === "fixed" ? `₹${selectedDetailService.price}` : "On Request")
+                    : "On Request"}
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4 overflow-y-auto flex-1 text-xs text-slate-700 font-medium">
+              <div>
+                <h3 className="font-extrabold text-lg text-slate-900 tracking-tight">{selectedDetailService.name || selectedDetailService.title}</h3>
+                {selectedDetailService.subcategory && (
+                  <span className="text-[11px] font-bold text-slate-400 block mt-0.5">{selectedDetailService.subcategory}</span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-4 text-xs font-bold text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <span className="flex items-center gap-1">⏰ {selectedDetailService.duration || "1-2 Hours"}</span>
+                <span>•</span>
+                <span className="flex items-center gap-1">📍 {selectedDetailService.serviceArea || worker.serviceArea || "City-wide"}</span>
+              </div>
+
+              <div className="space-y-1">
+                <h4 className="font-black text-xs text-slate-900 uppercase tracking-wider">Service Overview & Inclusions</h4>
+                <p className="text-xs text-slate-600 leading-relaxed font-normal whitespace-pre-line">
+                  {selectedDetailService.detailedDescription || selectedDetailService.shortDescription || selectedDetailService.desc || selectedDetailService.description || "Professional service guaranteed with standard quality checks."}
+                </p>
+              </div>
+
+              {/* Gallery Photos */}
+              {Array.isArray(selectedDetailService.galleryImages) && selectedDetailService.galleryImages.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <h4 className="font-black text-xs text-slate-900 uppercase tracking-wider">Gallery Photos</h4>
+                  <div className="grid grid-cols-4 gap-2">
+                    {selectedDetailService.galleryImages.map((imgUrl: string, gIdx: number) => (
+                      <div key={gIdx} className="h-16 rounded-xl overflow-hidden border border-slate-200">
+                        <img src={imgUrl} alt="Gallery" className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tags */}
+              {Array.isArray(selectedDetailService.tags) && selectedDetailService.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
+                  {selectedDetailService.tags.map((tag: string, tIdx: number) => (
+                    <span key={tIdx} className="bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-lg text-[10px]">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSelectedDetailService(null)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 font-bold text-xs text-slate-600 hover:bg-slate-100 transition"
+              >
+                Close
+              </button>
+
+              {selectedDetailService.isCustomQuoteOnly || selectedDetailService.bookingMode === "request_quote" || selectedDetailService.pricingType === "custom" ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const servName = selectedDetailService.name || selectedDetailService.title || "";
+                    setSelectedDetailService(null);
+                    router.push(`/${slug}/inquire?service=${encodeURIComponent(servName)}`);
+                  }}
+                  className={btnPrimarySmall}
+                >
+                  <Zap className="w-3.5 h-3.5" /> Request Custom Quote
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const servName = selectedDetailService.name || selectedDetailService.title || "";
+                    setSelectedDetailService(null);
+                    setWizardService(servName);
+                    setWizardStep(1);
+                    setBookingWizardOpen(true);
+                  }}
+                  className={btnPrimarySmall}
+                >
+                  <CheckCircle className="w-3.5 h-3.5" /> Book This Service Now
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
