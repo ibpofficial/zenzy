@@ -187,6 +187,8 @@ export default function PublicQuotationPage() {
 
     setUpdatingStatus(true);
     try {
+      const timestamp = new Date().toISOString();
+      const sigText = signatureName.trim();
       const isOfflineQuote = quote.id.startsWith("lq-") || quoteId.startsWith("url_");
       
       if (!isOfflineQuote) {
