@@ -8,7 +8,8 @@ import {
   collection,
   query,
   where,
-  getDocs
+  getDocs,
+  addDoc
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Footer from "@/components/Footer";
@@ -566,19 +567,30 @@ function QuoteComposerContent() {
         createdAt: new Date().toISOString()
       };
 
+      // Save to database for short shareable URLs with local/offline fallback
+      let quoteId = `lq-${Date.now()}`;
+      try {
+        const docRef = await addDoc(collection(db, "quotations"), quotePayload);
+        quoteId = docRef.id;
+      } catch (dbErr) {
+        console.warn("Could not save quotation to cloud database, falling back to local storage URL:", dbErr);
+      }
+
       // Save locally to professional's device
-      const localId = `lq-${Date.now()}`;
-      const quoteWithId = { ...quotePayload, id: localId };
-      
+      const quoteWithId = { ...quotePayload, id: quoteId };
       const updatedQuotes = [quoteWithId, ...localQuotes];
       setLocalQuotes(updatedQuotes);
       localStorage.setItem("zenzy_local_quotes", JSON.stringify(updatedQuotes));
       
-      // Encode in URL parameters for zero-server sharing
-      const encodedLink = encodeQuote(quoteWithId);
-      setCreatedQuoteId(encodedLink);
-
-      alert("✓ Quotation generated successfully and saved locally!");
+      if (quoteId.startsWith("lq-")) {
+        // Fallback to zero-server base64 URL if cloud database write failed
+        const encodedLink = encodeQuote(quoteWithId);
+        setCreatedQuoteId(encodedLink);
+        alert("✓ Quotation generated locally! (Offline fallback active)");
+      } else {
+        setCreatedQuoteId(quoteId);
+        alert("✓ Quotation generated successfully and uploaded to cloud!");
+      }
     } catch (err) {
       console.error("Save Quote Error:", err);
       alert("Failed to compile quotation link. Please check parameters.");
