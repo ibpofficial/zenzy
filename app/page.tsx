@@ -906,8 +906,8 @@ export default function HomePage() {
                   key={idx}
                   onClick={() => setActiveSlide(idx)}
                   className={`h-2 rounded-md transition-all duration-300 ease-out cursor-pointer ${idx === activeSlide
-                      ? "bg-white w-7 shadow-md"
-                      : "bg-white/35 w-2 hover:bg-white/60 hover:w-4"
+                    ? "bg-white w-7 shadow-md"
+                    : "bg-white/35 w-2 hover:bg-white/60 hover:w-4"
                     }`}
                 />
               ))}

@@ -119,10 +119,13 @@ export async function ensureDefaultSettings() {
 }
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 
 const ZenAssistant = dynamic(() => import("@/components/ZenAssistant"), { ssr: false });
 
 export default function ThemeApplier() {
+  const pathname = usePathname();
+
   useEffect(() => {
     ensureDefaultSettings();
 
@@ -146,6 +149,10 @@ export default function ThemeApplier() {
 
     return () => unsub();
   }, []);
+
+  const isVisiblePage = pathname === "/" || pathname === "/services";
+
+  if (!isVisiblePage) return null;
 
   return <ZenAssistant />;
 }

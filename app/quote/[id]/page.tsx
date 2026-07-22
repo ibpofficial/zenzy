@@ -51,6 +51,11 @@ import {
   ScanLine,
   CircleCheck,
   TriangleAlert,
+  Wrench,
+  Zap,
+  Droplet,
+  Paintbrush,
+  Grid,
 } from "lucide-react";
 
 function getContrastColor(hexColor: string) {
@@ -594,31 +599,104 @@ export default function PublicQuotationPage() {
               </div>
             </div>
 
-            {/* Specs & Inclusions */}
-            {(quote.materialSpecs || quote.inclusionsExclusions) && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {quote.materialSpecs && (
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                      <Award className="w-3.5 h-3.5" />
-                      Material Standards
-                    </p>
-                    <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed">
-                      {quote.materialSpecs}
-                    </p>
+            {/* Structured Material Quality Standards */}
+            {((quote.materials && Object.keys(quote.materials).length > 0) || quote.materialSpecs) && (
+              <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200/60 space-y-4">
+                <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-1.5 border-b border-slate-200 pb-2">
+                  <Award className="w-4 h-4 text-indigo-650" /> Material Brands & Quality Standards
+                </span>
+
+                {quote.materials && Object.keys(quote.materials).length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {Object.entries(quote.materials).map(([key, val]: [string, any]) => {
+                      if (!val) return null;
+                      const getIconAndName = (k: string) => {
+                        switch (k) {
+                          case "steel": return { label: "Structural Steel", IconComp: Layers, color: "text-blue-500" };
+                          case "cement": return { label: "Cement & Concrete", IconComp: Building, color: "text-slate-500" };
+                          case "electrical": return { label: "Electrical & Wiring", IconComp: Zap, color: "text-amber-500" };
+                          case "plumbing": return { label: "Plumbing & Pipes", IconComp: Droplet, color: "text-cyan-500" };
+                          case "sanitary": return { label: "Sanitaryware & Fittings", IconComp: Wrench, color: "text-teal-500" };
+                          case "flooring": return { label: "Flooring & Tiles", IconComp: Grid, color: "text-indigo-500" };
+                          case "paint": return { label: "Paint & Finishes", IconComp: Paintbrush, color: "text-pink-500" };
+                          case "masonry": return { label: "Masonry & Bricks", IconComp: Building2, color: "text-orange-500" };
+                          default: return { label: k.toUpperCase(), IconComp: Wrench, color: "text-slate-500" };
+                        }
+                      };
+                      const meta = getIconAndName(key);
+                      const IconComponent = meta.IconComp;
+                      return (
+                        <div key={key} className="bg-white rounded-xl p-3.5 border border-slate-200/80 flex flex-col space-y-1.5 hover:border-indigo-100 transition shadow-xs">
+                          <span className="text-[9.5px] font-black uppercase text-slate-450 tracking-wider flex items-center gap-1.5">
+                            <IconComponent className={`w-3.5 h-3.5 ${meta.color}`} />
+                            {meta.label}
+                          </span>
+                          <span className="text-xs font-bold text-slate-800 leading-tight">{val}</span>
+                        </div>
+                      );
+                    })}
                   </div>
+                ) : (
+                  <p className="text-xs font-bold text-slate-700 whitespace-pre-line leading-relaxed pl-1">
+                    {quote.materialSpecs}
+                  </p>
                 )}
-                {quote.inclusionsExclusions && (
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                      <ClipboardCheck className="w-3.5 h-3.5" />
-                      Inclusions & Exclusions
-                    </p>
-                    <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed">
-                      {quote.inclusionsExclusions}
-                    </p>
-                  </div>
-                )}
+              </div>
+            )}
+
+            {/* Scope Inclusions, Exclusions & Prerequisites */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Inclusions */}
+              <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200/60 space-y-3">
+                <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-1.5 border-b border-slate-200 pb-2">
+                  <ClipboardCheck className="w-4 h-4 text-emerald-600" /> Inclusions
+                </span>
+                <p className="text-xs font-bold text-slate-600 whitespace-pre-line leading-relaxed">
+                  {quote.inclusionsExclusions ? quote.inclusionsExclusions.split("\nEXCLUDED:")[0].replace("INCLUDED:", "").trim() : "Standard project execution parameters."}
+                </p>
+              </div>
+
+              {/* Exclusions */}
+              <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200/60 space-y-3">
+                <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-1.5 border-b border-slate-200 pb-2">
+                  <XCircle className="w-4 h-4 text-rose-500" /> Exclusions
+                </span>
+                <p className="text-xs font-bold text-slate-600 whitespace-pre-line leading-relaxed">
+                  {quote.inclusionsExclusions && quote.inclusionsExclusions.split("\nEXCLUDED:")[1] ? quote.inclusionsExclusions.split("\nEXCLUDED:")[1].trim() : "None stated."}
+                </p>
+              </div>
+
+              {/* Execution Warranty & Verification */}
+              <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200/60 space-y-3">
+                <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-1.5 border-b border-slate-200 pb-2">
+                  <Wrench className="w-4 h-4 text-blue-500" /> Project Milestones & Warranty
+                </span>
+                <div className="space-y-2">
+                  {quote.defectLiability && (
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/80">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Defect Liability / Warranty</span>
+                      <span className="text-xs font-extrabold text-slate-800 mt-0.5 block">{quote.defectLiability}</span>
+                    </div>
+                  )}
+                  {quote.milestoneVerification && (
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/80">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Verification & Sign-off Method</span>
+                      <span className="text-xs font-extrabold text-slate-800 mt-0.5 block">{quote.milestoneVerification}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Client Site Prerequisites Card */}
+            {quote.clientPrerequisites && (
+              <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200/60 space-y-2">
+                <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-1.5 border-b border-slate-200 pb-2">
+                  <AlertCircle className="w-4 h-4 text-amber-500" /> Client Site Prerequisites & Obligations
+                </span>
+                <p className="text-xs font-bold text-slate-700 leading-relaxed pl-1">
+                  {quote.clientPrerequisites}
+                </p>
               </div>
             )}
 
@@ -681,60 +759,16 @@ export default function PublicQuotationPage() {
                   </div>
                 </div>
 
-                {/* Payment Details */}
-                {(upiId || bankName || accountNumber || paymentLink) && (
-                  <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 space-y-3">
-                    <div className="flex items-center gap-2 text-emerald-800 text-xs font-semibold uppercase tracking-wider">
-                      <Banknote className="w-4 h-4 text-emerald-600" />
-                      Payment Details
-                    </div>
-
-                    {upiId && (
-                      <div className="bg-white rounded-xl p-3 border border-emerald-200 flex justify-between items-center">
-                        <div>
-                          <p className="text-[10px] font-medium text-slate-400 uppercase">UPI ID</p>
-                          <p className="font-semibold text-slate-900 text-sm">{upiId}</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(upiId);
-                            setCopiedUpi(true);
-                            setTimeout(() => setCopiedUpi(false), 3000);
-                          }}
-                          className="text-xs font-medium text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5"
-                        >
-                          {copiedUpi ? (
-                            <Check className="w-3.5 h-3.5" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5" />
-                          )}
-                          {copiedUpi ? "Copied" : "Copy"}
-                        </button>
-                      </div>
-                    )}
-
-                    {(bankName || accountNumber) && (
-                      <div className="bg-white rounded-xl p-3 border border-emerald-200 space-y-1 text-sm">
-                        {accountName && <p><span className="text-slate-400">Name:</span> {accountName}</p>}
-                        {bankName && <p><span className="text-slate-400">Bank:</span> {bankName}</p>}
-                        {accountNumber && <p><span className="text-slate-400">A/C:</span> {accountNumber}</p>}
-                        {ifscCode && <p><span className="text-slate-400">IFSC:</span> {ifscCode}</p>}
-                      </div>
-                    )}
-
-                    {paymentLink && (
-                      <a
-                        href={paymentLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm py-2.5 rounded-xl text-center block transition shadow-sm"
-                      >
-                        Pay Online <ExternalLink className="w-3.5 h-3.5 inline ml-1" />
-                      </a>
-                    )}
+                {/* Estimate Authorization Card */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4.5 space-y-2 text-xs">
+                  <div className="flex items-center gap-1.5 text-slate-800 font-extrabold uppercase text-[10px] tracking-wider">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Project Scope & Estimate</span>
                   </div>
-                )}
+                  <p className="text-slate-600 leading-relaxed font-medium">
+                    This document serves as an official technical quotation. Accepting this quote registers your authorization of the stated scope and milestone terms with <strong className="text-slate-900">{proName}</strong> with <strong>zero upfront payment</strong> required.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -791,12 +825,17 @@ export default function PublicQuotationPage() {
                 </div>
               ) : (
                 <div className="bg-slate-50/80 border border-slate-200 rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <div>
-                    <h4 className="font-semibold text-slate-900">
-                      Authorize this quotation?
-                    </h4>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-semibold text-slate-900">
+                        Authorize this project estimate?
+                      </h4>
+                      <span className="text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full">
+                        No Upfront Payment
+                      </span>
+                    </div>
                     <p className="text-sm text-slate-500">
-                      Accept to digitally sign and notify {proName}.
+                      Digitally sign & accept to confirm project scope and notify {proName}.
                     </p>
                   </div>
                   <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -815,7 +854,7 @@ export default function PublicQuotationPage() {
                       className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm px-6 py-2.5 rounded-xl shadow-md transition flex items-center justify-center gap-2 flex-1 sm:flex-none disabled:opacity-50"
                     >
                       <PenTool className="w-4 h-4" />
-                      Accept & Sign
+                      Accept & Sign Quote
                     </button>
                   </div>
                 </div>
@@ -824,7 +863,7 @@ export default function PublicQuotationPage() {
 
             {/* Footer */}
             <div className="text-center text-xs text-slate-400 border-t border-slate-100 pt-4">
-              This is a computer-generated quotation. For discrepancies, contact the issuing contractor directly.
+              This is an official computer-generated quotation estimate. For any scope revisions, contact the issuing contractor directly.
             </div>
           </div>
         </div>
@@ -837,7 +876,7 @@ export default function PublicQuotationPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <PenTool className="w-5 h-5 text-emerald-600" />
-                <h3 className="font-semibold text-slate-900">Digital Signature</h3>
+                <h3 className="font-semibold text-slate-900">Digital Signature & Authorization</h3>
               </div>
               <button
                 type="button"
@@ -848,9 +887,14 @@ export default function PublicQuotationPage() {
               </button>
             </div>
 
+            <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-xs font-medium text-emerald-800 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span><strong>Zero Upfront Payment:</strong> Accepting this quotation authorizes project scope without charging payment now.</span>
+            </div>
+
             <form onSubmit={handleConfirmAcceptQuote} className="space-y-4">
               <p className="text-sm text-slate-600 leading-relaxed">
-                By signing, you authorize Quotation #{quote.quoteNumber || quote.id.slice(0, 8)} for{" "}
+                By signing below, you digitally authorize Quotation #{quote.quoteNumber || quote.id.slice(0, 8)} for{" "}
                 <strong className="text-slate-900">₹{grandTotal.toLocaleString("en-IN")}</strong> issued by {proName}.
               </p>
 
@@ -863,7 +907,7 @@ export default function PublicQuotationPage() {
                   required
                   value={signatureName}
                   onChange={(e) => setSignatureName(e.target.value)}
-                  placeholder="Type your full name"
+                  placeholder="Type your full name as signature"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
                 />
               </div>
@@ -877,7 +921,7 @@ export default function PublicQuotationPage() {
                   className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
                 />
                 <span className="text-sm text-slate-700 leading-snug">
-                  I agree to the scope, payment terms, and authorize execution.
+                  I agree to the project scope, technical specifications, and milestone payment terms.
                 </span>
               </label>
 
@@ -895,7 +939,7 @@ export default function PublicQuotationPage() {
                   className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm py-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <Lock className="w-4 h-4" />
-                  {updatingStatus ? "Signing..." : "Confirm & Sign"}
+                  {updatingStatus ? "Signing..." : "Authorize & Sign"}
                 </button>
               </div>
             </form>
