@@ -56,6 +56,10 @@ import {
   Droplet,
   Paintbrush,
   Grid,
+  FileImage,
+  FileSpreadsheet,
+  FolderArchive,
+  Eye,
 } from "lucide-react";
 
 function getContrastColor(hexColor: string) {
@@ -66,6 +70,20 @@ function getContrastColor(hexColor: string) {
   const b = parseInt(hex.length === 3 ? hex[2] + hex[2] : hex.substring(4, 6), 16);
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
   return yiq >= 128 ? "#0f172a" : "#ffffff";
+}
+
+function decodeQuote(encodedStr: string) {
+  try {
+    if (!encodedStr.startsWith("url_")) return null;
+    const base64 = encodedStr.slice(4);
+    const decoded = decodeURIComponent(atob(base64).split('').map((c) => {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(decoded);
+  } catch (e) {
+    console.error("Decoding error:", e);
+    return null;
+  }
 }
 
 export default function PublicQuotationPage() {
@@ -85,11 +103,39 @@ export default function PublicQuotationPage() {
   const [signatureName, setSignatureName] = useState("");
   const [agreedTerms, setAgreedTerms] = useState(false);
 
+  // Attachment lightbox preview state
+  const [showAttachmentLightbox, setShowAttachmentLightbox] = useState(false);
+  const [selectedImageAttachment, setSelectedImageAttachment] = useState<any | null>(null);
+
   useEffect(() => {
     async function fetchQuote() {
       if (!quoteId) return;
       try {
         setLoading(true);
+        if (quoteId.startsWith("url_")) {
+          const decoded = decodeQuote(quoteId);
+          if (decoded) {
+            setQuote(decoded);
+            if (decoded.status === "Accepted" || decoded.status === "accepted")
+              setAccepted(true);
+            if (decoded.status === "Declined" || decoded.status === "declined")
+              setDeclined(true);
+
+            const wId = decoded.workerId || decoded.businessId;
+            if (wId) {
+              const wRef = doc(db, "workers", wId);
+              const wSnap = await getDoc(wRef);
+              if (wSnap.exists()) {
+                setWorker({ id: wSnap.id, ...wSnap.data() });
+              }
+            }
+          } else {
+            setQuote(null);
+          }
+          setLoading(false);
+          return;
+        }
+
         const qRef = doc(db, "quotations", quoteId);
         const qSnap = await getDoc(qRef);
 
@@ -141,25 +187,26 @@ export default function PublicQuotationPage() {
 
     setUpdatingStatus(true);
     try {
-      const timestamp = new Date().toISOString();
-      const sigText = signatureName.trim();
-
-      await updateDoc(doc(db, "quotations", quote.id), {
-        status: "Accepted",
-        acceptedAt: timestamp,
-        acceptedSignature: sigText,
-        signatureName: sigText,
-      });
-
-      const workerId = quote.workerId || quote.businessId;
-      if (workerId) {
-        await addDoc(collection(db, "notifications"), {
-          userId: workerId,
-          title: "Quotation Accepted & Signed! 🎉",
-          text: `Client ${sigText} accepted and digitally signed Quotation #${quote.quoteNumber || quote.id.slice(0, 8)}. Grand Total: ₹${quote.grandTotal?.toLocaleString() || quote.total}`,
-          read: false,
-          createdAt: timestamp,
+      const isOfflineQuote = quote.id.startsWith("lq-") || quoteId.startsWith("url_");
+      
+      if (!isOfflineQuote) {
+        await updateDoc(doc(db, "quotations", quote.id), {
+          status: "Accepted",
+          acceptedAt: timestamp,
+          acceptedSignature: sigText,
+          signatureName: sigText,
         });
+
+        const workerId = quote.workerId || quote.businessId;
+        if (workerId) {
+          await addDoc(collection(db, "notifications"), {
+            userId: workerId,
+            title: "Quotation Accepted & Signed! 🎉",
+            text: `Client ${sigText} accepted and digitally signed Quotation #${quote.quoteNumber || quote.id.slice(0, 8)}. Grand Total: ₹${quote.grandTotal?.toLocaleString() || quote.total}`,
+            read: false,
+            createdAt: timestamp,
+          });
+        }
       }
 
       setQuote((prev: any) => ({
@@ -172,7 +219,9 @@ export default function PublicQuotationPage() {
       setAccepted(true);
       setSignatureModalOpen(false);
       alert(
-        `✓ Quotation accepted & signed by ${sigText}! The professional contractor has been notified.`,
+        isOfflineQuote 
+          ? `✓ Quotation accepted & signed by ${sigText}! Since this is a serverless local quote, please notify the contractor directly or share the signed status via WhatsApp.`
+          : `✓ Quotation accepted & signed by ${sigText}! The professional contractor has been notified.`,
       );
     } catch (err) {
       console.error(err);
@@ -189,10 +238,14 @@ export default function PublicQuotationPage() {
     setUpdatingStatus(true);
     try {
       const timestamp = new Date().toISOString();
-      await updateDoc(doc(db, "quotations", quote.id), {
-        status: "Declined",
-        declinedAt: timestamp,
-      });
+      const isOfflineQuote = quote.id.startsWith("lq-") || quoteId.startsWith("url_");
+
+      if (!isOfflineQuote) {
+        await updateDoc(doc(db, "quotations", quote.id), {
+          status: "Declined",
+          declinedAt: timestamp,
+        });
+      }
 
       setQuote((prev: any) => ({
         ...prev,
@@ -700,6 +753,71 @@ export default function PublicQuotationPage() {
               </div>
             )}
 
+            {/* Project Blueprints & Document Attachments */}
+            {quote.attachments && quote.attachments.length > 0 && (
+              <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200/60 space-y-4">
+                <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-1.5 border-b border-slate-200 pb-2">
+                  <ExternalLink className="w-4 h-4 text-[#1a3a5c]" /> Project Blueprints, Site Files & Document Attachments
+                </span>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4.5">
+                  {quote.attachments.map((attach: any) => {
+                    const getIconAndBadge = (t: string) => {
+                      switch (t) {
+                        case "image": return { label: "Render/Photo", IconComp: FileImage, color: "text-pink-500", bg: "bg-pink-50 border-pink-100" };
+                        case "pdf": return { label: "PDF Document", IconComp: FileText, color: "text-red-500", bg: "bg-red-50 border-red-100" };
+                        case "cad": return { label: "CAD Blueprint", IconComp: Grid, color: "text-blue-500", bg: "bg-blue-50 border-blue-100" };
+                        case "excel": return { label: "Spreadsheet", IconComp: FileSpreadsheet, color: "text-emerald-500", bg: "bg-emerald-50 border-emerald-100" };
+                        case "doc": return { label: "Word Doc", IconComp: FileText, color: "text-indigo-500", bg: "bg-indigo-50 border-indigo-100" };
+                        default: return { label: "Project Link", IconComp: FolderArchive, color: "text-slate-500", bg: "bg-slate-100 border-slate-200" };
+                      }
+                    };
+                    const meta = getIconAndBadge(attach.type);
+                    const IconComponent = meta.IconComp;
+
+                    return (
+                      <div
+                        key={attach.id}
+                        className={`rounded-2xl p-4 border flex flex-col justify-between space-y-3 bg-white transition hover:border-slate-350 shadow-xs`}
+                      >
+                        <div className="space-y-1.5 min-w-0">
+                          <span className={`inline-block text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full border tracking-wider ${meta.bg} ${meta.color}`}>
+                            {meta.label}
+                          </span>
+                          <h4 className="font-extrabold text-slate-800 text-xs truncate block" title={attach.title}>
+                            {attach.title}
+                          </h4>
+                        </div>
+
+                        <div className="flex gap-2">
+                          {attach.type === "image" ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedImageAttachment(attach);
+                                setShowAttachmentLightbox(true);
+                              }}
+                              className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 font-extrabold text-[10px] uppercase py-2 rounded-xl border border-slate-200 transition cursor-pointer flex items-center justify-center gap-1"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> View Photo
+                            </button>
+                          ) : null}
+                          <a
+                            href={attach.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex-1 bg-[#1a3a5c] hover:bg-[#0f2b4a] text-white font-extrabold text-[10px] uppercase py-2 rounded-xl text-center transition flex items-center justify-center gap-1 shadow-xs"
+                          >
+                            <Download className="w-3.5 h-3.5" /> Open / Download
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Financial Summary */}
             <div className="flex flex-col lg:flex-row gap-6 pt-2">
               {/* Left - Terms */}
@@ -943,6 +1061,36 @@ export default function PublicQuotationPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Attachment Image Lightbox */}
+      {showAttachmentLightbox && selectedImageAttachment && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-4 shadow-2xl relative border border-slate-200 animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+              <h3 className="font-extrabold text-slate-800 text-sm truncate pl-2">
+                {selectedImageAttachment.title}
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAttachmentLightbox(false);
+                  setSelectedImageAttachment(null);
+                }}
+                className="text-slate-400 hover:text-slate-650 bg-slate-100 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center transition font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="flex justify-center items-center overflow-hidden rounded-2xl max-h-[70vh] bg-slate-50 mt-3 p-1">
+              <img
+                src={selectedImageAttachment.url}
+                alt={selectedImageAttachment.title}
+                className="max-h-[68vh] object-contain max-w-full rounded-xl"
+              />
+            </div>
           </div>
         </div>
       )}

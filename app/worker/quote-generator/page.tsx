@@ -54,6 +54,33 @@ function getContrastColor(hexColor: string) {
   return yiq >= 128 ? "#0f172a" : "#ffffff";
 }
 
+function encodeQuote(quoteObj: any) {
+  try {
+    const jsonStr = JSON.stringify(quoteObj);
+    const encoded = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+      return String.fromCharCode(parseInt(p1, 16));
+    }));
+    return `url_${encoded}`;
+  } catch (e) {
+    console.error("Encoding error:", e);
+    return "";
+  }
+}
+
+function decodeQuote(encodedStr: string) {
+  try {
+    if (!encodedStr.startsWith("url_")) return null;
+    const base64 = encodedStr.slice(4);
+    const decoded = decodeURIComponent(atob(base64).split('').map((c) => {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(decoded);
+  } catch (e) {
+    console.error("Decoding error:", e);
+    return null;
+  }
+}
+
 interface LineItem {
   id: string;
   phase: string;
@@ -124,6 +151,43 @@ function QuoteComposerContent() {
   const [defectLiability, setDefectLiability] = useState("12 Months Structural Warranty");
   const [clientPrerequisites, setClientPrerequisites] = useState("Continuous water and 3-phase electricity supply at site, lockable material storage area");
   const [milestoneVerification, setMilestoneVerification] = useState("Physical site measurement verification & joint sign-off by client and site engineer");
+
+  // Attachment Files & Blueprints State
+  interface Attachment {
+    id: string;
+    title: string;
+    url: string;
+    type: "image" | "pdf" | "cad" | "excel" | "doc" | "other";
+  }
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [newAttachmentTitle, setNewAttachmentTitle] = useState("");
+  const [newAttachmentUrl, setNewAttachmentUrl] = useState("");
+  const [newAttachmentType, setNewAttachmentType] = useState<"image" | "pdf" | "cad" | "excel" | "doc" | "other">("pdf");
+
+  // Local Quotes List State
+  const [localQuotes, setLocalQuotes] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("zenzy_local_quotes");
+      if (saved) {
+        try {
+          setLocalQuotes(JSON.parse(saved));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  }, []);
+
+  const handleDeleteLocalQuote = (idToDelete: string) => {
+    if (confirm("Are you sure you want to delete this quotation from your local device? This action cannot be undone.")) {
+      const updated = localQuotes.filter((q) => q.id !== idToDelete);
+      setLocalQuotes(updated);
+      localStorage.setItem("zenzy_local_quotes", JSON.stringify(updated));
+      alert("✓ Quotation deleted from local library.");
+    }
+  };
 
   // Quote Metadata
   const [quoteDocumentTitle, setQuoteDocumentTitle] = useState("TECHNICAL & COMMERCIAL QUOTATION");
@@ -426,6 +490,7 @@ function QuoteComposerContent() {
         defectLiability,
         clientPrerequisites,
         milestoneVerification,
+        attachments,
         inclusionsExclusions,
         issueDate,
         expiryDate,
@@ -440,12 +505,22 @@ function QuoteComposerContent() {
         createdAt: new Date().toISOString()
       };
 
-      const docRef = await addDoc(collection(db, "quotations"), quotePayload);
-      setCreatedQuoteId(docRef.id);
-      alert("✓ Quotation Estimate generated successfully!");
+      // Save locally to professional's device instead of server
+      const localId = `lq-${Date.now()}`;
+      const quoteWithId = { ...quotePayload, id: localId };
+      
+      const updatedQuotes = [quoteWithId, ...localQuotes];
+      setLocalQuotes(updatedQuotes);
+      localStorage.setItem("zenzy_local_quotes", JSON.stringify(updatedQuotes));
+      
+      // Encode in URL parameters for zero-server sharing
+      const encodedLink = encodeQuote(quoteWithId);
+      setCreatedQuoteId(encodedLink);
+
+      alert("✓ Quotation generated successfully and saved locally to this device!");
     } catch (err) {
       console.error("Save Quote Error:", err);
-      alert("Failed to save quotation. Please try again.");
+      alert("Failed to compile quotation link. Please check parameters.");
     } finally {
       setSavingQuote(false);
     }
@@ -1196,6 +1271,164 @@ function QuoteComposerContent() {
               />
             </div>
 
+            {/* Project Blueprints & Document Attachments Card */}
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200/80 space-y-4">
+              <span className="text-[10px] font-black uppercase text-slate-700 tracking-wider flex items-center gap-1.5 border-b border-slate-200/60 pb-2">
+                <Share2 className="w-4 h-4 text-[#1a3a5c]" /> Project Blueprints, Site Files & Document Attachments
+              </span>
+
+              {/* Add Attachment Form fields */}
+              <div className="bg-white p-4.5 rounded-2xl border border-slate-200 space-y-3.5">
+                <div className="text-[10px] font-extrabold text-slate-450 uppercase tracking-widest flex items-center justify-between">
+                  <span>Option A: Link Google Drive, Dropbox or Web Files</span>
+                  <span className="text-[9px] text-slate-400 font-bold lowercase">Direct link URLs</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                  <div className="sm:col-span-4 space-y-1">
+                    <label className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block">Document Title</label>
+                    <input
+                      type="text"
+                      value={newAttachmentTitle}
+                      onChange={(e) => setNewAttachmentTitle(e.target.value)}
+                      placeholder="e.g. Ground Floor Plan Blueprint"
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+                  <div className="sm:col-span-5 space-y-1">
+                    <label className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block">Document URL / Image Link</label>
+                    <input
+                      type="text"
+                      value={newAttachmentUrl}
+                      onChange={(e) => setNewAttachmentUrl(e.target.value)}
+                      placeholder="https://drive.google.com/..."
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none"
+                    />
+                  </div>
+                  <div className="sm:col-span-2 space-y-1">
+                    <label className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block">File Type</label>
+                    <select
+                      value={newAttachmentType}
+                      onChange={(e) => setNewAttachmentType(e.target.value as any)}
+                      className="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none"
+                    >
+                      <option value="pdf">PDF File</option>
+                      <option value="image">Image / Render</option>
+                      <option value="cad">CAD Blueprint</option>
+                      <option value="excel">Spreadsheet</option>
+                      <option value="doc">Word Doc</option>
+                      <option value="other">Other Link / Drive</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newAttachmentTitle.trim() || !newAttachmentUrl.trim()) {
+                          alert("Please fill in both the attachment title and URL.");
+                          return;
+                        }
+                        const item = {
+                          id: `attach-${Date.now()}`,
+                          title: newAttachmentTitle.trim(),
+                          url: newAttachmentUrl.trim(),
+                          type: newAttachmentType
+                        };
+                        setAttachments([...attachments, item]);
+                        setNewAttachmentTitle("");
+                        setNewAttachmentUrl("");
+                      }}
+                      className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold py-2.5 rounded-xl transition cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Direct base64 file upload uploader */}
+              <div className="bg-white p-4.5 rounded-2xl border border-slate-200 space-y-2">
+                <div className="text-[10px] font-extrabold text-slate-450 uppercase tracking-widest flex items-center justify-between">
+                  <span>Option B: Upload Pictures & Documents Directly (Offline Embedding)</span>
+                  <span className="text-[9px] text-[#1a3a5c] font-black uppercase">Max size: 300KB</span>
+                </div>
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <input
+                    type="file"
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.dwg"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 300 * 1024) {
+                        alert("⚠️ File size exceeds 300KB limit. Please compress it or use Option A above to link files via Google Drive.");
+                        e.target.value = "";
+                        return;
+                      }
+                      
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        const base64Url = reader.result as string;
+                        let type: "image" | "pdf" | "excel" | "doc" | "other" = "other";
+                        if (file.type.startsWith("image/")) type = "image";
+                        else if (file.type === "application/pdf") type = "pdf";
+                        else if (file.name.endsWith(".xls") || file.name.endsWith(".xlsx")) type = "excel";
+                        else if (file.name.endsWith(".doc") || file.name.endsWith(".docx")) type = "doc";
+
+                        const newAttach = {
+                          id: `attach-file-${Date.now()}`,
+                          title: file.name,
+                          url: base64Url,
+                          type: type
+                        };
+                        setAttachments([...attachments, newAttach]);
+                        alert(`✓ Embedded "${file.name}" successfully inside proposal!`);
+                        e.target.value = "";
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                    className="w-full text-xs font-semibold text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-[#1a3a5c] file:text-white hover:file:opacity-90 file:cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Attachments List */}
+              {attachments.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                  {attachments.map((attach) => {
+                    const getIconAndColor = (t: string) => {
+                      switch (t) {
+                        case "image": return { label: "IMAGE", color: "bg-pink-50 text-pink-700 border-pink-200" };
+                        case "pdf": return { label: "PDF", color: "bg-red-50 text-red-700 border-red-200" };
+                        case "cad": return { label: "CAD", color: "bg-blue-50 text-blue-700 border-blue-200" };
+                        case "excel": return { label: "EXCEL", color: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+                        case "doc": return { label: "DOC", color: "bg-indigo-50 text-indigo-700 border-indigo-200" };
+                        default: return { label: "DRIVE/LINK", color: "bg-slate-50 text-slate-700 border-slate-200" };
+                      }
+                    };
+                    const badge = getIconAndColor(attach.type);
+                    return (
+                      <div key={attach.id} className="bg-white rounded-2xl p-3.5 border border-slate-200 flex justify-between items-center shadow-xs">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className={`text-[9px] font-black px-2 py-0.5 rounded-md border tracking-wider shrink-0 ${badge.color}`}>
+                            {badge.label}
+                          </span>
+                          <span className="text-xs font-extrabold text-slate-800 truncate block">
+                            {attach.title}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setAttachments((prev) => prev.filter((a) => a.id !== attach.id))}
+                          className="text-slate-400 hover:text-rose-600 transition p-1 font-bold text-sm shrink-0 cursor-pointer"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             {/* Financial Summary & Milestone Terms */}
             <div className="flex flex-col lg:flex-row justify-between items-start gap-6 pt-2">
               <div className="space-y-4 flex-1 text-xs font-semibold text-slate-600 w-full">
@@ -1385,6 +1618,95 @@ function QuoteComposerContent() {
             </div>
           </div>
         )}
+
+        {/* Offline Quotations Library Dashboard */}
+        <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 mt-8 shadow-md space-y-4 print:hidden">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-3 gap-2">
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-[#1a3a5c]" />
+                My Offline Quotations Library
+              </h3>
+              <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                Saved locally on your browser. Zenzy does not store your quotation documents on its servers.
+              </p>
+            </div>
+            <span className="text-[10.5px] font-black text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+              {localQuotes.length} Quotes Saved
+            </span>
+          </div>
+
+          {localQuotes.length === 0 ? (
+            <div className="text-center py-10 text-slate-400 italic text-xs font-semibold">
+              No quotations created yet on this device. Use the composer above to draft and save your first quote.
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100 max-h-[350px] overflow-y-auto pr-1">
+              {localQuotes.map((q) => {
+                const shareableLink = `${typeof window !== "undefined" ? window.location.origin : ""}/quote/${encodeQuote(q)}`;
+                const wpShare = `https://wa.me/${q.customerPhone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+                  `Hello ${q.customerName},\n\nHere is your official Project Quotation Estimate #${q.quoteNumber} for "${q.projectTitle}" from ${q.workerName}:\n\nGrand Total: ₹${q.grandTotal.toLocaleString("en-IN")}\n\nView and authorize online:\n${shareableLink}`
+                )}`;
+
+                return (
+                  <div key={q.id} className="py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition hover:bg-slate-50/50 px-2 rounded-2xl">
+                    <div className="space-y-1.5 min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                          #{q.quoteNumber}
+                        </span>
+                        <span className="text-[9.5px] font-black uppercase bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100">
+                          {q.structureType}
+                        </span>
+                        <span className="text-[9px] font-bold text-slate-400">
+                          {q.createdAt ? new Date(q.createdAt).toLocaleDateString("en-IN") : "Date N/A"}
+                        </span>
+                      </div>
+                      <h4 className="font-extrabold text-sm text-slate-900 truncate block">
+                        {q.projectTitle}
+                      </h4>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-bold text-slate-500">
+                        <span>Client: <strong className="text-slate-700">{q.customerName}</strong></span>
+                        <span>Total: <strong className="text-emerald-600">₹{q.grandTotal.toLocaleString("en-IN")}</strong></span>
+                        {q.attachments && q.attachments.length > 0 && (
+                          <span className="text-indigo-650 font-black">📁 {q.attachments.length} files attached</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                      <Link
+                        href={`/quote/${encodeQuote(q)}`}
+                        target="_blank"
+                        className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-extrabold text-[10.5px] rounded-xl transition shadow-2xs text-center flex-1 sm:flex-initial"
+                      >
+                        View
+                      </Link>
+
+                      <a
+                        href={wpShare}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[10.5px] rounded-xl transition shadow-sm text-center flex-1 sm:flex-initial"
+                      >
+                        Share
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteLocalQuote(q.id)}
+                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer font-bold"
+                        title="Delete quotation"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
       </main>
 
