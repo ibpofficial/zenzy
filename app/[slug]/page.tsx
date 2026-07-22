@@ -89,6 +89,7 @@ import {
   MessageCircle,
   CalendarDays,
   Info,
+  AlertCircle,
   Building2,
 } from "lucide-react";
 
@@ -1654,6 +1655,67 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
         <span>›</span>
         <span className="text-slate-900 font-extrabold">{worker.name}</span>
       </div>
+
+      {/* WARNING NOTIFICATION BANNER */}
+      {isSelf && userData?.status === "Warned" && (
+        <section className="max-w-7xl mx-auto w-full px-5 pt-3">
+          <div className="relative overflow-hidden bg-white/90 border border-slate-200/80 p-6 rounded-[2rem] flex flex-col md:flex-row md:items-center gap-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border-l-4 border-l-amber-505 mb-6 backdrop-blur-sm animate-fade-up">
+            {/* Subtle Background Glow */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/[0.03] rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-orange-500/[0.02] rounded-full blur-xl pointer-events-none" />
+
+            {/* Left Icon & Text Section */}
+            <div className="flex items-start gap-4 flex-1">
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100/50 flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                <AlertTriangle className="w-6 h-6 text-amber-600 stroke-[1.5]" />
+              </div>
+              
+              <div className="space-y-1.5 flex-1 text-left">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h3 className="font-extrabold text-sm text-slate-800 tracking-tight">Account Under Warning</h3>
+                  <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200/55 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" /> Action Required
+                  </span>
+                </div>
+                
+                <p className="text-xs text-slate-500 font-semibold leading-relaxed max-w-2xl">
+                  The administrator has issued a warning notice regarding your profile or behavior. Please review the details below. Continued violations may result in temporary or permanent suspension.
+                </p>
+
+                {userData?.suspensionReason && (
+                  <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl max-w-2xl mt-3 flex items-start gap-3 shadow-inner shadow-slate-500/5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="space-y-0.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Notice Details</span>
+                      <p className="text-xs text-slate-700 font-bold leading-relaxed">
+                        "{userData.suspensionReason}"
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Action buttons with custom vertical divider */}
+            <div className="flex items-center md:flex-col md:items-stretch gap-2.5 shrink-0 pt-4 md:pt-0 border-t md:border-t-0 md:border-l border-slate-100 md:pl-6">
+              <Link
+                href="/worker/dashboard?tab=support"
+                className="flex-1 md:flex-none justify-center bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-180 flex items-center gap-2 cursor-pointer shadow-xs active:scale-[0.98] text-center"
+              >
+                <Info className="w-3.5 h-3.5 text-slate-450" />
+                View Details
+              </Link>
+              <Link
+                href="/worker/dashboard?tab=support"
+                className="flex-1 md:flex-none justify-center bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-180 flex items-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-center"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                Appeal Notice
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Hero Cover Banner */}
       <section className="max-w-7xl mx-auto w-full px-5 pt-3">
@@ -4189,8 +4251,8 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                         type="button"
                         onClick={() => setServIcon(item.key)}
                         className={`p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1 transition cursor-pointer ${isSelected
-                            ? "bg-[#1a3a5c] border-[#1a3a5c] text-white shadow-md scale-105"
-                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
+                          ? "bg-[#1a3a5c] border-[#1a3a5c] text-white shadow-md scale-105"
+                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
                           }`}
                       >
                         <IconComp className="w-5 h-5" />
@@ -4217,8 +4279,8 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                       type="button"
                       onClick={() => setServPriceType(mode.id as any)}
                       className={`py-2.5 px-2 rounded-xl border text-[10.5px] font-extrabold transition cursor-pointer text-center ${servPriceType === mode.id
-                          ? "bg-[#1a3a5c] border-[#1a3a5c] text-white shadow-sm"
-                          : "bg-white border-slate-200 text-slate-600 hover:bg-slate-100"
+                        ? "bg-[#1a3a5c] border-[#1a3a5c] text-white shadow-sm"
+                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-100"
                         }`}
                     >
                       {mode.label}

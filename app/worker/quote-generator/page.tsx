@@ -67,6 +67,9 @@ function QuoteComposerContent() {
   const queryClientName = searchParams?.get("clientName") || "";
   const queryClientPhone = searchParams?.get("clientPhone") || "";
   const queryService = searchParams?.get("service") || "";
+  const queryNotes = searchParams?.get("notes") || "";
+
+  const [clientNotes, setClientNotes] = useState(queryNotes);
 
   // Inquiries for quick fill
   const [inquiries, setInquiries] = useState<any[]>([]);
@@ -221,7 +224,10 @@ function QuoteComposerContent() {
   // Auto fill client when inquiry is selected
   const handleSelectInquiry = (inquiryId: string) => {
     setSelectedInquiryId(inquiryId);
-    if (!inquiryId) return;
+    if (!inquiryId) {
+      setClientNotes("");
+      return;
+    }
     const found = inquiries.find((i) => i.id === inquiryId);
     if (found) {
       setCustomerName(found.customerName || found.clientName || "");
@@ -230,6 +236,7 @@ function QuoteComposerContent() {
       setCustomerAddress(found.projectLocation || "");
       setProjectTitle(found.projectTitle || "Custom Project Estimate");
       setProjectDescription(found.projectScope || "");
+      setClientNotes(found.projectScope || found.notes || "");
 
       // Update Project Description section block dynamically
       setSections(prev => prev.map(s => {
@@ -244,9 +251,11 @@ function QuoteComposerContent() {
     }
   };
 
+  const proInitialized = React.useRef(false);
+
   // Sync state once userData loads
   useEffect(() => {
-    if (userData) {
+    if (userData && !proInitialized.current) {
       setWorkerName(userData.name || "");
       setWorkerSubtitle(userData.category || "Verified Service Contractor");
       setWorkerPhone(userData.phone || "");
@@ -254,6 +263,7 @@ function QuoteComposerContent() {
       setLicenseNo(userData.licenseNumber || userData.documentVerifications?.licenseNumber || "");
       setWorkerGstin(userData.gstNumber || userData.documentVerifications?.gstNumber || "");
       setBrandColor(userData.brandColor || userData.themeStyle || "#1a3a5c");
+      proInitialized.current = true;
     }
   }, [userData]);
 
@@ -771,145 +781,191 @@ function QuoteComposerContent() {
           </div>
         )}
 
-        <form onSubmit={handleSaveQuotation} className="space-y-6">
-          
-          {/* Centered Document Card - WYSIWYG Editable Sheet */}
-          <QuoteDocument
-            quote={liveQuote}
-            worker={liveWorker}
-            isEditable={true}
-            onUpdateField={handleUpdateField}
-            onUpdateSectionTitle={handleUpdateSectionTitle}
-            onUpdateSectionContent={handleUpdateSectionContent}
-            onMoveSection={handleMoveSection}
-            onRemoveSection={handleRemoveSection}
-            onAddSection={handleAddSection}
-          />
+        <div className={`grid grid-cols-1 ${clientNotes ? "lg:grid-cols-3" : ""} gap-6 items-start`}>
+          {/* Left Column: Side-by-Side Client Requirements */}
+          {clientNotes && (
+            <div className="lg:col-span-1 space-y-6 print:hidden">
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-4 sticky top-20 text-left">
+                <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800">Client Requirements</h4>
+                    <p className="text-[9px] text-slate-400 font-medium">Detailed inquiry scope & details</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3.5">
+                  <div className="bg-slate-50/50 p-3 rounded-lg border border-slate-150/40">
+                    <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block">Customer</span>
+                    <span className="text-xs font-bold text-slate-800 block mt-0.5">{customerName}</span>
+                    {customerPhone && <span className="text-[10px] text-slate-500 font-semibold block">{customerPhone}</span>}
+                    {customerEmail && <span className="text-[10px] text-slate-500 font-semibold block">{customerEmail}</span>}
+                    {customerAddress && <span className="text-[10px] text-slate-500 font-semibold block mt-1">📍 {customerAddress}</span>}
+                  </div>
 
-          {/* Attachment Upload Manager Panel */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4 print:hidden">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-150 pb-2">
-              Blueprint Files & Document Attachments
-            </h3>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="border border-gray-100 bg-gray-55/30 p-4 rounded-xl space-y-3">
-                <span className="text-[10px] font-bold text-gray-400 uppercase block">Option A: Link Cloud URL</span>
-                <input
-                  type="text"
-                  value={newAttachmentTitle}
-                  onChange={(e) => setNewAttachmentTitle(e.target.value)}
-                  placeholder="File label e.g. Living Room Plan"
-                  className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold outline-none"
-                />
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newAttachmentUrl}
-                    onChange={(e) => setNewAttachmentUrl(e.target.value)}
-                    placeholder="https://drive.google.com/..."
-                    className="flex-1 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs outline-none"
-                  />
-                  <select
-                    value={newAttachmentType}
-                    onChange={(e) => setNewAttachmentType(e.target.value as any)}
-                    className="px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs outline-none"
-                  >
-                    <option value="pdf">PDF</option>
-                    <option value="image">Image</option>
-                    <option value="cad">CAD</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!newAttachmentTitle.trim() || !newAttachmentUrl.trim()) return;
-                      const item = {
-                        id: `attach-${Date.now()}`,
-                        title: newAttachmentTitle.trim(),
-                        url: newAttachmentUrl.trim(),
-                        type: newAttachmentType
-                      };
-                      setAttachments([...attachments, item]);
-                      setNewAttachmentTitle("");
-                      setNewAttachmentUrl("");
-                    }}
-                    className="bg-gray-900 text-white text-xs px-3.5 py-1.5 rounded-lg hover:bg-gray-800 transition cursor-pointer"
-                  >
-                    Add
-                  </button>
+                  {projectTitle && (
+                    <div>
+                      <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block">Requested Service</span>
+                      <span className="text-xs font-bold text-slate-800 block mt-0.5">{projectTitle}</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block">Detailed Scope Notes</span>
+                    <p className="text-xs text-slate-655 font-medium leading-relaxed bg-slate-50/50 p-3 rounded-lg border border-slate-150/40 mt-1 whitespace-pre-wrap max-h-[300px] overflow-y-auto">
+                      {clientNotes}
+                    </p>
+                  </div>
                 </div>
               </div>
-
-              <div className="border border-gray-100 bg-gray-55/30 p-4 rounded-xl space-y-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase block">Option B: Embed Local Image/PDF (Max 300KB)</span>
-                <input
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    if (file.size > 300 * 1024) {
-                      alert("⚠️ File exceeds 300KB limit. Please choose a smaller file.");
-                      e.target.value = "";
-                      return;
-                    }
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                      const attach = {
-                        id: `attach-file-${Date.now()}`,
-                        title: file.name,
-                        url: reader.result as string,
-                        type: (file.type.startsWith("image/") ? "image" : "pdf") as any
-                      };
-                      setAttachments([...attachments, attach]);
-                      e.target.value = "";
-                    };
-                    reader.readAsDataURL(file);
-                  }}
-                  className="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer"
-                />
-              </div>
             </div>
+          )}
 
-            {attachments.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-2">
-                {attachments.map((a) => (
-                  <div key={a.id} className="bg-gray-50 border border-gray-150 px-2.5 py-1 rounded-lg text-xs flex items-center gap-2">
-                    <span className="font-semibold truncate max-w-[150px]">{a.title}</span>
-                    <button
-                      type="button"
-                      onClick={() => setAttachments((prev) => prev.filter((item) => item.id !== a.id))}
-                      className="text-gray-400 hover:text-red-500 font-bold"
-                    >
-                      ✕
-                    </button>
+          {/* Right/Main Column: Composer Form */}
+          <div className={`${clientNotes ? "lg:col-span-2" : ""} space-y-6`}>
+            <form onSubmit={handleSaveQuotation} className="space-y-6">
+              
+              {/* Centered Document Card - WYSIWYG Editable Sheet */}
+              <QuoteDocument
+                quote={liveQuote}
+                worker={liveWorker}
+                isEditable={true}
+                onUpdateField={handleUpdateField}
+                onUpdateSectionTitle={handleUpdateSectionTitle}
+                onUpdateSectionContent={handleUpdateSectionContent}
+                onMoveSection={handleMoveSection}
+                onRemoveSection={handleRemoveSection}
+                onAddSection={handleAddSection}
+              />
+
+              {/* Attachment Upload Manager Panel */}
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4 print:hidden">
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-150 pb-2">
+                  Blueprint Files & Document Attachments
+                </h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="border border-gray-100 bg-gray-55/30 p-4 rounded-xl space-y-3">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block">Option A: Link Cloud URL</span>
+                    <input
+                      type="text"
+                      value={newAttachmentTitle}
+                      onChange={(e) => setNewAttachmentTitle(e.target.value)}
+                      placeholder="File label e.g. Living Room Plan"
+                      className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-semibold outline-none"
+                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newAttachmentUrl}
+                        onChange={(e) => setNewAttachmentUrl(e.target.value)}
+                        placeholder="https://drive.google.com/..."
+                        className="flex-1 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs outline-none"
+                      />
+                      <select
+                        value={newAttachmentType}
+                        onChange={(e) => setNewAttachmentType(e.target.value as any)}
+                        className="px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs outline-none"
+                      >
+                        <option value="pdf">PDF</option>
+                        <option value="image">Image</option>
+                        <option value="cad">CAD</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!newAttachmentTitle.trim() || !newAttachmentUrl.trim()) return;
+                          const item = {
+                            id: `attach-${Date.now()}`,
+                            title: newAttachmentTitle.trim(),
+                            url: newAttachmentUrl.trim(),
+                            type: newAttachmentType
+                          };
+                          setAttachments([...attachments, item]);
+                          setNewAttachmentTitle("");
+                          setNewAttachmentUrl("");
+                        }}
+                        className="bg-gray-900 text-white text-xs px-3.5 py-1.5 rounded-lg hover:bg-gray-800 transition cursor-pointer"
+                      >
+                        Add
+                      </button>
+                    </div>
                   </div>
-                ))}
+
+                  <div className="border border-gray-100 bg-gray-55/30 p-4 rounded-xl space-y-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block">Option B: Embed Local Image/PDF (Max 300KB)</span>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 300 * 1024) {
+                          alert("⚠️ File exceeds 300KB limit. Please choose a smaller file.");
+                          e.target.value = "";
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          const attach = {
+                            id: `attach-file-${Date.now()}`,
+                            title: file.name,
+                            url: reader.result as string,
+                            type: (file.type.startsWith("image/") ? "image" : "pdf") as any
+                          };
+                          setAttachments([...attachments, attach]);
+                          e.target.value = "";
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                      className="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 file:cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {attachments.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {attachments.map((a) => (
+                      <div key={a.id} className="bg-gray-50 border border-gray-155 px-2.5 py-1 rounded-lg text-xs flex items-center gap-2">
+                        <span className="font-semibold truncate max-w-[150px]">{a.title}</span>
+                        <button
+                          type="button"
+                          onClick={() => setAttachments((prev) => prev.filter((item) => item.id !== a.id))}
+                          className="text-gray-400 hover:text-red-500 font-bold"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Action Trigger Block */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4 print:hidden">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-3 gap-2">
-              <div>
-                <span className="text-[10px] font-bold text-gray-450 uppercase block">Save Operations</span>
-                <p className="text-xs text-gray-400 mt-0.5">Generates a URL-parameter link containing this compiled quotation.</p>
+              {/* Action Trigger Block */}
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4 print:hidden">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-3 gap-2">
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-450 uppercase block">Save Operations</span>
+                    <p className="text-xs text-gray-400 mt-0.5">Generates a URL-parameter link containing this compiled quotation.</p>
+                  </div>
+                  <span className="text-xs font-bold text-gray-700">GST Tax and values calculated dynamically.</span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={savingQuote}
+                  className="w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white font-medium text-sm py-3.5 rounded-xl tracking-wider uppercase transition shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>{savingQuote ? "Compiling Document..." : "Save & Generate Quotation"}</span>
+                </button>
               </div>
-              <span className="text-xs font-bold text-gray-700">GST Tax and values calculated dynamically.</span>
-            </div>
 
-            <button
-              type="submit"
-              disabled={savingQuote}
-              className="w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white font-medium text-sm py-3.5 rounded-xl tracking-wider uppercase transition shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-            >
-              <FileText className="w-4 h-4" />
-              <span>{savingQuote ? "Compiling Document..." : "Save & Generate Quotation"}</span>
-            </button>
+            </form>
           </div>
-
-        </form>
+        </div>
 
         {/* Share Section (Shown after generating) */}
         {createdQuoteId && (

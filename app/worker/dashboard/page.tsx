@@ -42,6 +42,8 @@ import {
   ChevronRight,
   LifeBuoy,
   AlertTriangle,
+  AlertCircle,
+  Info,
   ShoppingBag,
   FileText,
   Sparkles,
@@ -61,7 +63,15 @@ import {
   Smartphone,
   Check,
   Mail,
-  ArrowUpRight
+  ArrowUpRight,
+  BarChart3,
+  LayoutDashboard,
+  Users,
+  CalendarDays,
+  Settings,
+  HelpCircle,
+  Package,
+  LogOut
 } from "lucide-react";
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -274,7 +284,7 @@ export default function ProviderDashboardPage() {
 
   // Portfolio Management States
   const [pProjectsShowcase, setPProjectsShowcase] = useState<any[]>([]);
-  
+
   // Dedicated Services Module States
   const [servicesList, setServicesList] = useState<any[]>([]);
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
@@ -447,9 +457,9 @@ export default function ProviderDashboardPage() {
     if (role === "user") {
       router.push("/dashboard");
     } else if (role === "worker" && userData) {
-      const isCompletedOrSubmitted = userData.profileCompleted === true || 
-                                     userData.documentStatus === "submitted" || 
-                                     userData.documentStatus === "approved";
+      const isCompletedOrSubmitted = userData.profileCompleted === true ||
+        userData.documentStatus === "submitted" ||
+        userData.documentStatus === "approved";
       if (!isCompletedOrSubmitted) {
         router.push("/worker/verification");
       }
@@ -741,7 +751,7 @@ export default function ProviderDashboardPage() {
           experience: pExp,
           languages: pLanguages.split(",").map((s) => s.trim()).filter(Boolean),
           skills: pSkills.split(",").map((s) => s.trim()).filter(Boolean),
-          status: pStatus,
+          status: ["Warned", "Suspended", "Blacklisted"].includes(userData?.status) ? userData.status : pStatus,
           categories: pCategories,
           slug: pSlug.trim(),
           tagline: pTagline.trim(),
@@ -1641,80 +1651,109 @@ export default function ProviderDashboardPage() {
 
         {/* WARNING NOTIFICATION BANNER */}
         {userData?.status === "Warned" && (
-          <div className="bg-amber-500/10 border-2 border-amber-500/30 p-5 rounded-2xl flex items-start gap-4 mb-6 shadow-md animate-fade-up">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-extrabold text-[14px] text-amber-600">Account Under Warning</h3>
-              <p className="text-[12px] text-slate-650 leading-relaxed font-semibold">
-                The administrator has issued a warning notice regarding your profile or behavior. Please review the details below. Continued violations may result in temporary or permanent suspension.
-              </p>
-              {userData.suspensionReason && (
-                <p className="text-[12px] bg-amber-500/5 border border-amber-500/15 p-3 rounded-2xl text-amber-700 font-bold mt-2 leading-relaxed">
-                  ⚠️ Notice Details: "{userData.suspensionReason}"
+          <div className="relative overflow-hidden bg-white border border-slate-200/80 p-5 rounded-2xl flex flex-col md:flex-row md:items-center gap-5 shadow-xs border-l-4 border-l-amber-500 mb-6 text-left">
+            {/* Icon & Text */}
+            <div className="flex items-start gap-3.5 flex-1">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100/50 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-amber-650 stroke-[1.5]" />
+              </div>
+              <div className="space-y-1 flex-grow">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-extrabold text-xs text-slate-800 tracking-tight uppercase">Account Warning Notice</h3>
+                  <span className="bg-amber-50 text-amber-700 border border-amber-200/50 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded">Action Required</span>
+                </div>
+                <p className="text-xs text-slate-500 font-semibold leading-relaxed max-w-2xl">
+                  Your profile has received a warning notice from the administrators. Please review the notice details and submit an appeal if necessary.
                 </p>
-              )}
+                {userData.suspensionReason && (
+                  <div className="bg-slate-50 border border-slate-100 p-3.5 rounded-xl max-w-xl mt-2 flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Official Notice Details</span>
+                      <p className="text-xs text-slate-700 font-bold leading-relaxed">
+                        "{userData.suspensionReason}"
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* Actions */}
+            <div className="flex items-center gap-2 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 md:border-l border-slate-100 md:pl-5">
+              <button
+                type="button"
+                onClick={() => setActiveTab("support")}
+                className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition active:scale-[0.98] cursor-pointer"
+              >
+                View Details
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("support")}
+                className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition active:scale-[0.98] cursor-pointer"
+              >
+                Submit Appeal
+              </button>
             </div>
           </div>
         )}
+
         {/* Hero Welcome Banner */}
-        <div className="relative overflow-hidden mb-8 rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 p-7 sm:p-10 shadow-2xl">
-          <div className="absolute top-0 right-0 w-80 h-80 rounded-full opacity-20 blur-3xl bg-white" />
-          <div className="absolute -bottom-16 -left-8 w-64 h-64 rounded-full opacity-10 blur-3xl bg-white" />
-          <div className="absolute inset-0 opacity-[0.04]" style={{backgroundImage: 'repeating-linear-gradient(45deg, white 0, white 1px, transparent 0, transparent 50%)', backgroundSize: '14px 14px'}} />
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-            <div className="flex items-center gap-5">
+        <div className="relative overflow-hidden mb-8 rounded-3xl bg-slate-900 p-6 sm:p-8 border border-slate-800 shadow-sm text-left">
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="flex items-center gap-4">
               <div className="relative group shrink-0">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-white/30 shadow-2xl">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden ring-2 ring-white/10 shadow-md">
                   <img
                     src={pAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=150&h=150&q=80"}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     alt="Provider Profile"
                   />
                 </div>
                 <label
                   htmlFor="avatarUploadWorkerHeader"
-                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer transition-all duration-300"
+                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200"
                   title="Upload profile photo"
                 >
-                  <Camera className="w-5 h-5 text-white" />
-                  <span className="text-[8px] font-bold text-white">Upload</span>
+                  <Camera className="w-4 h-4 text-white" />
                 </label>
                 <input id="avatarUploadWorkerHeader" type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white border-2 border-emerald-500 shadow-md flex items-center justify-center">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-white border-2 border-emerald-500 shadow flex items-center justify-center">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                 </span>
               </div>
               <div>
-                <p className="text-emerald-100 text-[10px] font-black uppercase tracking-widest mb-1">Partner Admin Panel</p>
-                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-sm">{userData?.name || "Zenzy Pro"}</h1>
-                <p className="text-emerald-100/80 text-xs font-semibold mt-1.5 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Verified Professional Account
+                <p className="text-slate-400 text-[9px] font-extrabold uppercase tracking-widest mb-0.5 flex items-center gap-1.5">
+                  Partner Admin Panel
                 </p>
-                <div className="flex items-center gap-2 mt-2">
+                <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{userData?.name || "Zenzy Pro"}</h1>
+                <p className="text-slate-450 text-xs font-medium mt-1 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Verified Professional Account
+                </p>
+                <div className="flex items-center gap-2 mt-2.5">
                   <Link
                     href="/worker/quote-generator"
-                    className="bg-white hover:bg-emerald-50 text-emerald-950 px-3.5 py-1.5 rounded-xl text-xs font-black transition shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 border border-white/40"
+                    className="bg-white/5 hover:bg-white/10 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95 border border-white/5"
                   >
-                    <FileText className="w-3.5 h-3.5 text-emerald-700" />
+                    <FileText className="w-3.5 h-3.5 text-emerald-500" />
                     <span>Quote Generator ⚡</span>
                   </Link>
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap gap-3 w-full md:w-auto">
-              <div className="flex-1 md:flex-none px-6 py-4 rounded-2xl text-center bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-300">
-                <span className="block text-2xl font-black text-white">₹{totalEarnings.toLocaleString()}</span>
-                <span className="text-[9px] uppercase text-emerald-100 tracking-wider font-bold">Earnings</span>
+
+            <div className="flex items-center gap-4 w-full md:w-auto">
+              <div className="flex-1 md:flex-none px-5 py-3 bg-white/[0.03] border border-white/5 rounded-2xl text-center min-w-[100px]">
+                <span className="block text-lg font-bold text-white tracking-tight">₹{totalEarnings.toLocaleString()}</span>
+                <span className="text-[9px] uppercase text-slate-400 tracking-wider font-extrabold">Earnings</span>
               </div>
-              <div className="flex-1 md:flex-none px-6 py-4 rounded-2xl text-center bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-300">
-                <span className="block text-2xl font-black text-white">{completedJobs.length}</span>
-                <span className="text-[9px] uppercase text-emerald-100 tracking-wider font-bold">Completed</span>
+              <div className="flex-1 md:flex-none px-5 py-3 bg-white/[0.03] border border-white/5 rounded-2xl text-center min-w-[100px]">
+                <span className="block text-lg font-bold text-white tracking-tight">{completedJobs.length}</span>
+                <span className="text-[9px] uppercase text-slate-400 tracking-wider font-extrabold">Completed</span>
               </div>
-              <div className="flex-1 md:flex-none px-6 py-4 rounded-2xl text-center bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-all duration-300">
-                <span className="block text-2xl font-black text-amber-200">★ {avgRating}</span>
-                <span className="text-[9px] uppercase text-emerald-100 tracking-wider font-bold">Rating</span>
+              <div className="flex-1 md:flex-none px-5 py-3 bg-white/[0.03] border border-white/5 rounded-2xl text-center min-w-[100px]">
+                <span className="block text-lg font-bold text-amber-400 tracking-tight">★ {avgRating}</span>
+                <span className="text-[9px] uppercase text-slate-400 tracking-wider font-extrabold">Rating</span>
               </div>
             </div>
           </div>
@@ -1722,24 +1761,24 @@ export default function ProviderDashboardPage() {
 
         {/* Complete Profile Verification Top Alert Banner */}
         {!(userData?.profileCompleted === true || userData?.documentStatus === "submitted" || userData?.documentStatus === "approved") && (
-          <div className="bg-slate-900 border border-slate-700 text-white p-5 rounded-3xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 animate-fade-in">
-            <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-2xl bg-blue-950 border border-blue-700/50 flex items-center justify-center text-blue-400 shrink-0 shadow-inner">
-                <ShieldAlert className="w-6 h-6 animate-bounce" />
+          <div className="relative overflow-hidden bg-white border border-slate-200/80 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-5 mb-6 shadow-xs border-l-4 border-l-blue-600 text-left">
+            <div className="flex items-start gap-3.5 flex-1">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100/50 flex items-center justify-center shrink-0">
+                <ShieldAlert className="w-5 h-5 text-blue-600 stroke-[1.5]" />
               </div>
-              <div className="text-left">
-                <h4 className="font-extrabold text-sm sm:text-base tracking-tight text-white">Complete Your Professional Verification</h4>
-                <p className="text-xs text-slate-300 font-medium leading-relaxed mt-0.5">
-                  Submit government ID proofs (Aadhaar, PAN), business licenses, and your hero cover banner on the dedicated verification portal.
+              <div className="space-y-1 flex-1">
+                <h4 className="font-extrabold text-xs text-slate-800 tracking-tight uppercase">Complete Your Profile Verification</h4>
+                <p className="text-xs text-slate-500 font-semibold leading-relaxed max-w-2xl">
+                  Please submit your government ID proofs (Aadhaar, PAN) and business license details on the verification portal to keep your account active.
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+            <div className="flex items-center gap-2 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 md:border-l border-slate-100 md:pl-5">
               <Link
                 href="/worker/verification"
-                className="w-full sm:w-auto bg-slate-950 hover:bg-slate-900 text-white border border-slate-700 font-extrabold text-xs px-5 py-3 rounded-2xl tracking-wider transition shadow-md cursor-pointer active:scale-95 flex items-center justify-center gap-2"
+                className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-[0.98]"
               >
-                <ShieldCheck className="w-4 h-4 text-blue-400" /> Go to Verification Page
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-400" /> Go to Verification Portal
               </Link>
             </div>
           </div>
@@ -1748,61 +1787,61 @@ export default function ProviderDashboardPage() {
         {/* Sidebar + Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
-          <aside className="lg:col-span-1 space-y-3">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-              <div className="px-4 pt-4 pb-3 border-b border-slate-100">
+          <aside className="lg:col-span-1 space-y-3 text-left">
+            <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgba(0,0,0,0.015)] border border-slate-200/80 overflow-hidden p-4">
+              <div className="px-3 pt-2 pb-3 border-b border-slate-100">
                 <p className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-700 mb-0.5">Navigation</p>
                 <p className="text-[10px] text-slate-400 font-semibold">Admin Control Panel</p>
               </div>
-              <div className="p-2 flex flex-col gap-1">
-              {[
-                { id: "analytics", label: "Analytics & Charts", icon: TrendingUp },
-                { id: "enquiries", label: "Project Inquiries", icon: FileText, badge: enquiries.length },
-                { id: "requests", label: "Project Requests", icon: Clock, badge: jobs.filter(j => j.status === "Pending").length },
-                { id: "jobs", label: "Active Projects & Quotes", icon: Briefcase, badge: jobs.filter(j => ["Accepted", "OnTheWay", "Started", "Job Done"].includes(j.status)).length },
-                { id: "shop_orders", label: "Shop Bookings", icon: ShoppingBag, badge: shopOrders.filter(o => o.status === "Pending" || o.status === "Processing").length },
-                { id: "availability", label: "Availability Manager", icon: CheckCircle },
-                { id: "services", label: "Services Manager", icon: Wrench, badge: servicesList.length },
-                { id: "profile", label: "Profile Editor", icon: Sliders },
-                { id: "portfolio", label: "Portfolio Showcase", icon: Star },
-                { id: "support", label: "Helpdesk Support", icon: LifeBuoy }
-              ].map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => { setActiveTab(tab.id as Tab); setIsPreviewMode(false); }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold text-xs transition-all duration-180 ease-in-out cursor-pointer ${
-                      isActive
-                        ? "bg-emerald-600 text-white shadow-sm font-bold"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                    }`}
-                  >
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
-                    <span className="flex-1 text-left">{tab.label}</span>
-                    {tab.badge && tab.badge > 0 ? (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
-                        isActive ? "bg-white/25 text-white" : "bg-red-500 text-white"
-                      }`}>
-                        {tab.badge}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
+              <div className="pt-3 flex flex-col gap-1">
+                {[
+                  { id: "analytics", label: "Analytics & Charts", icon: BarChart3 },
+                  { id: "enquiries", label: "Project Inquiries", icon: Users, badge: enquiries.length },
+                  { id: "requests", label: "Project Requests", icon: Clock, badge: jobs.filter(j => j.status === "Pending").length },
+                  { id: "jobs", label: "Active Projects & Quotes", icon: Briefcase, badge: jobs.filter(j => ["Accepted", "OnTheWay", "Started", "Job Done"].includes(j.status)).length },
+                  { id: "shop_orders", label: "Shop Bookings", icon: Package, badge: shopOrders.filter(o => o.status === "Pending" || o.status === "Processing").length },
+                  { id: "availability", label: "Availability Manager", icon: CalendarDays },
+                  { id: "services", label: "Services Manager", icon: Wrench, badge: servicesList.length },
+                  { id: "profile", label: "Profile Editor", icon: Settings },
+                  { id: "portfolio", label: "Portfolio Showcase", icon: Star },
+                  { id: "support", label: "Helpdesk Support", icon: HelpCircle }
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => { setActiveTab(tab.id as Tab); setIsPreviewMode(false); }}
+                      className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl font-bold text-xs transition-all duration-200 cursor-pointer active:scale-[0.98] ${isActive
+                        ? "bg-slate-900 text-white shadow-md shadow-slate-950/10 scale-[1.02]"
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-semibold"
+                        }`}
+                    >
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-emerald-400" : "text-slate-450"}`} />
+                      <span className="flex-1 text-left">{tab.label}</span>
+                      {tab.badge && tab.badge > 0 ? (
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${isActive ? "bg-white/20 text-white" : "bg-red-500 text-white"
+                          }`}>
+                          {tab.badge}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <Link
               href="/worker/verification"
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-xs transition-all duration-180 ease-in-out cursor-pointer text-slate-100 bg-slate-900 hover:bg-slate-800 border border-slate-700 shadow-sm mb-2"
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-extrabold text-xs transition-all duration-200 cursor-pointer text-slate-700 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 shadow-xs mb-2 active:scale-[0.98]"
             >
-              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Verification Center Page
+              <ShieldCheck className="w-4 h-4 text-emerald-500" /> Verification Center Page
             </Link>
             <button
+              type="button"
               onClick={logout}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-xs transition-all duration-180 ease-in-out cursor-pointer text-slate-700 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 shadow-sm"
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-extrabold text-xs transition-all duration-200 cursor-pointer text-slate-500 hover:text-red-600 bg-white hover:bg-red-50/50 border border-slate-200/80 hover:border-red-200/60 shadow-xs active:scale-[0.98]"
             >
+              <LogOut className="w-4 h-4" />
               Logout Session
             </button>
           </aside>
@@ -1895,7 +1934,7 @@ export default function ProviderDashboardPage() {
             {/* TAB: PROJECT INQUIRIES & CRM KANBAN BOARD */}
             {activeTab === "enquiries" && (
               <div className="space-y-6 animate-fade-up">
-                
+
                 {/* CRM Kanban Header & Quick Actions */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm">
                   <div>
@@ -2087,100 +2126,85 @@ export default function ProviderDashboardPage() {
 
             {/* TAB: REQUESTS (Client Inquiry & Project Requests) */}
             {activeTab === "requests" && (
-              <div className="space-y-6 animate-fade-up text-left">
-                {/* Header Canvas */}
-                <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-1">
-                      Inbound Client Workspace
-                    </span>
-                    <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">Client Inquiry & Project Requests</h2>
-                    <p className="text-slate-300 text-xs font-medium mt-1">Review incoming client inquiries, accept requests, or issue an official itemized quotation.</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs font-extrabold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3.5 py-2 rounded-2xl flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-indigo-400" />
-                      <span>Quote Generator Active</span>
-                    </span>
+              <div className="space-y-6 animate-fade-up">
+                {/* Header */}
+                <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-sm">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                      <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full inline-block mb-2">
+                        Inbound
+                      </span>
+                      <h2 className="text-xl font-semibold text-slate-900">Project Requests</h2>
+                      <p className="text-sm text-slate-500 mt-0.5">Review and respond to client inquiries</p>
+                    </div>
+                    <Link
+                      href="/worker/quote-generator"
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-sm"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Quote Generator
+                    </Link>
                   </div>
                 </div>
 
                 {jobs.filter((j) => j.status === "Pending").length === 0 ? (
-                  <div className="bg-white border border-slate-200/80 rounded-3xl p-12 text-center space-y-3 shadow-xs">
-                    <FileText className="w-12 h-12 text-slate-300 mx-auto" />
-                    <h4 className="font-extrabold text-base text-slate-900">No Pending Inquiries</h4>
-                    <p className="text-slate-500 text-xs font-semibold max-w-md mx-auto">
-                      New project inquiries submitted by clients on your profile or directory will appear here in real time.
-                    </p>
+                  <div className="bg-white rounded-xl border border-slate-200/80 p-12 text-center shadow-sm">
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FileText className="w-8 h-8 text-slate-400" />
+                    </div>
+                    <h4 className="font-medium text-slate-900">No Pending Requests</h4>
+                    <p className="text-sm text-slate-400 mt-1">New client inquiries will appear here</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {jobs.filter((j) => j.status === "Pending").map((book) => (
-                      <div key={book.id} className="bg-white border border-slate-200/80 hover:border-slate-300 p-6 rounded-3xl flex flex-col gap-4 shadow-xs hover:shadow-md transition-all duration-300">
-                        
-                        {/* Card Header Row */}
-                        <div className="flex justify-between items-start flex-wrap gap-4">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-extrabold text-base text-slate-900">{book.customerName}</h3>
-                              <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
-                                New Request
-                              </span>
+                      <div key={book.id} className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex flex-col lg:flex-row justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-medium text-slate-900">{book.customerName}</h3>
+                              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Pending</span>
                             </div>
-                            <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
                               <span>📞 {book.customerPhone}</span>
-                              <span>•</span>
-                              <span className="text-emerald-700 font-bold">📅 Scheduled: {book.date} at {book.time}</span>
-                              {book.location && (
-                                <>
-                                  <span>•</span>
-                                  <span>📍 {book.location}</span>
-                                </>
-                              )}
+                              <span>📅 {book.date} at {book.time}</span>
+                              {book.location && <span>📍 {book.location}</span>}
+                            </div>
+                            {book.notes && (
+                              <div className="mt-3 bg-slate-50 rounded-lg p-3 text-sm text-slate-600 border border-slate-100">
+                                <span className="font-medium text-slate-700">Scope:</span> {book.notes}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-end gap-3 min-w-[140px]">
+                            <div className="text-right">
+                              <span className="text-xs text-slate-400 font-medium">Budget</span>
+                              <div className="text-lg font-semibold text-slate-900">₹{book.price || "Quote"}</div>
+                            </div>
+                            <RequestTimer booking={book} onExpire={handleExpireBooking} />
+                             <div className="flex gap-2">
+                              <Link
+                                href={`/worker/quote-generator?clientName=${encodeURIComponent(book.customerName || "")}&clientPhone=${encodeURIComponent(book.customerPhone || "")}&service=${encodeURIComponent(book.projectTitle || book.notes || "Service Estimate")}&notes=${encodeURIComponent(book.notes || "")}`}
+                                className="px-3 py-1.5 text-sm font-medium border border-indigo-200 text-indigo-700 bg-indigo-50/50 hover:bg-indigo-50 hover:text-indigo-800 rounded-lg transition shadow-xs flex items-center gap-1 cursor-pointer"
+                              >
+                                <FileText className="w-4 h-4 shrink-0" />
+                                <span>Quote</span>
+                              </Link>
+                              <button
+                                onClick={() => handleModifyStatus(book.id, "Cancelled", book.customerId)}
+                                className="px-3 py-1.5 text-sm font-medium text-slate-655 hover:text-red-655 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                              >
+                                Decline
+                              </button>
+                              <button
+                                onClick={() => handleModifyStatus(book.id, "Accepted", book.customerId)}
+                                className="px-3 py-1.5 text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm cursor-pointer"
+                              >
+                                Accept
+                              </button>
                             </div>
                           </div>
-
-                          <div className="text-right">
-                            <span className="text-xs font-bold text-slate-400 block uppercase">Est. Budget / Rate</span>
-                            <span className="text-xl font-black text-slate-900">₹{book.price || "Quote Required"}</span>
-                            <RequestTimer booking={book} onExpire={handleExpireBooking} />
-                          </div>
                         </div>
-
-                        {/* Inquiry Notes Block (Clean tint without nested borders) */}
-                        {book.notes && (
-                          <div className="bg-slate-50 p-4 rounded-2xl text-xs text-slate-700 font-medium leading-relaxed">
-                            <span className="font-extrabold text-slate-900 block mb-0.5">Project Scope / Requirements:</span>
-                            {book.notes}
-                          </div>
-                        )}
-
-                        {/* Card Bottom Actions Divider */}
-                        <div className="border-t border-slate-100 pt-4 flex flex-wrap justify-between items-center gap-3">
-                          <Link
-                            href={`/worker/quote-generator?clientName=${encodeURIComponent(book.customerName || "")}&clientPhone=${encodeURIComponent(book.customerPhone || "")}&service=${encodeURIComponent(book.serviceName || book.notes || "")}`}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer active:scale-95"
-                          >
-                            <FileText className="w-4 h-4" />
-                            <span>⚡ Generate & Send Detailed Quote</span>
-                          </Link>
-
-                          <div className="flex items-center gap-2.5">
-                            <button
-                              onClick={() => handleModifyStatus(book.id, "Cancelled", book.customerId)}
-                              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 text-xs font-extrabold transition cursor-pointer"
-                            >
-                              Decline
-                            </button>
-                            <button
-                              onClick={() => handleModifyStatus(book.id, "Accepted", book.customerId)}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold transition shadow-sm cursor-pointer active:scale-95"
-                            >
-                              Accept Inquiry
-                            </button>
-                          </div>
-                        </div>
-
                       </div>
                     ))}
                   </div>
@@ -2188,202 +2212,178 @@ export default function ProviderDashboardPage() {
               </div>
             )}
 
-            {/* TAB: ACTIVE JOBS & SCHEDULE (Project & Quote Management Console) */}
+            {/* TAB: ACTIVE JOBS */}
             {activeTab === "jobs" && (
-              <div className="space-y-6 animate-fade-up text-left">
-                
-                {/* Console Header Banner */}
-                <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 block mb-1">
-                      Professional Operations
-                    </span>
-                    <h2 className="text-xl font-black tracking-tight text-slate-900">Project & Quote Management Console</h2>
-                    <p className="text-slate-500 text-xs font-semibold mt-1">Manage active projects, issue estimates, contact clients, and process payments.</p>
-                  </div>
-
-                  {/* Summary Metric Badges */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-extrabold">
-                      Active Requests: {jobs.filter((j) => ["Accepted", "OnTheWay", "Started"].includes(j.status)).length}
-                    </span>
-                    <span className="bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-extrabold">
-                      Completed: {jobs.filter((j) => ["Completed", "Job Done"].includes(j.status)).length}
-                    </span>
+              <div className="space-y-6 animate-fade-up">
+                <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-sm">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                      <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full inline-block mb-2">
+                        Operations
+                      </span>
+                      <h2 className="text-xl font-semibold text-slate-900">Jobs & Projects</h2>
+                      <p className="text-sm text-slate-500 mt-0.5">Manage your active projects and tasks</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-medium">
+                        Active: {jobs.filter((j) => ["Accepted", "OnTheWay", "Started"].includes(j.status)).length}
+                      </span>
+                      <span className="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-medium">
+                        Completed: {jobs.filter((j) => ["Completed", "Job Done"].includes(j.status)).length}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Sub-tabs Floating Pill Nav */}
-                <div className="bg-slate-100/80 p-1.5 rounded-2xl flex gap-1 overflow-x-auto scrollbar-none max-w-full">
+                {/* Sub-tabs */}
+                <div className="bg-white rounded-xl border border-slate-200/80 p-1.5 flex gap-1 overflow-x-auto shadow-sm">
                   {[
-                    { id: "today", label: "Active Project Requests" },
-                    { id: "upcoming", label: "Upcoming Schedule" },
-                    { id: "completed", label: "Completed Projects" },
-                    { id: "cancelled", label: "Cancelled / Expired" }
+                    { id: "today", label: "Today" },
+                    { id: "upcoming", label: "Upcoming" },
+                    { id: "completed", label: "Completed" },
+                    { id: "cancelled", label: "Cancelled" }
                   ].map((subTab) => {
-                    const filteredCount = jobs.filter((j) => {
+                    const count = jobs.filter((j) => {
                       const todayStr = new Date().toLocaleDateString('en-CA');
                       const isCompleted = ["Completed", "Job Done"].includes(j.status);
                       const isCancelled = ["Cancelled", "Expired"].includes(j.status);
-                      const isActiveOrUpcoming = ["Accepted", "OnTheWay", "Started"].includes(j.status);
-
-                      if (subTab.id === "today") return isActiveOrUpcoming && j.date === todayStr;
-                      if (subTab.id === "upcoming") return isActiveOrUpcoming && j.date !== todayStr;
+                      const isActive = ["Accepted", "OnTheWay", "Started"].includes(j.status);
+                      if (subTab.id === "today") return isActive && j.date === todayStr;
+                      if (subTab.id === "upcoming") return isActive && j.date !== todayStr;
                       if (subTab.id === "completed") return isCompleted;
                       if (subTab.id === "cancelled") return isCancelled;
                       return false;
                     }).length;
-
-                    const isSelected = bookingSubTab === subTab.id;
                     return (
                       <button
                         key={subTab.id}
                         onClick={() => setBookingSubTab(subTab.id as any)}
-                        className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer shrink-0 ${
-                          isSelected
-                            ? "bg-slate-900 text-white shadow-sm"
-                            : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
-                        }`}
+                        className={`px-4 py-1.5 rounded-lg text-sm font-medium transition whitespace-nowrap ${bookingSubTab === subTab.id
+                          ? "bg-slate-900 text-white shadow-sm"
+                          : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                          }`}
                       >
-                        {subTab.label} ({filteredCount})
+                        {subTab.label} ({count})
                       </button>
                     );
                   })}
                 </div>
 
-                {/* Filtered jobs list */}
+                {/* Jobs list */}
                 {(() => {
                   const todayStr = new Date().toLocaleDateString('en-CA');
-                  const filteredJobs = jobs.filter((j) => {
+                  const filtered = jobs.filter((j) => {
                     const isCompleted = ["Completed", "Job Done"].includes(j.status);
                     const isCancelled = ["Cancelled", "Expired"].includes(j.status);
-                    const isActiveOrUpcoming = ["Accepted", "OnTheWay", "Started"].includes(j.status);
-
-                    if (bookingSubTab === "today") return isActiveOrUpcoming && j.date === todayStr;
-                    if (bookingSubTab === "upcoming") return isActiveOrUpcoming && j.date !== todayStr;
+                    const isActive = ["Accepted", "OnTheWay", "Started"].includes(j.status);
+                    if (bookingSubTab === "today") return isActive && j.date === todayStr;
+                    if (bookingSubTab === "upcoming") return isActive && j.date !== todayStr;
                     if (bookingSubTab === "completed") return isCompleted;
                     if (bookingSubTab === "cancelled") return isCancelled;
                     return false;
                   });
 
-                  if (filteredJobs.length === 0) {
+                  if (filtered.length === 0) {
                     return (
-                      <div className="bg-white border border-slate-200/80 rounded-3xl p-12 text-center text-slate-400 font-semibold italic text-xs shadow-xs">
-                        No project records in this schedule view.
+                      <div className="bg-white rounded-xl border border-slate-200/80 p-12 text-center shadow-sm">
+                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Briefcase className="w-8 h-8 text-slate-400" />
+                        </div>
+                        <p className="text-sm text-slate-400">No jobs in this category</p>
                       </div>
                     );
                   }
 
                   return (
                     <div className="space-y-4">
-                      {filteredJobs.map((book) => (
-                        <div key={book.id} className="bg-white border border-slate-200/80 hover:border-slate-300 p-6 rounded-3xl flex flex-col gap-4 shadow-xs hover:shadow-md transition-all duration-300">
-                          
-                          {/* Top Info Row */}
-                          <div className="flex justify-between items-start flex-wrap gap-3">
-                            <div>
-                              <div className="flex items-center gap-2.5">
-                                <h3 className="font-extrabold text-base text-slate-900">{book.customerName}</h3>
-                                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border uppercase ${
-                                  book.status === "Pending" ? "bg-amber-100 border-amber-200 text-amber-800" :
-                                  book.status === "Accepted" ? "bg-emerald-100 border-emerald-200 text-emerald-800" :
-                                  ["Completed", "Job Done"].includes(book.status) ? "bg-blue-100 border-blue-200 text-blue-800" :
-                                  "bg-slate-100 border-slate-200 text-slate-600"
-                                }`}>
-                                  {book.status === "Accepted" ? "Inquiry Accepted" : book.status}
+                      {filtered.map((book) => (
+                        <div key={book.id} className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex flex-col lg:flex-row justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <h3 className="font-medium text-slate-900">{book.customerName}</h3>
+                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${badgeColors[book.status] || "bg-slate-100 text-slate-600"}`}>
+                                  {book.status === "Accepted" ? "Accepted" : book.status}
                                 </span>
                               </div>
-
-                              <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500 mt-1">
+                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
                                 <span>📞 {book.customerPhone}</span>
-                                <span>•</span>
-                                <span>📅 Date: {book.date} at {book.time}</span>
-                                {book.location && (
-                                  <>
-                                    <span>•</span>
-                                    <span>📍 {book.location}</span>
-                                  </>
+                                <span>📅 {book.date} at {book.time}</span>
+                                {book.location && <span>📍 {book.location}</span>}
+                              </div>
+                              {book.notes && (
+                                <div className="mt-3 bg-slate-50 rounded-lg p-3 text-sm text-slate-600 border border-slate-100">
+                                  <span className="font-medium text-slate-700">Requirements:</span> {book.notes}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex flex-col items-end gap-3 min-w-[140px]">
+                              <div className="text-right">
+                                <span className="text-xs text-slate-400 font-medium">Value</span>
+                                <div className="text-lg font-semibold text-slate-900">₹{book.price || book.budget || "N/A"}</div>
+                              </div>
+                              <div className="flex flex-wrap justify-end gap-2">
+                                <button
+                                  onClick={() => setActiveChatBooking(book)}
+                                  className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                                  title="Chat with client"
+                                >
+                                  <MessageSquare className="w-4 h-4" />
+                                </button>
+                                <a
+                                  href={`tel:${book.customerPhone}`}
+                                  className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                                  title="Call client"
+                                >
+                                  <Phone className="w-4 h-4" />
+                                </a>
+                                {["Accepted", "OnTheWay"].includes(book.status) && (
+                                  <button
+                                    onClick={() => {
+                                      setSelectedBookingForReschedule(book);
+                                      setNewRescheduleDate(book.date || "");
+                                      setNewRescheduleTime(book.time || "");
+                                      setRescheduleModalOpen(true);
+                                    }}
+                                    className="px-3 py-1.5 text-sm font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg transition"
+                                  >
+                                    Reschedule
+                                  </button>
+                                )}
+                                {["Completed", "Job Done"].includes(book.status) && (
+                                  <button
+                                    onClick={() => {
+                                      setSelectedBookingForInvoice(book);
+                                      setInvGstPercent("18");
+                                      setInvDiscount("0");
+                                      setInvPaymentMode("UPI");
+                                      setInvInvoiceNumber(`INV-${Date.now().toString().slice(-6)}`);
+                                      setInvItems([{ id: "item-1", name: `${book.category || "Service"} Base Charges`, qty: 1, rate: Number(book.price) || 0, gst: 18 }]);
+                                      setInvoiceModalOpen(true);
+                                    }}
+                                    className="px-3 py-1.5 text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition shadow-sm"
+                                  >
+                                    Invoice
+                                  </button>
                                 )}
                               </div>
                             </div>
-
-                            <div className="text-right">
-                              <span className="text-[10px] font-bold text-slate-400 block uppercase">Scope Value</span>
-                              <span className="text-xl font-black text-slate-900">₹{book.price || book.budget || "N/A"}</span>
-                            </div>
                           </div>
 
-                          {/* Client Notes Block */}
-                          {book.notes && (
-                            <div className="bg-slate-50 p-4 rounded-2xl text-xs text-slate-700 font-medium leading-relaxed">
-                              <span className="font-extrabold text-slate-900 block mb-0.5">Client Requirements:</span>
-                              {book.notes}
-                            </div>
-                          )}
-
-                          {/* Action Controls & Quotation Trigger Divider */}
-                          <div className="border-t border-slate-100 pt-4 flex flex-wrap justify-between items-center gap-3">
+                          {/* Card Footer Actions */}
+                          <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap justify-between items-center gap-3 text-left w-full">
                             <div className="flex items-center gap-2 flex-wrap">
                               <Link
-                                href={`/worker/quote-generator?clientName=${encodeURIComponent(book.customerName || "")}&clientPhone=${encodeURIComponent(book.customerPhone || "")}&service=${encodeURIComponent(book.serviceName || book.notes || "")}`}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                                href={`/worker/quote-generator?clientName=${encodeURIComponent(book.customerName || "")}&clientPhone=${encodeURIComponent(book.customerPhone || "")}&service=${encodeURIComponent(book.projectTitle || book.notes || "Service Estimate")}&notes=${encodeURIComponent(book.notes || "")}`}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-2 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
                               >
                                 <FileText className="w-4 h-4" />
                                 <span>⚡ Generate & Send Quote</span>
                               </Link>
 
-                              <span className="text-[10px] font-extrabold text-slate-400 bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl" title="Live field tracking will be enabled in upcoming release">
+                              <span className="text-[10px] font-semibold text-slate-405 bg-slate-50 border border-slate-200/60 px-3 py-1.5 rounded-lg" title="Live field tracking will be enabled in upcoming release">
                                 ⏱️ Live Field Tracking (Coming Soon)
                               </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => setActiveChatBooking(book)}
-                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5"
-                              >
-                                <MessageSquare className="w-3.5 h-3.5" /> Chat
-                              </button>
-
-                              <a
-                                href={`tel:${book.customerPhone}`}
-                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5"
-                              >
-                                📞 Call Client
-                              </a>
-
-                              {["Accepted", "OnTheWay"].includes(book.status) && (
-                                <button
-                                  onClick={() => {
-                                    setSelectedBookingForReschedule(book);
-                                    setNewRescheduleDate(book.date || "");
-                                    setNewRescheduleTime(book.time || "");
-                                    setRescheduleModalOpen(true);
-                                  }}
-                                  className="bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer"
-                                >
-                                  Reschedule
-                                </button>
-                              )}
-
-                              {["Completed", "Job Done"].includes(book.status) && (
-                                <button
-                                  onClick={() => {
-                                    setSelectedBookingForInvoice(book);
-                                    setInvGstPercent("18");
-                                    setInvDiscount("0");
-                                    setInvPaymentMode("UPI");
-                                    setInvInvoiceNumber(`INV-${Date.now().toString().slice(-6)}`);
-                                    setInvItems([
-                                      { id: "item-1", name: `${book.category || "Service"} Base Charges`, qty: 1, rate: Number(book.price) || 0, gst: 18 }
-                                    ]);
-                                    setInvoiceModalOpen(true);
-                                  }}
-                                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-extrabold transition shadow-sm cursor-pointer"
-                                >
-                                  Generate Invoice
-                                </button>
-                              )}
                             </div>
                           </div>
 
@@ -2429,10 +2429,10 @@ export default function ProviderDashboardPage() {
                           <div className="text-right">
                             <span className="text-lg font-black text-slate-900 block">₹{order.total || order.price || 0}</span>
                             <span className={`text-[9px] font-bold px-2.5 py-1 rounded-full inline-block mt-1 ${order.status === "Pending" ? "bg-amber-100 text-amber-800" :
-                                order.status === "Processing" ? "bg-blue-100 text-blue-800" :
-                                  order.status === "Shipped" ? "bg-indigo-100 text-indigo-800" :
-                                    order.status === "Delivered" ? "bg-emerald-100 text-emerald-800" :
-                                      "bg-slate-100 text-slate-600"
+                              order.status === "Processing" ? "bg-blue-100 text-blue-800" :
+                                order.status === "Shipped" ? "bg-indigo-100 text-indigo-800" :
+                                  order.status === "Delivered" ? "bg-emerald-100 text-emerald-800" :
+                                    "bg-slate-100 text-slate-600"
                               }`}>
                               {order.status || "Pending"}
                             </span>
@@ -2496,7 +2496,7 @@ export default function ProviderDashboardPage() {
             {/* TAB: AVAILABILITY & CALENDAR */}
             {activeTab === "availability" && (
               <div className="bg-white rounded-2xl p-6 sm:p-8 space-y-8 shadow-sm border border-slate-105 animate-fade-up text-left">
-                
+
                 {/* Intro */}
                 <div>
                   <h2 className="text-lg font-black tracking-tight text-slate-900">Availability & Smart Calendar</h2>
@@ -2505,30 +2505,37 @@ export default function ProviderDashboardPage() {
 
                 {/* 3 Columns / Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  
+
                   {/* Left Column: Status Picker & Blocked Dates List */}
                   <div className="lg:col-span-1 space-y-6">
                     {/* Status picker */}
                     <div className="bg-slate-50 border p-5 rounded-3xl space-y-3.5">
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Live Status Mode</span>
                       <div className="grid grid-cols-3 gap-2">
-                        {["Available", "Busy", "Away"].map((status) => (
-                          <button
-                            key={status}
-                            type="button"
-                            onClick={async () => {
-                              setPStatus(status);
-                              if (user) await updateDoc(doc(db, "workers", user.uid), { status });
-                              showToast(`Live status is now ${status}!`);
-                            }}
-                            className={`py-3.5 rounded-xl font-bold text-xs transition-all duration-200 cursor-pointer ${pStatus === status
-                                ? "bg-slate-900 text-white shadow"
-                                : "bg-white border text-slate-655 hover:bg-slate-50"
-                              }`}
-                          >
-                            {status === "Available" ? "🟢 On" : status === "Busy" ? "🔴 Busy" : "⏳ Away"}
-                          </button>
-                        ))}
+                        {["Available", "Busy", "Away"].map((status) => {
+                          const isAdminRestricted = ["Warned", "Suspended", "Blacklisted"].includes(userData?.status);
+                          return (
+                            <button
+                              key={status}
+                              type="button"
+                              disabled={isAdminRestricted}
+                              onClick={async () => {
+                                setPStatus(status);
+                                if (user) await updateDoc(doc(db, "workers", user.uid), { status });
+                                showToast(`Live status is now ${status}!`);
+                              }}
+                              className={`py-3.5 rounded-xl font-bold text-xs transition-all duration-205 cursor-pointer ${isAdminRestricted
+                                ? "bg-slate-150 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60"
+                                : pStatus === status
+                                  ? "bg-slate-900 text-white shadow"
+                                  : "bg-white border text-slate-655 hover:bg-slate-50"
+                                }`}
+                              title={isAdminRestricted ? "Live status is locked while your account is under notice" : `Set status to ${status}`}
+                            >
+                              {status === "Available" ? "🟢 On" : status === "Busy" ? "🔴 Busy" : "⏳ Away"}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -2556,7 +2563,7 @@ export default function ProviderDashboardPage() {
                       const daysInMonth = getDaysInMonth(calYear, calMonth);
                       const firstDay = getFirstDayOfMonth(calYear, calMonth);
                       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                      
+
                       const handlePrevMonth = () => {
                         if (calMonth === 0) {
                           setCalMonth(11);
@@ -2585,7 +2592,7 @@ export default function ProviderDashboardPage() {
                         const dStr = String(day).padStart(2, '0');
                         const dateStr = `${calYear}-${mStr}-${dStr}`;
                         const isBlocked = pBlockedDates.includes(dateStr);
-                        
+
                         // Check if active job date matches
                         const hasJobsOnDate = jobs.some(j => j.date === dateStr && ["Accepted", "OnTheWay", "Started"].includes(j.status));
 
@@ -2602,11 +2609,10 @@ export default function ProviderDashboardPage() {
                               }
                               setPBlockedDates(updated);
                             }}
-                            className={`h-10 text-xs font-bold rounded-xl flex flex-col items-center justify-center relative cursor-pointer border transition-all ${
-                              isBlocked
-                                ? "bg-red-500 border-red-500 text-white shadow-sm"
-                                : "bg-white hover:bg-slate-50 border-slate-205 text-slate-800"
-                            }`}
+                            className={`h-10 text-xs font-bold rounded-xl flex flex-col items-center justify-center relative cursor-pointer border transition-all ${isBlocked
+                              ? "bg-red-500 border-red-500 text-white shadow-sm"
+                              : "bg-white hover:bg-slate-50 border-slate-205 text-slate-800"
+                              }`}
                           >
                             <span>{day}</span>
                             {hasJobsOnDate && (
@@ -2641,11 +2647,11 @@ export default function ProviderDashboardPage() {
                   <div className="lg:col-span-1 space-y-4 text-xs font-bold text-slate-700">
                     <div className="border border-slate-200/60 rounded-3xl p-5 bg-white shadow-sm space-y-4">
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block pb-2 border-b">Weekly Business Hours</span>
-                      
+
                       <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
                         {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => {
                           const config = (pWorkingHours as any)?.[day] || { active: true, start: "09:00 AM", end: "06:00 PM" };
-                          
+
                           const toggleDay = (checked: boolean) => {
                             setPWorkingHours(prev => ({
                               ...prev,
@@ -2761,9 +2767,8 @@ export default function ProviderDashboardPage() {
                     {servicesList.map((service, idx) => (
                       <div
                         key={service.id || idx}
-                        className={`bg-white rounded-3xl border transition-all duration-200 shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden group ${
-                          service.status === "inactive" ? "opacity-60 border-slate-200" : "border-slate-200/90 hover:border-teal-400"
-                        }`}
+                        className={`bg-white rounded-3xl border transition-all duration-200 shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden group ${service.status === "inactive" ? "opacity-60 border-slate-200" : "border-slate-200/90 hover:border-teal-400"
+                          }`}
                       >
                         {/* Cover Image & Badges Banner */}
                         <div className="h-40 bg-gradient-to-br from-slate-800 to-slate-900 relative overflow-hidden">
@@ -2775,9 +2780,8 @@ export default function ProviderDashboardPage() {
 
                           {/* Top Status & Feature Badges */}
                           <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-1 flex-wrap">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                              service.status === "active" ? "bg-emerald-500 text-white shadow-sm" : "bg-slate-700 text-slate-200"
-                            }`}>
+                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${service.status === "active" ? "bg-emerald-500 text-white shadow-sm" : "bg-slate-700 text-slate-200"
+                              }`}>
                               {service.status === "active" ? "Active" : "Inactive"}
                             </span>
 
@@ -2804,8 +2808,8 @@ export default function ProviderDashboardPage() {
                                 {service.pricingType === "custom" || service.isCustomQuoteOnly
                                   ? "On Request"
                                   : service.pricingType === "fixed"
-                                  ? `₹${service.price}`
-                                  : `From ₹${service.price}`}
+                                    ? `₹${service.price}`
+                                    : `From ₹${service.price}`}
                               </span>
                             </div>
 
@@ -2837,11 +2841,10 @@ export default function ProviderDashboardPage() {
                               <button
                                 type="button"
                                 onClick={() => handleToggleServiceStatus(service)}
-                                className={`text-[10px] font-bold px-2.5 py-1 rounded-xl transition ${
-                                  service.status === "active"
-                                    ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                                    : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
-                                }`}
+                                className={`text-[10px] font-bold px-2.5 py-1 rounded-xl transition ${service.status === "active"
+                                  ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                                  : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
+                                  }`}
                                 title="Toggle Active Status"
                               >
                                 {service.status === "active" ? "Disable" : "Enable"}
@@ -2938,7 +2941,7 @@ export default function ProviderDashboardPage() {
                         <Check className="w-3 h-3 text-emerald-600" /> Auto-saved at {lastSavedTime}
                       </span>
                     ) : null}
-                    
+
                     <a
                       href={`/${pSlug || userData?.slug || ""}`}
                       target="_blank"
@@ -2950,15 +2953,15 @@ export default function ProviderDashboardPage() {
                   </div>
                 </div>
 
-                {/* Sub-Navigation Cards Switcher */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 bg-slate-100/80 p-2 rounded-2xl border border-slate-200/60">
+                {/* Sub-Navigation Switcher (Continuous horizontal pill bar) */}
+                <div className="flex items-center gap-1.5 overflow-x-auto bg-slate-100/70 p-1.5 rounded-[1.25rem] border border-slate-200/60 no-scrollbar mb-6 scroll-smooth">
                   {[
-                    { id: "basic", label: "Basic Info", icon: User, desc: "Name, Logo, Banner & Bio" },
-                    { id: "contact", label: "Contact Info", icon: Phone, desc: "Phone, WhatsApp & Map" },
-                    { id: "professional", label: "Professional", icon: Briefcase, desc: "Category & Certs" },
-                    { id: "settings", label: "Business Hours", icon: Clock, desc: "Schedule & Radius" },
-                    { id: "social", label: "Social Links", icon: Globe, desc: "Instagram & Media" },
-                    { id: "verification", label: "Verification", icon: ShieldCheck, desc: "ID Proofs & Docs" },
+                    { id: "basic", label: "Basic Info", icon: User },
+                    { id: "contact", label: "Contact Info", icon: Phone },
+                    { id: "professional", label: "Professional", icon: Briefcase },
+                    { id: "settings", label: "Business Hours", icon: Clock },
+                    { id: "social", label: "Social Links", icon: Globe },
+                    { id: "verification", label: "Verification", icon: ShieldCheck },
                   ].map((tab) => {
                     const Icon = tab.icon;
                     const isActive = profileSubTab === tab.id;
@@ -2967,14 +2970,13 @@ export default function ProviderDashboardPage() {
                         key={tab.id}
                         type="button"
                         onClick={() => setProfileSubTab(tab.id as any)}
-                        className={`flex flex-col items-center justify-center p-3 rounded-xl font-bold text-xs transition-all duration-200 cursor-pointer ${
-                          isActive
-                            ? "bg-white text-emerald-700 shadow-md border border-slate-200 scale-[1.02]"
-                            : "text-slate-600 hover:bg-white/60 hover:text-slate-900"
-                        }`}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all duration-250 cursor-pointer shrink-0 active:scale-[0.97] ${isActive
+                          ? "bg-white text-slate-800 shadow-sm border border-slate-200/40"
+                          : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
+                          }`}
                       >
-                        <Icon className={`w-4 h-4 mb-1 ${isActive ? "text-emerald-600" : "text-slate-400"}`} />
-                        <span className="text-[11px] font-extrabold text-center leading-tight">{tab.label}</span>
+                        <Icon className={`w-3.5 h-3.5 ${isActive ? "text-emerald-600" : "text-slate-400"}`} />
+                        <span>{tab.label}</span>
                       </button>
                     );
                   })}
@@ -2988,19 +2990,24 @@ export default function ProviderDashboardPage() {
 
                     {/* SUB-TAB 1: BASIC INFORMATION */}
                     {profileSubTab === "basic" && (
-                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6 animate-fade-in">
+                      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5 animate-fade-in">
                         <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                          <span className="w-2 h-4 bg-emerald-500 rounded-full" />
-                          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Basic Identity & Branding</h3>
+                          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                            <User className="w-4 h-4" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="text-sm font-bold text-slate-800">Basic Identity & Branding</h3>
+                            <p className="text-[10px] text-slate-400 font-medium">Manage your public profile name, logo, banner, and bio.</p>
+                          </div>
                         </div>
 
                         {/* Logo & Cover Upload Row */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {/* Business Logo Upload */}
-                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                            <label className="text-[10px] font-extrabold uppercase text-slate-500 tracking-wider block">Business Logo / Profile Photo</label>
+                          <div className="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-3">
+                            <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Profile Photo / Logo</label>
                             <div className="flex items-center gap-3">
-                              <div className="w-16 h-16 rounded-2xl overflow-hidden ring-2 ring-emerald-500/30 shadow-md shrink-0 bg-white relative group">
+                              <div className="w-16 h-16 rounded-xl overflow-hidden ring-2 ring-indigo-500/10 shadow-sm shrink-0 bg-white relative group">
                                 <img
                                   src={pAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=200&h=200&q=80"}
                                   alt="Business Logo"
@@ -3010,33 +3017,33 @@ export default function ProviderDashboardPage() {
                                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-[9px] font-bold">Uploading...</div>
                                 )}
                               </div>
-                              <div className="space-y-1">
-                                <label htmlFor="profileLogoFile" className="bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-[11px] font-extrabold px-3 py-1.5 rounded-xl cursor-pointer shadow-xs inline-flex items-center gap-1.5 transition">
-                                  <Camera className="w-3.5 h-3.5 text-emerald-600" />
+                              <div className="space-y-1 text-left">
+                                <label htmlFor="profileLogoFile" className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer shadow-sm inline-flex items-center gap-1.5 transition">
+                                  <Camera className="w-3.5 h-3.5 text-indigo-650" />
                                   {pAvatar ? "Change Logo" : "Upload Logo"}
                                   <input id="profileLogoFile" type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                                 </label>
-                                <p className="text-[9px] text-slate-400 font-semibold">Square JPG, PNG or WebP. Max 5MB.</p>
+                                <p className="text-[9px] text-slate-400 font-medium">Square JPG or PNG. Max 5MB.</p>
                               </div>
                             </div>
                           </div>
 
                           {/* Cover Image Upload */}
-                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-                            <label className="text-[10px] font-extrabold uppercase text-slate-500 tracking-wider block">Hero Cover Banner</label>
-                            <div className="space-y-2">
-                              <div className="w-full h-16 rounded-xl overflow-hidden border border-slate-200 relative bg-gradient-to-r from-emerald-600 to-teal-500">
+                          <div className="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-3">
+                            <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Hero Cover Banner</label>
+                            <div className="space-y-2 text-left">
+                              <div className="w-full h-16 rounded-lg overflow-hidden border border-slate-200 relative bg-gradient-to-r from-slate-900 to-slate-800">
                                 {pCover ? (
                                   <img src={pCover} alt="Cover Banner" className="w-full h-full object-cover" />
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-white/80 text-[10px] font-bold">Default Banner</div>
+                                  <div className="w-full h-full flex items-center justify-center text-white/60 text-[10px] font-semibold">Default Banner</div>
                                 )}
                                 {coverUploading && (
                                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-[9px] font-bold">Uploading...</div>
                                 )}
                               </div>
-                              <label htmlFor="profileCoverFile" className="w-full bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-[11px] font-extrabold py-1.5 rounded-xl cursor-pointer shadow-xs flex items-center justify-center gap-1.5 transition">
-                                <Upload className="w-3.5 h-3.5 text-emerald-600" />
+                              <label htmlFor="profileCoverFile" className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold py-2 rounded-xl cursor-pointer shadow-sm flex items-center justify-center gap-1.5 transition">
+                                <Upload className="w-3.5 h-3.5 text-indigo-650" />
                                 {pCover ? "Update Cover Banner" : "Upload Cover Banner"}
                                 <input id="profileCoverFile" type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
                               </label>
@@ -3046,9 +3053,9 @@ export default function ProviderDashboardPage() {
 
                         {/* Name & Owner Fields */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                              Business / Organization Name <span className="text-red-500">*</span>
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-xs font-medium text-slate-655">
+                              Business Name *
                             </label>
                             <input
                               type="text"
@@ -3056,13 +3063,13 @@ export default function ProviderDashboardPage() {
                               value={pName}
                               onChange={(e) => setPName(e.target.value)}
                               placeholder="e.g. Zenzy PowerFix Electricians"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
 
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                              Owner / Founder Name <span className="text-red-500">*</span>
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-xs font-medium text-slate-655">
+                              Owner Name *
                             </label>
                             <input
                               type="text"
@@ -3070,15 +3077,15 @@ export default function ProviderDashboardPage() {
                               value={pOwnerName}
                               onChange={(e) => setPOwnerName(e.target.value)}
                               placeholder="e.g. Rahul Sharma"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
                         </div>
 
                         {/* Tagline */}
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                            Business Tagline <span className="text-red-500">*</span>
+                        <div className="space-y-1.5 text-left">
+                          <label className="text-xs font-medium text-slate-655">
+                            Business Tagline *
                           </label>
                           <input
                             type="text"
@@ -3086,17 +3093,17 @@ export default function ProviderDashboardPage() {
                             value={pTagline}
                             onChange={(e) => setPTagline(e.target.value)}
                             placeholder="e.g. Certified residential & commercial electrical engineering specialists"
-                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                           />
                         </div>
 
                         {/* Bio / About */}
-                        <div className="space-y-1.5">
+                        <div className="space-y-1.5 text-left">
                           <div className="flex justify-between items-center">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                              Short About / Professional Bio <span className="text-red-500">*</span>
+                            <label className="text-xs font-medium text-slate-655">
+                              Short About / Professional Bio *
                             </label>
-                            <span className="text-[9px] text-slate-400 font-bold">{(pBio || "").length}/300 chars</span>
+                            <span className="text-[9px] text-slate-405 font-bold">{(pBio || "").length}/300 chars</span>
                           </div>
                           <textarea
                             rows={3}
@@ -3105,13 +3112,13 @@ export default function ProviderDashboardPage() {
                             value={pBio}
                             onChange={(e) => setPBio(e.target.value)}
                             placeholder="Highlight your safety standards, response times, licensed team experience, and core mission..."
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none resize-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800 resize-none"
                           />
                         </div>
 
                         {/* Detailed Overview */}
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                        <div className="space-y-1.5 text-left">
+                          <label className="text-xs font-medium text-slate-655">
                             Detailed Overview & Services Description
                           </label>
                           <textarea
@@ -3119,7 +3126,7 @@ export default function ProviderDashboardPage() {
                             value={pDesc}
                             onChange={(e) => setPDesc(e.target.value)}
                             placeholder="Full detailed overview of your business operations, equipment, warranty terms, and client guarantees..."
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none resize-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800 resize-none"
                           />
                         </div>
                       </div>
@@ -3127,17 +3134,22 @@ export default function ProviderDashboardPage() {
 
                     {/* SUB-TAB 2: CONTACT INFORMATION */}
                     {profileSubTab === "contact" && (
-                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6 animate-fade-in">
+                      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5 animate-fade-in">
                         <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                          <span className="w-2 h-4 bg-indigo-500 rounded-full" />
-                          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Contact & Location Details</h3>
+                          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                            <Phone className="w-4 h-4" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="text-sm font-bold text-slate-800">Contact & Location Details</h3>
+                            <p className="text-[10px] text-slate-400 font-medium">Configure your primary contact numbers, website, and office address.</p>
+                          </div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {/* Primary Phone */}
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                              Primary Phone Number <span className="text-red-500">*</span>
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-xs font-medium text-slate-655">
+                              Primary Phone Number *
                             </label>
                             <input
                               type="tel"
@@ -3145,14 +3157,14 @@ export default function ProviderDashboardPage() {
                               value={pPhone}
                               onChange={(e) => setPPhone(e.target.value)}
                               placeholder="+91 98765 43210"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
 
                           {/* WhatsApp Number */}
-                          <div className="space-y-1.5">
+                          <div className="space-y-1.5 text-left">
                             <div className="flex justify-between items-center">
-                              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              <label className="text-xs font-medium text-slate-655">
                                 WhatsApp Business Number
                               </label>
                               {pWhatsapp && (
@@ -3160,7 +3172,7 @@ export default function ProviderDashboardPage() {
                                   href={`https://wa.me/${pWhatsapp.replace(/[^0-9]/g, '')}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-[9px] text-emerald-600 font-extrabold hover:underline flex items-center gap-1"
+                                  className="text-[9px] text-indigo-600 font-bold hover:underline flex items-center gap-1"
                                 >
                                   Test Chat ↗
                                 </a>
@@ -3171,16 +3183,16 @@ export default function ProviderDashboardPage() {
                               value={pWhatsapp}
                               onChange={(e) => setPWhatsapp(e.target.value)}
                               placeholder="+91 98765 43210"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {/* Official Website */}
-                          <div className="space-y-1.5">
+                          <div className="space-y-1.5 text-left">
                             <div className="flex justify-between items-center">
-                              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                              <label className="text-xs font-medium text-slate-655">
                                 Official Website Link
                               </label>
                               {pWebsite && (
@@ -3188,7 +3200,7 @@ export default function ProviderDashboardPage() {
                                   href={pWebsite.startsWith('http') ? pWebsite : `https://${pWebsite}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-[9px] text-indigo-600 font-extrabold hover:underline"
+                                  className="text-[9px] text-indigo-650 font-bold hover:underline"
                                 >
                                   Open Website ↗
                                 </a>
@@ -3199,28 +3211,28 @@ export default function ProviderDashboardPage() {
                               value={pWebsite}
                               onChange={(e) => setPWebsite(e.target.value)}
                               placeholder="https://powerfix.in"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
 
                           {/* Email Address (Bound read-only) */}
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-xs font-medium text-slate-655">
                               Account Email (Verified)
                             </label>
                             <input
                               type="email"
                               disabled
                               value={user?.email || ""}
-                              className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-500 outline-none cursor-not-allowed"
+                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none text-slate-550 cursor-not-allowed text-sm font-semibold"
                             />
                           </div>
                         </div>
 
                         {/* Complete Address */}
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                            Complete Office / Service Address <span className="text-red-500">*</span>
+                        <div className="space-y-1.5 text-left">
+                          <label className="text-xs font-medium text-slate-655">
+                            Complete Office / Service Address *
                           </label>
                           <input
                             type="text"
@@ -3228,14 +3240,14 @@ export default function ProviderDashboardPage() {
                             value={pArea}
                             onChange={(e) => setPArea(e.target.value)}
                             placeholder="Plot 45, Sector 12, Malviya Nagar, Jaipur, Rajasthan 302017"
-                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
+                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                           />
                         </div>
 
                         {/* Google Maps Embed / Link */}
-                        <div className="space-y-1.5">
+                        <div className="space-y-1.5 text-left">
                           <div className="flex justify-between items-center">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                            <label className="text-xs font-medium text-slate-655">
                               Google Maps Location Link / Embed URL
                             </label>
                             {pGoogleMapsUrl && (
@@ -3243,7 +3255,7 @@ export default function ProviderDashboardPage() {
                                 href={pGoogleMapsUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[9px] text-emerald-600 font-extrabold hover:underline"
+                                className="text-[9px] text-indigo-650 font-bold hover:underline"
                               >
                                 View Map Pin ↗
                               </a>
@@ -3254,7 +3266,7 @@ export default function ProviderDashboardPage() {
                             value={pGoogleMapsUrl}
                             onChange={(e) => setPGoogleMapsUrl(e.target.value)}
                             placeholder="https://maps.google.com/?q=..."
-                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-all"
+                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                           />
                         </div>
                       </div>
@@ -3262,17 +3274,22 @@ export default function ProviderDashboardPage() {
 
                     {/* SUB-TAB 3: PROFESSIONAL DETAILS & CERTS */}
                     {profileSubTab === "professional" && (
-                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6 animate-fade-in">
+                      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5 animate-fade-in">
                         <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                          <span className="w-2 h-4 bg-violet-500 rounded-full" />
-                          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Professional Specs & Certifications</h3>
+                          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                            <Briefcase className="w-4 h-4" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="text-sm font-bold text-slate-800">Professional Specs & Certifications</h3>
+                            <p className="text-[10px] text-slate-400 font-medium">Specify your service categories, industry experience, and professional certifications.</p>
+                          </div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {/* Category */}
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                              Primary Service Category <span className="text-red-500">*</span>
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-xs font-medium text-slate-655">
+                              Primary Service Category *
                             </label>
                             <input
                               type="text"
@@ -3280,13 +3297,13 @@ export default function ProviderDashboardPage() {
                               value={pCategories[0] || ""}
                               onChange={(e) => setPCategories([e.target.value])}
                               placeholder="e.g. Electricians"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
 
                           {/* Subcategory */}
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-xs font-medium text-slate-655">
                               Subcategory / Specialization
                             </label>
                             <input
@@ -3294,15 +3311,15 @@ export default function ProviderDashboardPage() {
                               value={pSubcategory}
                               onChange={(e) => setPSubcategory(e.target.value)}
                               placeholder="e.g. Industrial Wiring, Smart Automation"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {/* Experience */}
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-xs font-medium text-slate-655">
                               Years of Industry Experience
                             </label>
                             <input
@@ -3310,13 +3327,13 @@ export default function ProviderDashboardPage() {
                               value={pExp}
                               onChange={(e) => setPExp(e.target.value)}
                               placeholder="e.g. 8+ years"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
 
                           {/* Languages Spoken */}
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-xs font-medium text-slate-655">
                               Languages Spoken (comma separated)
                             </label>
                             <input
@@ -3324,14 +3341,14 @@ export default function ProviderDashboardPage() {
                               value={pLanguages}
                               onChange={(e) => setPLanguages(e.target.value)}
                               placeholder="English, Hindi, Rajasthani"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
                         </div>
 
                         {/* Skills */}
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                        <div className="space-y-1.5 text-left">
+                          <label className="text-xs font-medium text-slate-655">
                             Key Skills & Expertise Tags (comma separated)
                           </label>
                           <input
@@ -3339,12 +3356,12 @@ export default function ProviderDashboardPage() {
                             value={pSkills}
                             onChange={(e) => setPSkills(e.target.value)}
                             placeholder="Circuit Repair, DB Box Installation, CCTV, Inverter Wiring"
-                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                            className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                           />
                           {pSkills && (
                             <div className="flex flex-wrap gap-1.5 pt-2">
                               {pSkills.split(",").map((s, idx) => s.trim() ? (
-                                <span key={idx} className="bg-violet-50 border border-violet-200 text-violet-700 text-[10px] font-bold px-2.5 py-0.5 rounded-lg">
+                                <span key={idx} className="bg-indigo-55/40 border border-indigo-200 text-indigo-700 text-[10px] font-bold px-2.5 py-0.5 rounded-lg">
                                   #{s.trim()}
                                 </span>
                               ) : null)}
@@ -3353,24 +3370,24 @@ export default function ProviderDashboardPage() {
                         </div>
 
                         {/* Certifications Manager */}
-                        <div className="space-y-3 pt-3 border-t border-slate-100">
-                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
+                        <div className="space-y-3 pt-3 border-t border-slate-100 text-left">
+                          <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
                             Certifications & Diplomas Manager
                           </label>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50/50 p-3 rounded-xl border border-slate-200/60">
                             <input
                               type="text"
                               value={certName}
                               onChange={(e) => setCertName(e.target.value)}
-                              placeholder="Cert Title (e.g. Master Electrician)"
-                              className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                              placeholder="Cert Title (e.g. Master)"
+                              className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 text-slate-800"
                             />
                             <input
                               type="text"
                               value={certIssuer}
                               onChange={(e) => setCertIssuer(e.target.value)}
-                              placeholder="Issuer (e.g. Govt. ITI Institute)"
-                              className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                              placeholder="Issuer (e.g. ITI Institute)"
+                              className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 text-slate-800"
                             />
                             <div className="flex gap-2">
                               <input
@@ -3378,12 +3395,12 @@ export default function ProviderDashboardPage() {
                                 value={certYear}
                                 onChange={(e) => setCertYear(e.target.value)}
                                 placeholder="Year (2022)"
-                                className="w-1/2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                                className="w-1/2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 text-slate-800"
                               />
                               <button
                                 type="button"
                                 onClick={handleAddCertification}
-                                className="w-1/2 bg-violet-600 hover:bg-violet-700 text-white text-[11px] font-extrabold rounded-xl transition shadow-sm"
+                                className="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-extrabold rounded-lg transition shadow-sm cursor-pointer"
                               >
                                 + Add
                               </button>
@@ -3396,15 +3413,15 @@ export default function ProviderDashboardPage() {
                               <p className="text-[10px] text-slate-400 italic">No certifications added yet.</p>
                             ) : (
                               pCertifications.map((cert) => (
-                                <div key={cert.id} className="flex justify-between items-center p-3 bg-white border border-slate-200 rounded-xl shadow-xs">
+                                <div key={cert.id} className="flex justify-between items-center p-3 bg-white border border-slate-200/60 rounded-xl shadow-xs">
                                   <div>
-                                    <span className="font-extrabold text-xs text-slate-900 block">{cert.name}</span>
-                                    <span className="text-[10px] text-slate-500 font-semibold">{cert.issuer} • {cert.year}</span>
+                                    <span className="font-semibold text-xs text-slate-900 block">{cert.name}</span>
+                                    <span className="text-[10px] text-slate-450 font-medium">{cert.issuer} • {cert.year}</span>
                                   </div>
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveCertification(cert.id)}
-                                    className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg text-xs font-bold transition"
+                                    className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
                                   >
                                     ✕
                                   </button>
@@ -3418,15 +3435,20 @@ export default function ProviderDashboardPage() {
 
                     {/* SUB-TAB 4: BUSINESS SETTINGS & WORKING HOURS */}
                     {profileSubTab === "settings" && (
-                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6 animate-fade-in">
+                      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5 animate-fade-in">
                         <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                          <span className="w-2 h-4 bg-teal-500 rounded-full" />
-                          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Business Operating Settings</h3>
+                          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                            <Clock className="w-4 h-4" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="text-sm font-bold text-slate-800">Business Operating Settings</h3>
+                            <p className="text-[10px] text-slate-400 font-medium">Configure your working hours schedule, service radius, and price specs.</p>
+                          </div>
                         </div>
 
                         {/* Working Hours Schedule for Each Day */}
                         <div className="space-y-3">
-                          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
+                          <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block text-left">
                             Daily Working Hours Schedule
                           </label>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -3446,12 +3468,12 @@ export default function ProviderDashboardPage() {
                               };
 
                               return (
-                                <div key={day} className={`p-3.5 rounded-2xl border transition-all ${config.active ? "bg-slate-50 border-slate-200" : "bg-slate-100/50 border-transparent opacity-60"}`}>
+                                <div key={day} className={`p-4 rounded-xl border transition-all text-left ${config.active ? "bg-white border-slate-200/60" : "bg-slate-50 border-slate-100 opacity-60"}`}>
                                   <div className="flex justify-between items-center">
-                                    <span className="font-black text-xs uppercase tracking-wider text-slate-800">{day}</span>
+                                    <span className="font-semibold text-xs uppercase tracking-wider text-slate-800">{day}</span>
                                     <label className="flex items-center gap-1.5 cursor-pointer">
-                                      <input type="checkbox" checked={config.active} onChange={(e) => toggleDay(e.target.checked)} className="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5" />
-                                      <span className="text-[10px] font-bold text-slate-500">{config.active ? "Open" : "Closed"}</span>
+                                      <input type="checkbox" checked={config.active} onChange={(e) => toggleDay(e.target.checked)} className="rounded text-indigo-650 focus:ring-indigo-500 w-4 h-4 cursor-pointer accent-indigo-650" />
+                                      <span className="text-[10px] font-semibold text-slate-500">{config.active ? "Open" : "Closed"}</span>
                                     </label>
                                   </div>
                                   {config.active && (
@@ -3461,14 +3483,14 @@ export default function ProviderDashboardPage() {
                                         value={config.start}
                                         onChange={(e) => updateTime("start", e.target.value)}
                                         placeholder="09:00 AM"
-                                        className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-900 outline-none"
+                                        className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-all"
                                       />
                                       <input
                                         type="text"
                                         value={config.end}
                                         onChange={(e) => updateTime("end", e.target.value)}
                                         placeholder="06:00 PM"
-                                        className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-900 outline-none"
+                                        className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:border-indigo-500 transition-all"
                                       />
                                     </div>
                                   )}
@@ -3479,10 +3501,10 @@ export default function ProviderDashboardPage() {
                         </div>
 
                         {/* Settings Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-left">
                           {/* Service Radius */}
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                            <label className="text-xs font-medium text-slate-655">
                               Service Radius (in KM)
                             </label>
                             <input
@@ -3491,13 +3513,13 @@ export default function ProviderDashboardPage() {
                               max={100}
                               value={pServiceRadius}
                               onChange={(e) => setPServiceRadius(e.target.value)}
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
 
                           {/* Starting Price */}
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                            <label className="text-xs font-medium text-slate-655">
                               Starting Price (₹)
                             </label>
                             <input
@@ -3505,19 +3527,19 @@ export default function ProviderDashboardPage() {
                               value={pPriceStartingFrom}
                               onChange={(e) => setPPriceStartingFrom(e.target.value)}
                               placeholder="₹299"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
 
                           {/* Response Time */}
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+                            <label className="text-xs font-medium text-slate-655">
                               Expected Response Time
                             </label>
                             <select
                               value={pResponseTime}
                               onChange={(e) => setPResponseTime(e.target.value)}
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 outline-none focus:border-teal-500"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-850 cursor-pointer"
                             >
                               <option value="Within 15 mins">Within 15 mins</option>
                               <option value="Within 30 mins">Within 30 mins</option>
@@ -3529,10 +3551,10 @@ export default function ProviderDashboardPage() {
                         </div>
 
                         {/* Emergency Toggle Card */}
-                        <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-2xl flex items-center justify-between gap-4">
+                        <div className="p-4 bg-indigo-50/40 border border-indigo-150 rounded-xl flex items-center justify-between gap-4 text-left">
                           <div>
-                            <span className="font-extrabold text-xs text-slate-900 block">24/7 Emergency Service Support</span>
-                            <span className="text-[10px] text-slate-500 font-semibold">Flag your profile as available for urgent breakdown and emergency service calls.</span>
+                            <span className="font-semibold text-slate-900 block text-xs">24/7 Emergency Service Support</span>
+                            <span className="text-[10px] text-slate-500 font-medium">Flag your profile as available for urgent breakdown and emergency service calls.</span>
                           </div>
                           <label className="relative inline-flex items-center cursor-pointer shrink-0">
                             <input
@@ -3541,7 +3563,7 @@ export default function ProviderDashboardPage() {
                               onChange={(e) => setPEmergencyService(e.target.checked)}
                               className="sr-only peer"
                             />
-                            <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600" />
+                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600" />
                           </label>
                         </div>
                       </div>
@@ -3549,60 +3571,65 @@ export default function ProviderDashboardPage() {
 
                     {/* SUB-TAB 5: SOCIAL LINKS */}
                     {profileSubTab === "social" && (
-                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6 animate-fade-in">
+                      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5 animate-fade-in">
                         <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                          <span className="w-2 h-4 bg-pink-500 rounded-full" />
-                          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Social Channels & Portfolios</h3>
+                          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                            <Globe className="w-4 h-4" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="text-sm font-bold text-slate-800">Social Channels & Portfolios</h3>
+                            <p className="text-[10px] text-slate-400 font-medium">Link your public profiles to build trust with potential customers.</p>
+                          </div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {/* Instagram */}
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Instagram Handle / URL</label>
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-xs font-medium text-slate-655">Instagram Handle / URL</label>
                             <input
                               type="url"
                               value={pSocialLinks.instagram || ""}
-                              onChange={(e) => setPSocialLinks({...pSocialLinks, instagram: e.target.value})}
+                              onChange={(e) => setPSocialLinks({ ...pSocialLinks, instagram: e.target.value })}
                               placeholder="https://instagram.com/yourhandle"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-pink-500"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
 
                           {/* Facebook */}
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Facebook Page URL</label>
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-xs font-medium text-slate-655">Facebook Page URL</label>
                             <input
                               type="url"
                               value={pSocialLinks.facebook || ""}
-                              onChange={(e) => setPSocialLinks({...pSocialLinks, facebook: e.target.value})}
+                              onChange={(e) => setPSocialLinks({ ...pSocialLinks, facebook: e.target.value })}
                               placeholder="https://facebook.com/yourpage"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-pink-500"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {/* LinkedIn */}
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">LinkedIn Profile URL</label>
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-xs font-medium text-slate-655">LinkedIn Profile URL</label>
                             <input
                               type="url"
                               value={pSocialLinks.linkedin || ""}
-                              onChange={(e) => setPSocialLinks({...pSocialLinks, linkedin: e.target.value})}
+                              onChange={(e) => setPSocialLinks({ ...pSocialLinks, linkedin: e.target.value })}
                               placeholder="https://linkedin.com/in/profile"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-pink-500"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
 
                           {/* YouTube */}
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">YouTube Channel URL</label>
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-xs font-medium text-slate-655">YouTube Channel URL</label>
                             <input
                               type="url"
                               value={pSocialLinks.twitter || ""}
-                              onChange={(e) => setPSocialLinks({...pSocialLinks, twitter: e.target.value})}
+                              onChange={(e) => setPSocialLinks({ ...pSocialLinks, twitter: e.target.value })}
                               placeholder="https://youtube.com/c/channel"
-                              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-pink-500"
+                              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm font-semibold text-slate-800"
                             />
                           </div>
                         </div>
@@ -3611,58 +3638,62 @@ export default function ProviderDashboardPage() {
 
                     {/* SUB-TAB 6: VERIFICATION DETAILS */}
                     {profileSubTab === "verification" && (
-                      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-6 animate-fade-in">
+                      <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-5 animate-fade-in">
                         <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                           <div className="flex items-center gap-3">
-                            <span className="w-2 h-4 bg-amber-500 rounded-full" />
-                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">KYC Verification & Legal Docs</h3>
+                            <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                              <ShieldCheck className="w-4 h-4" />
+                            </div>
+                            <div className="text-left">
+                              <h3 className="text-sm font-bold text-slate-800">KYC Verification & Legal Docs</h3>
+                              <p className="text-[10px] text-slate-400 font-medium">Upload files to verify business status and earn verification badges.</p>
+                            </div>
                           </div>
 
                           {/* Status Badge */}
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                            userData?.documentStatus === "approved"
-                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                              : userData?.documentStatus === "submitted"
-                              ? "bg-blue-100 text-blue-800 border border-blue-300"
-                              : "bg-amber-100 text-amber-800 border border-amber-300"
-                          }`}>
-                            Status: {userData?.documentStatus ? userData.documentStatus.toUpperCase() : "PENDING"}
+                          <span className={`px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${userData?.documentStatus === "approved"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200/60"
+                            : userData?.documentStatus === "submitted"
+                              ? "bg-blue-50 text-blue-700 border-blue-200/60"
+                              : "bg-amber-50 text-amber-700 border-amber-200/60"
+                            }`}>
+                            {userData?.documentStatus ? userData.documentStatus : "PENDING"}
                           </span>
                         </div>
 
                         {/* Aadhaar & PAN Cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-                            <label className="text-[10px] font-extrabold uppercase text-slate-500 block">Aadhaar Card ID & File</label>
+                          <div className="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-2 text-left">
+                            <label className="text-xs font-medium text-slate-655 block">Aadhaar Card Number</label>
                             <input
                               type="text"
                               value={pDocumentVerifications.aadhar || ""}
-                              onChange={(e) => setPDocumentVerifications({...pDocumentVerifications, aadhar: e.target.value})}
+                              onChange={(e) => setPDocumentVerifications({ ...pDocumentVerifications, aadhar: e.target.value })}
                               placeholder="XXXX XXXX XXXX"
-                              className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                              className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 text-slate-800"
                             />
-                            <div className="flex justify-between items-center pt-2">
-                              <span className="text-[9px] text-slate-400 font-bold">Max: 5MB File</span>
-                              <label className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-extrabold cursor-pointer transition">
-                                {pDocumentVerifications.aadharDoc ? "✓ Uploaded" : "Upload File"}
+                            <div className="flex justify-between items-center pt-2 border-t border-slate-200/60">
+                              <span className="text-[10px] text-slate-400">JPG, PNG, PDF</span>
+                              <label className="bg-indigo-50 border border-indigo-250 text-indigo-700 hover:bg-indigo-100 px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition">
+                                {pDocumentVerifications.aadharDoc ? "Change" : "Upload File"}
                                 <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "aadharDoc")} />
                               </label>
                             </div>
                           </div>
 
-                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-                            <label className="text-[10px] font-extrabold uppercase text-slate-500 block">PAN Card Number & File</label>
+                          <div className="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-2 text-left">
+                            <label className="text-xs font-medium text-slate-655 block">PAN Card Number</label>
                             <input
                               type="text"
                               value={pDocumentVerifications.pan || ""}
-                              onChange={(e) => setPDocumentVerifications({...pDocumentVerifications, pan: e.target.value.toUpperCase()})}
+                              onChange={(e) => setPDocumentVerifications({ ...pDocumentVerifications, pan: e.target.value.toUpperCase() })}
                               placeholder="ABCDE1234F"
-                              className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                              className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 text-slate-800"
                             />
-                            <div className="flex justify-between items-center pt-2">
-                              <span className="text-[9px] text-slate-400 font-bold">Max: 5MB File</span>
-                              <label className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-extrabold cursor-pointer transition">
-                                {pDocumentVerifications.panDoc ? "✓ Uploaded" : "Upload File"}
+                            <div className="flex justify-between items-center pt-2 border-t border-slate-200/60">
+                              <span className="text-[10px] text-slate-400">JPG, PNG, PDF</span>
+                              <label className="bg-indigo-50 border border-indigo-250 text-indigo-700 hover:bg-indigo-100 px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition">
+                                {pDocumentVerifications.panDoc ? "Change" : "Upload File"}
                                 <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "panDoc")} />
                               </label>
                             </div>
@@ -3671,37 +3702,37 @@ export default function ProviderDashboardPage() {
 
                         {/* GSTIN & Business License */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-                            <label className="text-[10px] font-extrabold uppercase text-slate-500 block">GSTIN Certificate ID & File</label>
+                          <div className="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-2 text-left">
+                            <label className="text-xs font-medium text-slate-655 block">GSTIN Certificate ID</label>
                             <input
                               type="text"
                               value={pDocumentVerifications.gstNumber || ""}
-                              onChange={(e) => setPDocumentVerifications({...pDocumentVerifications, gstNumber: e.target.value.toUpperCase()})}
+                              onChange={(e) => setPDocumentVerifications({ ...pDocumentVerifications, gstNumber: e.target.value.toUpperCase() })}
                               placeholder="29GGGGG1314R9Z6"
-                              className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                              className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 text-slate-800"
                             />
-                            <div className="flex justify-between items-center pt-2">
-                              <span className="text-[9px] text-slate-400 font-bold">Max: 5MB File</span>
-                              <label className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-extrabold cursor-pointer transition">
-                                {pDocumentVerifications.gstDoc ? "✓ Uploaded" : "Upload File"}
+                            <div className="flex justify-between items-center pt-2 border-t border-slate-200/60">
+                              <span className="text-[10px] text-slate-400">JPG, PNG, PDF</span>
+                              <label className="bg-indigo-50 border border-indigo-250 text-indigo-700 hover:bg-indigo-100 px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition">
+                                {pDocumentVerifications.gstDoc ? "Change" : "Upload File"}
                                 <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "gstDoc")} />
                               </label>
                             </div>
                           </div>
 
-                          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-                            <label className="text-[10px] font-extrabold uppercase text-slate-500 block">Business License Registration & File</label>
+                          <div className="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-2 text-left">
+                            <label className="text-xs font-medium text-slate-655 block">License / Cert Registration</label>
                             <input
                               type="text"
                               value={pDocumentVerifications.licenseNumber || ""}
-                              onChange={(e) => setPDocumentVerifications({...pDocumentVerifications, licenseNumber: e.target.value})}
+                              onChange={(e) => setPDocumentVerifications({ ...pDocumentVerifications, licenseNumber: e.target.value })}
                               placeholder="Reg No. / License ID"
-                              className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none"
+                              className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 text-slate-800"
                             />
-                            <div className="flex justify-between items-center pt-2">
-                              <span className="text-[9px] text-slate-400 font-bold">Max: 5MB File</span>
-                              <label className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-3 py-1 rounded-xl text-[10px] font-extrabold cursor-pointer transition">
-                                {pDocumentVerifications.licenseDoc ? "✓ Uploaded" : "Upload File"}
+                            <div className="flex justify-between items-center pt-2 border-t border-slate-200/60">
+                              <span className="text-[10px] text-slate-400">JPG, PNG, PDF</span>
+                              <label className="bg-indigo-50 border border-indigo-250 text-indigo-700 hover:bg-indigo-100 px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition">
+                                {pDocumentVerifications.licenseDoc ? "Change" : "Upload File"}
                                 <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "licenseDoc")} />
                               </label>
                             </div>
@@ -3711,17 +3742,17 @@ export default function ProviderDashboardPage() {
                     )}
 
                     {/* Bottom Save Changes Action Bar */}
-                    <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
-                      <div className="text-left">
-                        <span className="font-extrabold text-xs text-slate-900 block">Save Profile Identity</span>
-                        <span className="text-[10px] text-slate-500 font-semibold">Your changes will immediately populate on your public business page.</span>
+                    <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row justify-between items-center gap-4 text-left">
+                      <div>
+                        <span className="font-semibold text-slate-800 text-xs block uppercase tracking-wider">Save Profile Identity</span>
+                        <span className="text-[10px] text-slate-400 font-medium">Your changes will immediately populate on your public business page.</span>
                       </div>
 
                       <button
                         type="button"
                         onClick={handleUpdateProfile}
                         disabled={savingProfile}
-                        className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold text-xs px-8 py-3 rounded-2xl shadow-lg shadow-emerald-600/20 transition cursor-pointer flex items-center justify-center gap-2"
+                        className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-xs transition active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
                       >
                         <Save className="w-4 h-4" />
                         {savingProfile ? "Saving Details..." : "Save Business Profile"}
@@ -3851,7 +3882,7 @@ export default function ProviderDashboardPage() {
                               <p className="text-[10px] text-slate-400 font-semibold mt-0.5">📅 {proj.date || "N/A"} · 📍 {proj.location || "N/A"}</p>
                             </div>
                             <p className="text-slate-500 text-xs font-semibold leading-relaxed line-clamp-2">{proj.description}</p>
-                            
+
                             <div className="flex gap-4 pt-1 text-[11px] font-bold text-slate-600">
                               {proj.budget && (
                                 <div>
@@ -4130,8 +4161,8 @@ export default function ProviderDashboardPage() {
                     <div key={msg.id} className={`flex flex-col ${isSelf ? "items-end" : "items-start"}`}>
                       <span className="text-[9px] text-slate-400 font-semibold mb-0.5 px-1">{msg.senderName}</span>
                       <div className={`max-w-[80%] p-3.5 rounded-2xl text-xs font-semibold leading-relaxed shadow-sm ${isSelf
-                          ? "bg-slate-900 text-white rounded-tr-none"
-                          : "bg-white text-slate-850 rounded-tl-none border border-slate-150"
+                        ? "bg-slate-900 text-white rounded-tr-none"
+                        : "bg-white text-slate-850 rounded-tl-none border border-slate-150"
                         }`}>
                         {msg.text}
                       </div>
@@ -4460,7 +4491,7 @@ export default function ProviderDashboardPage() {
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs font-bold text-slate-700 font-sans">
-              
+
               {/* Invoice details */}
               <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <div>
@@ -4485,7 +4516,7 @@ export default function ProviderDashboardPage() {
               {/* Items manager */}
               <div className="space-y-3">
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Invoice Line Items</span>
-                
+
                 {/* Item adder form */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-150">
                   <div className="sm:col-span-2 space-y-1">
@@ -4615,7 +4646,7 @@ export default function ProviderDashboardPage() {
 
                 return (
                   <div className="border border-slate-100 rounded-3xl p-5 bg-emerald-50/50 grid grid-cols-1 sm:grid-cols-2 gap-6 items-center font-sans">
-                    
+
                     {/* QR Code & Pay Stamp */}
                     <div className="flex flex-col items-center gap-3">
                       <div className="bg-white p-3 rounded-2xl shadow-sm border relative">
@@ -4649,7 +4680,7 @@ export default function ProviderDashboardPage() {
                         <span>Grand Total:</span>
                         <span className="text-emerald-700 text-lg">₹{grandTotal.toLocaleString()}</span>
                       </div>
-                      
+
                       <div className="pt-2 flex justify-end">
                         <span className="bg-emerald-600/10 text-emerald-700 border border-emerald-200/50 px-3.5 py-1 rounded-full font-black text-[10px] uppercase tracking-wider">
                           PAID (UPI)
@@ -4712,7 +4743,7 @@ export default function ProviderDashboardPage() {
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs font-bold text-slate-700 font-sans">
-              
+
               {/* Client & Metadata Card */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <div>
@@ -4750,7 +4781,7 @@ export default function ProviderDashboardPage() {
               {/* Items Constructor Form */}
               <div className="space-y-3">
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Proposal Line Items</span>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
                   <div className="sm:col-span-2 space-y-1">
                     <label className="text-[9px] text-slate-400 uppercase font-black">Item / Scope Description</label>
@@ -4934,75 +4965,82 @@ export default function ProviderDashboardPage() {
 
       {/* ═══════ LEAD & INQUIRY DETAILS MODAL ═══════ */}
       {selectedLeadForDetails && (
-        <div className="fixed inset-0 z-[180] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 overflow-y-auto animate-fade-in text-left">
-          <div className="bg-white w-full max-w-[550px] my-8 rounded-3xl overflow-hidden border border-slate-200 shadow-2xl relative animate-scale-in flex flex-col">
+        <div className="fixed inset-0 z-[180] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto animate-fade-in text-left">
+          <div className="bg-white w-full max-w-[600px] my-8 rounded-2xl overflow-hidden border border-slate-200/80 shadow-2xl relative animate-scale-in flex flex-col">
             {/* Header */}
-            <div className="p-6 bg-slate-900 text-white flex justify-between items-center">
+            <div className="px-6 py-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex justify-between items-center border-b border-white/10">
               <div>
-                <h3 className="font-extrabold text-base">{selectedLeadForDetails.projectTitle}</h3>
-                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                <h3 className="font-semibold text-lg tracking-tight">{selectedLeadForDetails.projectTitle}</h3>
+                <span className="text-[11px] text-slate-400 font-medium block mt-0.5">
                   Submitted on {new Date(selectedLeadForDetails.createdAt).toLocaleString()}
                 </span>
               </div>
               <button
                 onClick={() => setSelectedLeadForDetails(null)}
-                className="w-8 h-8 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition cursor-pointer font-bold"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer hover:rotate-90 duration-200"
               >
-                ✕
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
             {/* Body */}
-            <div className="p-6 space-y-5 text-xs font-semibold text-slate-700">
-              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <div className="p-6 space-y-5 text-sm text-slate-700 bg-slate-50/30">
+              {/* Info Grid */}
+              <div className="grid grid-cols-2 gap-3 bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
                 <div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase block">Client Name</span>
-                  <span className="text-slate-900 font-extrabold block mt-0.5">{selectedLeadForDetails.customerName}</span>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Client</span>
+                  <p className="text-slate-900 font-semibold mt-1">{selectedLeadForDetails.customerName}</p>
                 </div>
                 <div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase block">Status Stage</span>
-                  <span className="inline-block mt-0.5 bg-indigo-100 text-indigo-800 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Status</span>
+                  <span className="inline-block mt-1 bg-indigo-50 text-indigo-700 text-[10px] font-semibold px-3 py-1 rounded-full border border-indigo-200/60">
                     {selectedLeadForDetails.status || "New"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase block">Phone / WhatsApp</span>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <a href={`tel:${selectedLeadForDetails.contactPhone}`} className="text-indigo-600 font-bold hover:underline">
-                      {selectedLeadForDetails.contactPhone}
-                    </a>
-                  </div>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Phone</span>
+                  <a href={`tel:${selectedLeadForDetails.contactPhone}`} className="text-indigo-600 font-medium hover:underline block mt-1">
+                    {selectedLeadForDetails.contactPhone}
+                  </a>
                 </div>
                 <div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase block">Email Address</span>
-                  <span className="text-slate-800 block mt-0.5 truncate">{selectedLeadForDetails.customerEmail}</span>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Email</span>
+                  <p className="text-slate-700 truncate mt-1">{selectedLeadForDetails.customerEmail}</p>
                 </div>
                 <div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase block">Budget</span>
-                  <span className="text-emerald-600 font-black block mt-0.5">{selectedLeadForDetails.projectBudget}</span>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Budget</span>
+                  <p className="text-emerald-600 font-bold mt-1">{selectedLeadForDetails.projectBudget}</p>
                 </div>
                 <div>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase block">Timeline</span>
-                  <span className="text-indigo-600 font-black block mt-0.5">{selectedLeadForDetails.projectTimeline}</span>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Timeline</span>
+                  <p className="text-indigo-600 font-semibold mt-1">{selectedLeadForDetails.projectTimeline}</p>
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <span className="text-[9px] font-bold text-slate-400 uppercase block">Location / Site Address</span>
-                <p className="text-slate-800 font-bold bg-slate-50 p-3 rounded-xl border border-slate-100">
-                  📍 {selectedLeadForDetails.projectLocation}
+              {/* Location */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Location</span>
+                <p className="text-slate-800 font-medium mt-1 flex items-start gap-2">
+                  <svg className="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {selectedLeadForDetails.projectLocation}
                 </p>
               </div>
 
-              <div className="space-y-1">
-                <span className="text-[9px] font-bold text-slate-400 uppercase block">Complete Scope of Work</span>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 leading-relaxed text-slate-800 whitespace-pre-wrap">
+              {/* Scope */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Scope of Work</span>
+                <div className="mt-2 text-slate-700 leading-relaxed whitespace-pre-wrap text-sm">
                   {selectedLeadForDetails.projectScope}
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2.5 pt-2 border-t border-slate-100">
+              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -5022,9 +5060,9 @@ export default function ProviderDashboardPage() {
                     ]);
                     setQuoteModalOpen(true);
                   }}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-black text-xs uppercase cursor-pointer transition text-center shadow-sm"
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-medium text-sm transition shadow-sm hover:shadow-md"
                 >
-                  ⚡ Generate Quote
+                  Generate Quote
                 </button>
                 <button
                   type="button"
@@ -5041,7 +5079,7 @@ export default function ProviderDashboardPage() {
                     link.click();
                     document.body.removeChild(link);
                   }}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3 rounded-xl font-bold text-xs cursor-pointer transition border border-slate-200"
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-medium text-sm transition border border-slate-200/60"
                 >
                   Download TXT
                 </button>
@@ -5053,22 +5091,20 @@ export default function ProviderDashboardPage() {
 
       {/* ═══════ FULL-PAGE ONBOARDING & VERIFICATION WIZARD ═══════ */}
       {showFullPageOnboarding && (
-        <div className="fixed inset-0 z-[450] bg-slate-950/90 backdrop-blur-xl overflow-y-auto p-4 sm:p-8 font-sans text-slate-800 flex justify-center items-start sm:items-center animate-fade-in">
-          <div className="w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto relative animate-scale-in">
-            
+        <div className="fixed inset-0 z-[450] bg-slate-900/80 backdrop-blur-sm overflow-y-auto p-4 sm:p-6 font-sans text-slate-800 flex justify-center items-start sm:items-center animate-fade-in">
+          <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col my-auto relative animate-scale-in">
+
             {/* Header Banner */}
-            <div className="bg-slate-900 text-white p-6 sm:p-8 relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800">
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-6 sm:px-8 py-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30 shrink-0">
-                  <ShieldCheck className="w-7 h-7" />
+                <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-black text-xl tracking-tight text-white">Professional Profile Verification</h3>
-                  <p className="text-xs text-slate-400 font-semibold mt-0.5">Fill details & upload document proofs to get verified badge</p>
+                  <h3 className="font-semibold text-lg tracking-tight">Professional Verification</h3>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">Complete your profile to get verified badge</p>
                 </div>
               </div>
-
-              {/* Skip Option Button */}
               <button
                 type="button"
                 onClick={() => {
@@ -5077,115 +5113,117 @@ export default function ProviderDashboardPage() {
                   }
                   setShowFullPageOnboarding(false);
                 }}
-                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold border border-white/20 transition cursor-pointer flex items-center gap-1.5 active:scale-95 shrink-0"
+                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-medium border border-white/20 transition cursor-pointer flex items-center gap-1.5 active:scale-95 shrink-0"
               >
-                Skip for Now ➔ Go to Dashboard
+                Skip for Now
               </button>
             </div>
 
-            {/* 4 Steps Navigation Header */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-slate-200/80 bg-slate-50/80 text-xs font-extrabold text-slate-600 text-center">
+            {/* Navigation Steps */}
+            <div className="grid grid-cols-4 border-b border-slate-200/80 bg-slate-50/50 text-xs font-medium text-slate-600">
               {[
-                { step: 1, title: "1. Identity & Photos" },
-                { step: 2, title: "2. Category & Pricing" },
-                { step: 3, title: "3. Contact & Reach" },
-                { step: 4, title: "4. Document Proofs" }
+                { step: 1, title: "Identity" },
+                { step: 2, title: "Category & Pricing" },
+                { step: 3, title: "Contact" },
+                { step: 4, title: "Documents" }
               ].map((s) => (
                 <button
                   key={s.step}
                   type="button"
                   onClick={() => setOnboardingStep(s.step as any)}
-                  className={`py-3.5 px-3 border-r last:border-r-0 border-slate-200 transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                    onboardingStep === s.step
-                      ? "bg-white text-indigo-600 border-b-2 border-b-indigo-600 font-black shadow-xs"
-                      : "hover:bg-slate-100/70 opacity-75"
-                  }`}
+                  className={`py-3 px-3 border-r last:border-r-0 border-slate-200/60 transition cursor-pointer flex items-center justify-center gap-2 ${onboardingStep === s.step
+                    ? "bg-white text-indigo-600 border-b-2 border-b-indigo-600 font-semibold"
+                    : "hover:bg-slate-100/50 opacity-70"
+                    }`}
                 >
-                  {s.title}
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${onboardingStep === s.step
+                    ? "bg-indigo-600 text-white"
+                    : "bg-slate-200 text-slate-600"
+                    }`}>
+                    {s.step}
+                  </span>
+                  <span className="hidden sm:inline">{s.title}</span>
                 </button>
               ))}
             </div>
 
-            {/* Step Body Content */}
-            <div className="p-6 sm:p-8 space-y-6 max-h-[65vh] overflow-y-auto text-xs font-semibold">
-              
-              {/* STEP 1: IDENTITY & PHOTOS */}
+            {/* Step Content */}
+            <div className="p-6 sm:p-8 space-y-6 max-h-[60vh] overflow-y-auto text-sm">
+
+              {/* STEP 1: IDENTITY */}
               {onboardingStep === 1 && (
-                <div className="space-y-6 animate-fade-in">
+                <div className="space-y-5 animate-fade-in">
                   <div>
-                    <h4 className="font-extrabold text-sm text-slate-900 mb-1">Business Identity & Photos</h4>
-                    <p className="text-slate-500 font-medium">Upload your business avatar, cover photo, and owner details.</p>
+                    <h4 className="font-semibold text-base text-slate-900 mb-1">Identity & Photos</h4>
+                    <p className="text-slate-500 text-sm">Upload your business avatar and cover photo.</p>
                   </div>
 
-                  {/* Photo Uploaders Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50 space-y-3">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Profile Picture (Avatar)</span>
+                    <div className="p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 space-y-3">
+                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Profile Picture</span>
                       <div className="flex items-center gap-4">
-                        <img src={pAvatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=120&h=120&q=80"} className="w-16 h-16 rounded-2xl object-cover border border-slate-200 shadow-sm" alt="" />
-                        <label className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold cursor-pointer transition shadow-sm">
-                          {avatarUploading ? "Uploading..." : "Change Avatar"}
+                        <img src={pAvatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=120&h=120&q=80"} className="w-16 h-16 rounded-xl object-cover border border-slate-200 shadow-sm" alt="" />
+                        <label className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-medium cursor-pointer transition shadow-sm">
+                          {avatarUploading ? "Uploading..." : "Change"}
                           <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                         </label>
                       </div>
                     </div>
 
-                    <div className="p-4 border border-slate-200/80 rounded-2xl bg-slate-50 space-y-3">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Cover Banner Photo</span>
+                    <div className="p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 space-y-3">
+                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Cover Photo</span>
                       <div className="flex items-center gap-4">
-                        <img src={pCover || "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=300&q=80"} className="w-24 h-16 rounded-2xl object-cover border border-slate-200 shadow-sm" alt="" />
-                        <label className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold cursor-pointer transition shadow-sm">
-                          {coverUploading ? "Uploading..." : "Change Cover"}
+                        <img src={pCover || "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=300&q=80"} className="w-24 h-16 rounded-lg object-cover border border-slate-200 shadow-sm" alt="" />
+                        <label className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-medium cursor-pointer transition shadow-sm">
+                          {coverUploading ? "Uploading..." : "Change"}
                           <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
                         </label>
                       </div>
                     </div>
                   </div>
 
-                  {/* Form Input Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Business / Firm Name *</label>
+                      <label className="text-xs font-medium text-slate-600">Business Name *</label>
                       <input
                         type="text"
                         value={pName}
                         onChange={(e) => setPName(e.target.value)}
-                        placeholder="e.g. PowerFix Electrical Solutions"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-semibold text-slate-800"
+                        placeholder="e.g. PowerFix Electricals"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
                     </div>
-
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Lead Owner / Principal Partner Name</label>
+                      <label className="text-xs font-medium text-slate-600">Owner Name</label>
                       <input
                         type="text"
                         value={pOwnerName}
                         onChange={(e) => setPOwnerName(e.target.value)}
-                        placeholder="e.g. Rajesh Kumar Sharma"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-semibold text-slate-800"
+                        placeholder="e.g. Rajesh Kumar"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Business Tagline / Headline</label>
+                    <label className="text-xs font-medium text-slate-600">Tagline</label>
                     <input
                       type="text"
                       value={pTagline}
                       onChange={(e) => setPTagline(e.target.value)}
-                      placeholder="e.g. 15+ Years Licensed Electrical Contractors & Automation Engineers"
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-semibold text-slate-800"
+                      placeholder="e.g. 15+ Years Licensed Electrical Contractors"
+                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase">Professional Bio / Overview</label>
+                    <label className="text-xs font-medium text-slate-600">Bio / Overview</label>
                     <textarea
                       rows={3}
                       value={pBio}
                       onChange={(e) => setPBio(e.target.value)}
-                      placeholder="Describe your services, work experience, team strength, and quality guarantees..."
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-semibold text-slate-800 resize-none"
+                      placeholder="Describe your services, experience, and quality guarantees..."
+                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm resize-none"
                     />
                   </div>
                 </div>
@@ -5193,19 +5231,19 @@ export default function ProviderDashboardPage() {
 
               {/* STEP 2: CATEGORY & PRICING */}
               {onboardingStep === 2 && (
-                <div className="space-y-6 animate-fade-in">
+                <div className="space-y-5 animate-fade-in">
                   <div>
-                    <h4 className="font-extrabold text-sm text-slate-900 mb-1">Category & Pricing Specs</h4>
-                    <p className="text-slate-500 font-medium">Select your primary work categories, subcategory, and rates.</p>
+                    <h4 className="font-semibold text-base text-slate-900 mb-1">Category & Pricing</h4>
+                    <p className="text-slate-500 text-sm">Select your category, specialization, and rates.</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Primary Working Category *</label>
+                      <label className="text-xs font-medium text-slate-600">Primary Category *</label>
                       <select
                         value={pCategories[0] || ""}
                         onChange={(e) => setPCategories([e.target.value])}
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-bold text-slate-800 cursor-pointer"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm cursor-pointer"
                       >
                         <option value="">Select Category</option>
                         {categoriesList.map((c) => (
@@ -5213,116 +5251,111 @@ export default function ProviderDashboardPage() {
                         ))}
                       </select>
                     </div>
-
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Subcategory / Specialization</label>
+                      <label className="text-xs font-medium text-slate-600">Subcategory</label>
                       <input
                         type="text"
                         value={pSubcategory}
                         onChange={(e) => setPSubcategory(e.target.value)}
-                        placeholder="e.g. High-Voltage Wiring & Panel Boards"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-semibold text-slate-800"
+                        placeholder="e.g. High-Voltage Wiring"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Years of Experience</label>
+                      <label className="text-xs font-medium text-slate-600">Experience</label>
                       <input
                         type="text"
                         value={pExp}
                         onChange={(e) => setPExp(e.target.value)}
                         placeholder="e.g. 10 Years"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-semibold text-slate-800"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
                     </div>
-
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Price Starting From</label>
+                      <label className="text-xs font-medium text-slate-600">Price Starting From</label>
                       <input
                         type="text"
                         value={pPriceStartingFrom}
                         onChange={(e) => setPPriceStartingFrom(e.target.value)}
                         placeholder="e.g. ₹299"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-semibold text-slate-800"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
                     </div>
-
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Languages Spoken</label>
+                      <label className="text-xs font-medium text-slate-600">Languages</label>
                       <input
                         type="text"
                         value={pLanguages}
                         onChange={(e) => setPLanguages(e.target.value)}
-                        placeholder="e.g. Hindi, English, Rajasthani"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-semibold text-slate-800"
+                        placeholder="e.g. Hindi, English"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* STEP 3: CONTACT & REACH */}
+              {/* STEP 3: CONTACT */}
               {onboardingStep === 3 && (
-                <div className="space-y-6 animate-fade-in">
+                <div className="space-y-5 animate-fade-in">
                   <div>
-                    <h4 className="font-extrabold text-sm text-slate-900 mb-1">Contact Details & Service Reach</h4>
-                    <p className="text-slate-500 font-medium">Provide phone, WhatsApp, location, and emergency options.</p>
+                    <h4 className="font-semibold text-base text-slate-900 mb-1">Contact & Reach</h4>
+                    <p className="text-slate-500 text-sm">Provide contact details and service coverage.</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Contact Phone Number *</label>
+                      <label className="text-xs font-medium text-slate-600">Phone Number *</label>
                       <input
                         type="text"
                         value={pPhone}
                         onChange={(e) => setPPhone(e.target.value)}
-                        placeholder="e.g. +91 98290 12345"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-semibold text-slate-800"
+                        placeholder="+91 98290 12345"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
                     </div>
-
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">WhatsApp Number</label>
+                      <label className="text-xs font-medium text-slate-600">WhatsApp Number</label>
                       <input
                         type="text"
                         value={pWhatsapp}
                         onChange={(e) => setPWhatsapp(e.target.value)}
-                        placeholder="e.g. +91 98290 12345"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-semibold text-slate-800"
+                        placeholder="+91 98290 12345"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Primary Service Area / City</label>
+                      <label className="text-xs font-medium text-slate-600">Service Area</label>
                       <input
                         type="text"
                         value={pArea}
                         onChange={(e) => setPArea(e.target.value)}
-                        placeholder="e.g. Jaipur, Vaishali Nagar, Mansarovar"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-semibold text-slate-800"
+                        placeholder="e.g. Jaipur, Mansarovar"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
                     </div>
-
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Website URL</label>
+                      <label className="text-xs font-medium text-slate-600">Website</label>
                       <input
                         type="text"
                         value={pWebsite}
                         onChange={(e) => setPWebsite(e.target.value)}
-                        placeholder="https://powerfix.com"
-                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-600 font-semibold text-slate-800"
+                        placeholder="https://example.com"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
                     </div>
                   </div>
 
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+                  <div className="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl flex items-center justify-between">
                     <div>
-                      <span className="font-extrabold text-slate-900 block">24/7 Emergency Service</span>
-                      <span className="text-[11px] text-slate-500 font-medium">Accept urgent breakdown & repair calls at any hour.</span>
+                      <span className="font-medium text-slate-900 block">24/7 Emergency Service</span>
+                      <span className="text-xs text-slate-500">Accept urgent calls at any hour</span>
                     </div>
                     <input
                       type="checkbox"
@@ -5334,53 +5367,53 @@ export default function ProviderDashboardPage() {
                 </div>
               )}
 
-              {/* STEP 4: DOCUMENT PROOFS */}
+              {/* STEP 4: DOCUMENTS */}
               {onboardingStep === 4 && (
-                <div className="space-y-6 animate-fade-in">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
+                <div className="space-y-5 animate-fade-in">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-200/60 pb-3">
                     <div>
-                      <h4 className="font-extrabold text-sm text-slate-900 mb-0.5">Document Verifications (Aadhaar, PAN, GST, License)</h4>
-                      <p className="text-slate-500 font-medium">Verify your identity to earn the Verified Professional badge.</p>
+                      <h4 className="font-semibold text-base text-slate-900 mb-0.5">Document Verification</h4>
+                      <p className="text-slate-500 text-sm">Upload documents to get verified badge</p>
                     </div>
-                    <span className="text-[10px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full shrink-0">
-                      🔒 Limit: Max 5MB per document file
+                    <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200/60 px-3 py-1 rounded-full shrink-0">
+                      Max 5MB per file
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 border border-slate-200 rounded-2xl bg-slate-50 space-y-3">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase block">Aadhaar Card Number & Document File</label>
+                    <div className="p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 space-y-3">
+                      <label className="text-xs font-medium text-slate-600 block">Aadhaar Number</label>
                       <input
                         type="text"
                         value={pDocumentVerifications.aadhar || ""}
                         onChange={(e) => setPDocumentVerifications(prev => ({ ...prev, aadhar: e.target.value }))}
-                        placeholder="12-Digit Aadhaar Number"
-                        className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl outline-none text-slate-800 font-bold"
+                        placeholder="12-Digit Aadhaar"
+                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
-                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                        <span className="text-[9px] text-slate-400 font-bold">Limit: 5MB (JPG, PNG, PDF)</span>
-                        <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-xl text-[11px] font-extrabold cursor-pointer transition flex items-center gap-1.5">
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
+                        <span className="text-[10px] text-slate-400">JPG, PNG, PDF</span>
+                        <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition flex items-center gap-1.5">
                           <Upload className="w-3.5 h-3.5" />
-                          {pDocumentVerifications.aadharDoc ? "✓ Uploaded (Change)" : "Upload Proof"}
+                          {pDocumentVerifications.aadharDoc ? "Change" : "Upload"}
                           <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "aadharDoc")} />
                         </label>
                       </div>
                     </div>
 
-                    <div className="p-4 border border-slate-200 rounded-2xl bg-slate-50 space-y-3">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase block">PAN Card Number & Document File</label>
+                    <div className="p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 space-y-3">
+                      <label className="text-xs font-medium text-slate-600 block">PAN Number</label>
                       <input
                         type="text"
                         value={pDocumentVerifications.pan || ""}
                         onChange={(e) => setPDocumentVerifications(prev => ({ ...prev, pan: e.target.value.toUpperCase() }))}
-                        placeholder="10-Digit PAN Number"
-                        className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl outline-none text-slate-800 font-bold"
+                        placeholder="10-Digit PAN"
+                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
-                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                        <span className="text-[9px] text-slate-400 font-bold">Limit: 5MB (JPG, PNG, PDF)</span>
-                        <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-xl text-[11px] font-extrabold cursor-pointer transition flex items-center gap-1.5">
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
+                        <span className="text-[10px] text-slate-400">JPG, PNG, PDF</span>
+                        <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition flex items-center gap-1.5">
                           <Upload className="w-3.5 h-3.5" />
-                          {pDocumentVerifications.panDoc ? "✓ Uploaded (Change)" : "Upload Proof"}
+                          {pDocumentVerifications.panDoc ? "Change" : "Upload"}
                           <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "panDoc")} />
                         </label>
                       </div>
@@ -5388,39 +5421,39 @@ export default function ProviderDashboardPage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 border border-slate-200 rounded-2xl bg-slate-50 space-y-3">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase block">GST Registration Number & File</label>
+                    <div className="p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 space-y-3">
+                      <label className="text-xs font-medium text-slate-600 block">GST Number</label>
                       <input
                         type="text"
                         value={pDocumentVerifications.gstNumber || ""}
                         onChange={(e) => setPDocumentVerifications(prev => ({ ...prev, gstNumber: e.target.value.toUpperCase() }))}
                         placeholder="15-Digit GSTIN"
-                        className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl outline-none text-slate-800 font-bold"
+                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
-                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                        <span className="text-[9px] text-slate-400 font-bold">Limit: 5MB (JPG, PNG, PDF)</span>
-                        <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-xl text-[11px] font-extrabold cursor-pointer transition flex items-center gap-1.5">
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
+                        <span className="text-[10px] text-slate-400">JPG, PNG, PDF</span>
+                        <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition flex items-center gap-1.5">
                           <Upload className="w-3.5 h-3.5" />
-                          {pDocumentVerifications.gstDoc ? "✓ Uploaded (Change)" : "Upload Proof"}
+                          {pDocumentVerifications.gstDoc ? "Change" : "Upload"}
                           <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "gstDoc")} />
                         </label>
                       </div>
                     </div>
 
-                    <div className="p-4 border border-slate-200 rounded-2xl bg-slate-50 space-y-3">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase block">Trade / Electrical License Number & File</label>
+                    <div className="p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 space-y-3">
+                      <label className="text-xs font-medium text-slate-600 block">License Number</label>
                       <input
                         type="text"
                         value={pDocumentVerifications.licenseNumber || ""}
                         onChange={(e) => setPDocumentVerifications(prev => ({ ...prev, licenseNumber: e.target.value }))}
                         placeholder="License / Certificate No."
-                        className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl outline-none text-slate-800 font-bold"
+                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
                       />
-                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                        <span className="text-[9px] text-slate-400 font-bold">Limit: 5MB (JPG, PNG, PDF)</span>
-                        <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-xl text-[11px] font-extrabold cursor-pointer transition flex items-center gap-1.5">
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
+                        <span className="text-[10px] text-slate-400">JPG, PNG, PDF</span>
+                        <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition flex items-center gap-1.5">
                           <Upload className="w-3.5 h-3.5" />
-                          {pDocumentVerifications.licenseDoc ? "✓ Uploaded (Change)" : "Upload Proof"}
+                          {pDocumentVerifications.licenseDoc ? "Change" : "Upload"}
                           <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "licenseDoc")} />
                         </label>
                       </div>
@@ -5428,28 +5461,27 @@ export default function ProviderDashboardPage() {
                   </div>
                 </div>
               )}
-
             </div>
 
-            {/* Bottom Footer Actions */}
-            <div className="p-6 bg-slate-50 border-t border-slate-200 flex flex-wrap justify-between items-center gap-3">
+            {/* Footer Actions */}
+            <div className="px-6 sm:px-8 py-4 bg-slate-50/80 border-t border-slate-200/60 flex flex-wrap justify-between items-center gap-3">
               <div className="flex gap-2">
                 {onboardingStep > 1 && (
                   <button
                     type="button"
                     onClick={() => setOnboardingStep((onboardingStep - 1) as any)}
-                    className="px-5 py-3 rounded-2xl bg-white border border-slate-200 text-slate-700 font-extrabold text-xs hover:bg-slate-100 transition cursor-pointer"
+                    className="px-5 py-2.5 rounded-lg bg-white border border-slate-200 text-slate-700 font-medium text-sm hover:bg-slate-50 transition cursor-pointer"
                   >
-                    ← Previous
+                    ← Back
                   </button>
                 )}
                 {onboardingStep < 4 && (
                   <button
                     type="button"
                     onClick={() => setOnboardingStep((onboardingStep + 1) as any)}
-                    className="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs transition cursor-pointer shadow-sm"
+                    className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm transition shadow-sm"
                   >
-                    Next Step →
+                    Next →
                   </button>
                 )}
               </div>
@@ -5463,9 +5495,9 @@ export default function ProviderDashboardPage() {
                     }
                     setShowFullPageOnboarding(false);
                   }}
-                  className="px-5 py-3 rounded-2xl bg-slate-200 text-slate-700 font-extrabold text-xs hover:bg-slate-300 transition cursor-pointer"
+                  className="px-5 py-2.5 rounded-lg bg-slate-200 text-slate-700 font-medium text-sm hover:bg-slate-300 transition cursor-pointer"
                 >
-                  Skip for Now
+                  Skip
                 </button>
 
                 <button
@@ -5501,25 +5533,23 @@ export default function ProviderDashboardPage() {
                       await updateDoc(doc(db, "workers", user.uid), payload);
                       setProfileCompletedState(true);
                       setShowFullPageOnboarding(false);
-                      showToast("Professional Verification & Profile Completed Successfully!");
+                      showToast("Profile verified successfully!");
                     } catch (err) {
                       console.error(err);
-                      alert("Failed to save profile verification details.");
+                      alert("Failed to save profile details.");
                     } finally {
                       setSavingProfile(false);
                     }
                   }}
-                  className="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md shadow-emerald-600/30 cursor-pointer active:scale-95 flex items-center gap-1.5"
+                  className="px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition shadow-sm flex items-center gap-1.5"
                 >
-                  <CheckCircle className="w-4 h-4" /> Save & Complete Verification
+                  <CheckCircle className="w-4 h-4" /> Complete
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       )}
-
       {/* Hidden Profile Inputs */}
       <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
       <input ref={portfolioInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePortfolioUpload} />
