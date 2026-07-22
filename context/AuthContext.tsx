@@ -112,219 +112,229 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(currentUser);
       if (currentUser) {
-        const userEmail = currentUser.email?.toLowerCase();
-        
-        // 1. Check if user is in hardcoded admins or exists in dynamic admins
-        let isAdminUser = false;
-        let dynamicAdminData: any = null;
-        let oldAdminDocId: string | null = null;
-        
-        if (userEmail) {
-          if (ADMIN_EMAILS.includes(userEmail)) {
-            isAdminUser = true;
-          } else {
-            // Check dynamic admins in firestore (query by email)
-            try {
-              const q = query(collection(db, "admins"), where("email", "==", userEmail));
-              const querySnap = await getDocs(q);
-              if (!querySnap.empty) {
-                isAdminUser = true;
-                dynamicAdminData = querySnap.docs[0].data();
-                if (querySnap.docs[0].id !== currentUser.uid) {
-                  oldAdminDocId = querySnap.docs[0].id;
-                }
-              }
-            } catch (e) {
-              console.error("Error checking dynamic admin status:", e);
-            }
-          }
-        }
-        
-        const savedRole = typeof window !== "undefined" ? localStorage.getItem("zenzy_active_role") as "user" | "worker" | "admin" | null : null;
-        let collection_name = "users";
-
-        if (isAdminUser) {
-          // Always mark as admin internally
-          setIsAdmin(true);
-
-          if (savedRole === "worker") {
-            // Admin browsing as worker — set role to worker so worker dashboard works
-            setRole("worker");
-            collection_name = "workers";
-            const workerDocRef = doc(db, "workers", currentUser.uid);
-            const workerSnap = await getDoc(workerDocRef);
-            if (!workerSnap.exists()) {
-              const workerData = {
-                uid: currentUser.uid,
-                email: currentUser.email || `${currentUser.phoneNumber || currentUser.uid}@zenzy.com`,
-                name: currentUser.displayName || "Zenzy Pro",
-                phone: currentUser.phoneNumber || "",
-                role: "worker",
-                slug: generateDefaultSlug(currentUser.displayName || "Zenzy Pro"),
-                bio: "Hi, I am a skilled professional on Zenzy.",
-                description: "Skilled service provider ready to assist.",
-                category: "Electrician",
-                experience: "2 years",
-                pricing: "₹499/hr",
-                languages: ["Hindi", "English"],
-                status: "Available",
-                verified: true,
-                premium: true,
-                topRated: true,
-                stars: 5.0,
-                reviewsCount: 0,
-                documentStatus: "approved",
-                aadhaar: "",
-                pan: "",
-                portfolio: [],
-                avatar: currentUser.photoURL || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=400&h=400&q=80",
-                coverImage: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80",
-                createdAt: new Date().toISOString()
-              };
-              await setDoc(workerDocRef, workerData);
-              await setDoc(doc(db, "workers", currentUser.uid, "private", "kyc"), {
-                aadhaar: "",
-                pan: ""
-              });
-            }
-          } else if (savedRole === "user") {
-            // Admin browsing as user/client — set role to user so client dashboard works
-            setRole("user");
-            collection_name = "users";
-            const userDocRef = doc(db, "users", currentUser.uid);
-            const userSnap = await getDoc(userDocRef);
-            if (!userSnap.exists()) {
-              const customerData = {
-                uid: currentUser.uid,
-                email: currentUser.email || `${currentUser.phoneNumber || currentUser.uid}@zenzy.com`,
-                name: currentUser.displayName || "Zenzy User",
-                phone: currentUser.phoneNumber || "",
-                role: "user",
-                walletBalance: 500,
-                favorites: [],
-                avatar: currentUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
-                createdAt: new Date().toISOString()
-              };
-              await setDoc(userDocRef, customerData);
-            }
-          } else {
-            // Default admin mode
-            setRole("admin");
-            collection_name = "admins";
-            const adminDocRef = doc(db, "admins", currentUser.uid);
-            const adminDoc = await getDoc(adminDocRef);
-            if (!adminDoc.exists()) {
-              const adminData = {
-                uid: currentUser.uid,
-                email: currentUser.email || "",
-                name: currentUser.displayName || dynamicAdminData?.name || "Zenzy Admin",
-                role: dynamicAdminData?.role || "admin",
-                createdAt: dynamicAdminData?.createdAt || new Date().toISOString()
-              };
-              await setDoc(adminDocRef, adminData);
-              if (oldAdminDocId) {
-                try {
-                  await deleteDoc(doc(db, "admins", oldAdminDocId));
-                  console.log(`Successfully migrated admin document ${oldAdminDocId} to ${currentUser.uid}`);
-                } catch (err) {
-                  console.error("Failed to delete migrated admin document:", err);
-                }
-              }
-            }
-          }
-        } else {
-          setIsAdmin(false);
-          // Standard role determination for users and workers
-          let targetRole: "user" | "worker" = "user";
-          const workerDocRef = doc(db, "workers", currentUser.uid);
-          const userDocRef = doc(db, "users", currentUser.uid);
+        try {
+          const userEmail = currentUser.email?.toLowerCase();
           
-          const [workerSnap, userSnap] = await Promise.all([
-            getDoc(workerDocRef),
-            getDoc(userDocRef)
-          ]);
-
-          if (savedRole === "worker") {
-            targetRole = "worker";
-          } else if (savedRole === "user") {
-            targetRole = "user";
-          } else if (workerSnap.exists() && !userSnap.exists()) {
-            targetRole = "worker";
-          } else if (userSnap.exists() && !workerSnap.exists()) {
-            targetRole = "user";
-          } else {
-            targetRole = "user";
-          }
-
-          if (typeof window !== "undefined") {
-            localStorage.setItem("zenzy_active_role", targetRole);
-          }
-
-          if (targetRole === "worker") {
-            collection_name = "workers";
-            if (!workerSnap.exists()) {
-              const workerData = {
-                uid: currentUser.uid,
-                email: currentUser.email || `${currentUser.phoneNumber || currentUser.uid}@zenzy.com`,
-                name: currentUser.displayName || "Zenzy Pro",
-                phone: currentUser.phoneNumber || "",
-                role: "worker",
-                slug: generateDefaultSlug(currentUser.displayName || "Zenzy Pro"),
-                bio: "Hi, I am a skilled professional on Zenzy.",
-                description: "Skilled service provider ready to assist.",
-                category: "Electrician",
-                experience: "2 years",
-                pricing: "₹499/hr",
-                languages: ["Hindi", "English"],
-                status: "Available",
-                verified: false,
-                premium: false,
-                topRated: false,
-                stars: 5.0,
-                reviewsCount: 0,
-                documentStatus: "pending",
-                aadhaar: "",
-                pan: "",
-                portfolio: [],
-                avatar: currentUser.photoURL || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=400&h=400&q=80",
-                coverImage: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80",
-                createdAt: new Date().toISOString()
-              };
-              await setDoc(workerDocRef, workerData);
-              await setDoc(doc(db, "workers", currentUser.uid, "private", "kyc"), {
-                aadhaar: "",
-                pan: ""
-              });
+          // 1. Check if user is in hardcoded admins or exists in dynamic admins
+          let isAdminUser = false;
+          let dynamicAdminData: any = null;
+          let oldAdminDocId: string | null = null;
+          
+          if (userEmail) {
+            if (ADMIN_EMAILS.includes(userEmail)) {
+              isAdminUser = true;
+            } else {
+              // Check dynamic admins in firestore (query by email)
+              try {
+                const q = query(collection(db, "admins"), where("email", "==", userEmail));
+                const querySnap = await getDocs(q);
+                if (!querySnap.empty) {
+                  isAdminUser = true;
+                  dynamicAdminData = querySnap.docs[0].data();
+                  if (querySnap.docs[0].id !== currentUser.uid) {
+                    oldAdminDocId = querySnap.docs[0].id;
+                  }
+                }
+              } catch (e) {
+                console.error("Error checking dynamic admin status:", e);
+              }
             }
-            setRole("worker");
-          } else {
-            collection_name = "users";
-            if (!userSnap.exists()) {
-              const customerData = {
-                uid: currentUser.uid,
-                email: currentUser.email || `${currentUser.phoneNumber || currentUser.uid}@zenzy.com`,
-                name: currentUser.displayName || "Zenzy User",
-                phone: currentUser.phoneNumber || "",
-                role: "user",
-                walletBalance: 500,
-                favorites: [],
-                avatar: currentUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
-                createdAt: new Date().toISOString()
-              };
-              await setDoc(userDocRef, customerData);
-            }
-            setRole("user");
           }
-        }
+          
+          const savedRole = typeof window !== "undefined" ? localStorage.getItem("zenzy_active_role") as "user" | "worker" | "admin" | null : null;
+          let collection_name = "users";
 
-        // Real-time listener on user/worker/admin document
-        unsubDoc = onSnapshot(doc(db, collection_name, currentUser.uid), (docSnap) => {
-          if (docSnap.exists()) {
-            setUserData({ uid: currentUser.uid, ...docSnap.data() });
+          if (isAdminUser) {
+            // Always mark as admin internally
+            setIsAdmin(true);
+
+            if (savedRole === "worker") {
+              // Admin browsing as worker — set role to worker so worker dashboard works
+              setRole("worker");
+              collection_name = "workers";
+              const workerDocRef = doc(db, "workers", currentUser.uid);
+              const workerSnap = await getDoc(workerDocRef).catch(() => null);
+              if (!workerSnap || !workerSnap.exists()) {
+                const workerData = {
+                  uid: currentUser.uid,
+                  email: currentUser.email || `${currentUser.phoneNumber || currentUser.uid}@zenzy.com`,
+                  name: currentUser.displayName || "Zenzy Pro",
+                  phone: currentUser.phoneNumber || "",
+                  role: "worker",
+                  slug: generateDefaultSlug(currentUser.displayName || "Zenzy Pro"),
+                  bio: "Hi, I am a skilled professional on Zenzy.",
+                  description: "Skilled service provider ready to assist.",
+                  category: "Electrician",
+                  experience: "2 years",
+                  pricing: "₹499/hr",
+                  languages: ["Hindi", "English"],
+                  status: "Available",
+                  verified: true,
+                  premium: true,
+                  topRated: true,
+                  stars: 5.0,
+                  reviewsCount: 0,
+                  documentStatus: "approved",
+                  aadhaar: "",
+                  pan: "",
+                  portfolio: [],
+                  avatar: currentUser.photoURL || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=400&h=400&q=80",
+                  coverImage: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80",
+                  createdAt: new Date().toISOString()
+                };
+                await setDoc(workerDocRef, workerData).catch(e => console.error("Error setting worker:", e));
+                await setDoc(doc(db, "workers", currentUser.uid, "private", "kyc"), {
+                  aadhaar: "",
+                  pan: ""
+                }).catch(e => console.error("Error setting kyc:", e));
+              }
+            } else if (savedRole === "user") {
+              // Admin browsing as user/client — set role to user so client dashboard works
+              setRole("user");
+              collection_name = "users";
+              const userDocRef = doc(db, "users", currentUser.uid);
+              const userSnap = await getDoc(userDocRef).catch(() => null);
+              if (!userSnap || !userSnap.exists()) {
+                const customerData = {
+                  uid: currentUser.uid,
+                  email: currentUser.email || `${currentUser.phoneNumber || currentUser.uid}@zenzy.com`,
+                  name: currentUser.displayName || "Zenzy User",
+                  phone: currentUser.phoneNumber || "",
+                  role: "user",
+                  walletBalance: 500,
+                  favorites: [],
+                  avatar: currentUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+                  createdAt: new Date().toISOString()
+                };
+                await setDoc(userDocRef, customerData).catch(e => console.error("Error setting user:", e));
+              }
+            } else {
+              // Default admin mode
+              setRole("admin");
+              collection_name = "admins";
+              const adminDocRef = doc(db, "admins", currentUser.uid);
+              const adminDoc = await getDoc(adminDocRef).catch(() => null);
+              if (!adminDoc || !adminDoc.exists()) {
+                const adminData = {
+                  uid: currentUser.uid,
+                  email: currentUser.email || "",
+                  name: currentUser.displayName || dynamicAdminData?.name || "Zenzy Admin",
+                  role: dynamicAdminData?.role || "admin",
+                  createdAt: dynamicAdminData?.createdAt || new Date().toISOString()
+                };
+                await setDoc(adminDocRef, adminData).catch(e => console.error("Error setting admin:", e));
+                if (oldAdminDocId) {
+                  try {
+                    await deleteDoc(doc(db, "admins", oldAdminDocId));
+                    console.log(`Successfully migrated admin document ${oldAdminDocId} to ${currentUser.uid}`);
+                  } catch (err) {
+                    console.error("Failed to delete migrated admin document:", err);
+                  }
+                }
+              }
+            }
+          } else {
+            setIsAdmin(false);
+            // Standard role determination for users and workers
+            let targetRole: "user" | "worker" = "user";
+            const workerDocRef = doc(db, "workers", currentUser.uid);
+            const userDocRef = doc(db, "users", currentUser.uid);
+            
+            const [workerSnap, userSnap] = await Promise.all([
+              getDoc(workerDocRef).catch(() => null),
+              getDoc(userDocRef).catch(() => null)
+            ]);
+
+            const workerExists = workerSnap && workerSnap.exists();
+            const userExists = userSnap && userSnap.exists();
+
+            if (savedRole === "worker") {
+              targetRole = "worker";
+            } else if (savedRole === "user") {
+              targetRole = "user";
+            } else if (workerExists && !userExists) {
+              targetRole = "worker";
+            } else if (userExists && !workerExists) {
+              targetRole = "user";
+            } else {
+              targetRole = "user";
+            }
+
+            if (typeof window !== "undefined") {
+              localStorage.setItem("zenzy_active_role", targetRole);
+            }
+
+            if (targetRole === "worker") {
+              collection_name = "workers";
+              if (!workerExists) {
+                const workerData = {
+                  uid: currentUser.uid,
+                  email: currentUser.email || `${currentUser.phoneNumber || currentUser.uid}@zenzy.com`,
+                  name: currentUser.displayName || "Zenzy Pro",
+                  phone: currentUser.phoneNumber || "",
+                  role: "worker",
+                  slug: generateDefaultSlug(currentUser.displayName || "Zenzy Pro"),
+                  bio: "Hi, I am a skilled professional on Zenzy.",
+                  description: "Skilled service provider ready to assist.",
+                  category: "Electrician",
+                  experience: "2 years",
+                  pricing: "₹499/hr",
+                  languages: ["Hindi", "English"],
+                  status: "Available",
+                  verified: false,
+                  premium: false,
+                  topRated: false,
+                  stars: 5.0,
+                  reviewsCount: 0,
+                  documentStatus: "pending",
+                  aadhaar: "",
+                  pan: "",
+                  portfolio: [],
+                  avatar: currentUser.photoURL || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=400&h=400&q=80",
+                  coverImage: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80",
+                  createdAt: new Date().toISOString()
+                };
+                await setDoc(workerDocRef, workerData).catch(e => console.error("Error setting worker:", e));
+                await setDoc(doc(db, "workers", currentUser.uid, "private", "kyc"), {
+                  aadhaar: "",
+                  pan: ""
+                }).catch(e => console.error("Error setting kyc:", e));
+              }
+              setRole("worker");
+            } else {
+              collection_name = "users";
+              if (!userExists) {
+                const customerData = {
+                  uid: currentUser.uid,
+                  email: currentUser.email || `${currentUser.phoneNumber || currentUser.uid}@zenzy.com`,
+                  name: currentUser.displayName || "Zenzy User",
+                  phone: currentUser.phoneNumber || "",
+                  role: "user",
+                  walletBalance: 500,
+                  favorites: [],
+                  avatar: currentUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80",
+                  createdAt: new Date().toISOString()
+                };
+                await setDoc(userDocRef, customerData).catch(e => console.error("Error setting user:", e));
+              }
+              setRole("user");
+            }
           }
+
+          // Real-time listener on user/worker/admin document
+          unsubDoc = onSnapshot(doc(db, collection_name, currentUser.uid), (docSnap) => {
+            if (docSnap.exists()) {
+              setUserData({ uid: currentUser.uid, ...docSnap.data() });
+            }
+            setLoading(false);
+          }, (err) => {
+            console.error("onSnapshot error:", err);
+            setLoading(false);
+          });
+        } catch (authError) {
+          console.error("Auth state logic error:", authError);
           setLoading(false);
-        });
-
+        }
       } else {
         setUserData(null);
         setRole(null);
