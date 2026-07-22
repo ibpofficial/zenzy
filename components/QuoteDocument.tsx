@@ -39,14 +39,34 @@ export function getContrastColor(hexColor: string) {
 
 export function decodeQuote(encodedStr: string) {
   try {
-    if (!encodedStr.startsWith("url_")) return null;
-    const base64 = encodedStr.slice(4);
-    const decoded = decodeURIComponent(atob(base64).split('').map((c) => {
+    if (!encodedStr || !encodedStr.startsWith("url_")) return null;
+    let base64 = encodedStr.slice(4);
+
+    // Swap URL-safe base64 characters back to standard
+    base64 = base64.replace(/-/g, "+").replace(/_/g, "/");
+
+    // Repair stripped padding '=' characters
+    const pad = base64.length % 4;
+    if (pad === 2) {
+      base64 += "==";
+    } else if (pad === 3) {
+      base64 += "=";
+    }
+
+    // RegEx validation to verify it contains valid base64 character set
+    const base64Regex = /^[A-Za-z0-9+/=]+$/;
+    if (!base64Regex.test(base64)) {
+      console.warn("Invalid base64 string pattern in URL, skipping decode");
+      return null;
+    }
+
+    const binaryString = atob(base64);
+    const decoded = decodeURIComponent(binaryString.split('').map((c) => {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
     return JSON.parse(decoded);
   } catch (e) {
-    console.error("Decoding error:", e);
+    console.error("Decoding error caught:", e);
     return null;
   }
 }

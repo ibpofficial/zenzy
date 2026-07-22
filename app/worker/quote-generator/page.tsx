@@ -33,7 +33,9 @@ function encodeQuote(quoteObj: any) {
     const encoded = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => {
       return String.fromCharCode(parseInt(p1, 16));
     }));
-    return `url_${encoded}`;
+    // Convert to URL-safe base64 to prevent Next.js dynamic routing path split (404 errors)
+    const urlSafe = encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    return `url_${urlSafe}`;
   } catch (e) {
     console.error("Encoding error:", e);
     return "";
@@ -481,12 +483,40 @@ function QuoteComposerContent() {
   const handleSaveQuotation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    const errors: string[] = [];
+    if (!workerName.trim()) {
+      errors.push("• Contractor/Company Name (Header)");
+    }
+    if (!workerPhone.trim()) {
+      errors.push("• Contractor Contact Phone");
+    }
     if (!customerName.trim()) {
-      alert("Please enter the Client Name on the document.");
-      return;
+      errors.push("• Client Name (Client Details)");
+    }
+    if (!projectTitle.trim()) {
+      errors.push("• Project Title (Project Overview)");
     }
     if (sections.length === 0) {
-      alert("Please add at least one section block to the document.");
+      errors.push("• At least one section block in the document");
+    }
+
+    // Check itemized table rows
+    const tableSections = sections.filter(s => s.type === "table");
+    tableSections.forEach((sec) => {
+      const items = sec.content || [];
+      items.forEach((it: any, iIdx: number) => {
+        if (!it.name || !it.name.trim()) {
+          errors.push(`• Description for Item #${iIdx + 1} in table "${sec.title}"`);
+        }
+        if (Number(it.rate || 0) < 0) {
+          errors.push(`• Rate for "${it.name || `Item #${iIdx + 1}`}" in table "${sec.title}" cannot be negative`);
+        }
+      });
+    });
+
+    if (errors.length > 0) {
+      alert(`⚠️ Cannot compile quotation. Please fill in the following missing elements:\n\n${errors.join("\n")}`);
       return;
     }
 
@@ -594,7 +624,14 @@ function QuoteComposerContent() {
     subtotal,
     taxAmount,
     grandTotal,
-    status: "Pending"
+    status: "Pending",
+    workerName,
+    workerPhone,
+    workerAddress,
+    licenseNo,
+    workerGstin,
+    workerLogo: userData?.logo || userData?.avatar || "",
+    brandColor,
   };
 
   const liveWorker = {

@@ -1330,9 +1330,9 @@ export default function CustomerDashboardPage() {
                       </div>
                     </div>
 
-                    </div>
                   </div>
                 </div>
+              </div>
             )}
 
             {/* TAB: REVIEWS WRITTEN */}

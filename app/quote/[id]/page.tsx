@@ -101,10 +101,14 @@ export default function PublicQuotationPage() {
 
             const wId = decoded.workerId || decoded.businessId;
             if (wId) {
-              const wRef = doc(db, "workers", wId);
-              const wSnap = await getDoc(wRef);
-              if (wSnap.exists()) {
-                setWorker({ id: wSnap.id, ...wSnap.data() });
+              try {
+                const wRef = doc(db, "workers", wId);
+                const wSnap = await getDoc(wRef);
+                if (wSnap.exists()) {
+                  setWorker({ id: wSnap.id, ...wSnap.data() });
+                }
+              } catch (err) {
+                console.warn("Failed to fetch worker details from Firestore (using embedded info):", err);
               }
             }
           } else {
@@ -114,27 +118,47 @@ export default function PublicQuotationPage() {
           return;
         }
 
-        const qRef = doc(db, "quotations", quoteId);
-        const qSnap = await getDoc(qRef);
+        // Standard database quote lookup
+        try {
+          const qRef = doc(db, "quotations", quoteId);
+          const qSnap = await getDoc(qRef);
 
-        if (qSnap.exists()) {
-          const qData: any = { id: qSnap.id, ...qSnap.data() };
-          setQuote(qData);
-          if (qData.status === "Accepted" || qData.status === "accepted")
-            setAccepted(true);
-          if (qData.status === "Declined" || qData.status === "declined")
-            setDeclined(true);
+          if (qSnap.exists()) {
+            const qData: any = { id: qSnap.id, ...qSnap.data() };
+            setQuote(qData);
+            if (qData.status === "Accepted" || qData.status === "accepted")
+              setAccepted(true);
+            if (qData.status === "Declined" || qData.status === "declined")
+              setDeclined(true);
 
-          const wId = qData.workerId || qData.businessId;
-          if (wId) {
-            const wRef = doc(db, "workers", wId);
-            const wSnap = await getDoc(wRef);
-            if (wSnap.exists()) {
-              setWorker({ id: wSnap.id, ...wSnap.data() });
+            const wId = qData.workerId || qData.businessId;
+            if (wId) {
+              try {
+                const wRef = doc(db, "workers", wId);
+                const wSnap = await getDoc(wRef);
+                if (wSnap.exists()) {
+                  setWorker({ id: wSnap.id, ...wSnap.data() });
+                }
+              } catch (err) {
+                console.warn("Failed to fetch worker details for quotation:", err);
+              }
             }
+          } else {
+            setQuote(null);
           }
-        } else {
-          setQuote(null);
+        } catch (err) {
+          console.error("Firestore read failed for quote document:", err);
+          // Attempt parsing as backup if URL encoded raw params were copied directly
+          try {
+            const decoded = decodeQuote(quoteId);
+            if (decoded) {
+              setQuote(decoded);
+              if (decoded.status === "Accepted" || decoded.status === "accepted")
+                setAccepted(true);
+              if (decoded.status === "Declined" || decoded.status === "declined")
+                setDeclined(true);
+            }
+          } catch (e) {}
         }
       } catch (err) {
         console.error("Error fetching quotation:", err);
