@@ -13,6 +13,7 @@ import { reverseGeocode, detectLocationByIP } from "@/lib/locationUtils";
 
 import { performFuzzySearch, recordSearchClick, SearchIndexItem, SpellingSuggestion } from "@/lib/search";
 import { processTrendingWorkers, WorkerDocument } from "@/lib/trending";
+import TrustScoreCard from "@/components/TrustScoreCard";
 
 // Category icon color mapping for premium gradient icons
 const CAT_COLORS: Record<string, string> = {
@@ -1417,6 +1418,12 @@ export default function HomePage() {
                       <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2.5 flex-wrap">
                         <span className="flex items-center gap-0.5 text-amber-500">★ {pro.stars || "5.0"}</span>
                         <span>({pro.reviewsCount || 0})</span>
+                        {pro.trustScore && (
+                          <>
+                            <span>·</span>
+                            <TrustScoreCard trustScore={pro.trustScore} compact={true} />
+                          </>
+                        )}
                         <span>·</span>
                         <span>{pro.experience || "2 years"}</span>
                         <span>·</span>
