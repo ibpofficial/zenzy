@@ -54,6 +54,21 @@ export interface BusinessProfile {
     gstNumber?: string;
     licenseNumber?: string;
   };
+  trustScore?: {
+    overall: number;
+    label: string;
+    factors: {
+      identityVerification: { score: number; max: 20; status: "verified" | "pending" | "needs_improvement" };
+      professionalDocuments: { score: number; max: 15; status: "verified" | "pending" | "needs_improvement" };
+      clientReviews: { score: number; max: 20; status: "verified" | "pending" | "needs_improvement" };
+      projectCompletionRate: { score: number; max: 15; status: "verified" | "pending" | "needs_improvement" };
+      responseTime: { score: number; max: 10; status: "verified" | "pending" | "needs_improvement" };
+      portfolioQuality: { score: number; max: 10; status: "verified" | "pending" | "needs_improvement" };
+      profileCompletion: { score: number; max: 10; status: "verified" | "pending" | "needs_improvement" };
+    };
+    suggestions: { message: string; potentialPoints: number }[];
+    updatedAt: string;
+  };
 }
 
 export interface Project {

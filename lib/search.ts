@@ -13,6 +13,7 @@ export interface SearchIndexItem {
   workerId?: string;
   rating?: number;
   servicesGiven?: number;
+  trustScoreOverall?: number;
 }
 
 export interface SpellingSuggestion {

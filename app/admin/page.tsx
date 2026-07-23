@@ -61,6 +61,7 @@ import {
   ChevronRight,
   FileText
 } from "lucide-react";
+import { ShieldCheck, Loader2 } from "lucide-react";
 import { compressImageToBase64 } from "@/lib/imageUtils";
 import { triggerNotification } from "@/lib/notifications";
 import {
@@ -1145,6 +1146,31 @@ export default function AdminPage() {
   const [qrCode, setQrCode] = useState("");
   const [upiId, setUpiId] = useState("");
   const [settingsSaving, setSettingsSaving] = useState(false);
+
+  const [recalculatingAll, setRecalculatingAll] = useState(false);
+  const handleRecalculateAllTrust = async () => {
+    if (recalculatingAll) return;
+    if (!confirm("Are you sure you want to recalculate the trust scores for all professionals in the directory? This runs a batch operation on Firestore collection metrics.")) return;
+    setRecalculatingAll(true);
+    try {
+      const res = await fetch("/api/recalculate-trust", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Trust scores recalculated successfully for all professionals!");
+      } else {
+        showToast(data.message || "Failed to recalculate trust scores.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Recalculate error caught. See console logs.", "error");
+    } finally {
+      setRecalculatingAll(false);
+    }
+  };
   const [siteName, setSiteName] = useState("zenzy");
   const [siteTagline, setSiteTagline] = useState("India's Premium Local Service Marketplace");
   const [heroBannerImage, setHeroBannerImage] = useState("");
@@ -7029,6 +7055,36 @@ export default function AdminPage() {
                           <div className="flex items-center gap-2 mt-1">
                             <input type="checkbox" id="showAnn" checked={showAnnouncement} onChange={(e) => setShowAnnouncement(e.target.checked)} className="w-4 h-4 accent-primary-600 cursor-pointer" />
                             <label htmlFor="showAnn" className="text-xs font-bold cursor-pointer text-slate-600">Display Announcement Bar Alert</label>
+                          </div>
+                        </div>
+
+                        <div className="border-t pt-4 space-y-3">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase block font-black">Trust Score credibility engine</label>
+                          <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                              <h5 className="font-extrabold text-slate-800 text-xs">Recalculate All Trust Scores</h5>
+                              <p className="text-[9.5px] text-slate-400 font-semibold leading-relaxed mt-0.5">
+                                Trigger a batch calculation to re-evaluate and save the trust scores of all professionals.
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleRecalculateAllTrust}
+                              disabled={recalculatingAll}
+                              className="bg-[#1a3a5c] text-white hover:bg-[#0f2a4a] disabled:opacity-50 text-[10.5px] font-black uppercase px-4 py-2.5 rounded-xl tracking-wider transition cursor-pointer shadow-sm flex items-center gap-1.5 shrink-0"
+                            >
+                              {recalculatingAll ? (
+                                <>
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  <span>Recalculating...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ShieldCheck className="w-3.5 h-3.5" />
+                                  <span>Recalculate All Scores</span>
+                                </>
+                              )}
+                            </button>
                           </div>
                         </div>
                       </div>

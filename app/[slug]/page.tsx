@@ -23,8 +23,11 @@ import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReviewModal from "@/components/ReviewModal";
+import TrustScoreCard from "@/components/TrustScoreCard";
 import LoadingScreen from "@/components/LoadingScreen";
 import {
+  Home,
+  ShoppingBag,
   CheckCircle,
   Award,
   Star,
@@ -187,6 +190,28 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
 
   // Review modal
   const [reviewOpen, setReviewOpen] = useState(false);
+
+  const [recalculating, setRecalculating] = useState(false);
+  const recalculateMyTrust = async (targetId?: string) => {
+    const tId = targetId || workerId;
+    if (!tId || recalculating) return;
+    setRecalculating(true);
+    try {
+      const res = await fetch("/api/recalculate-trust", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workerId: tId }),
+      });
+      const data = await res.json();
+      if (data.success && data.trustScore) {
+        setWorker((prev: any) => (prev && prev.id === tId ? { ...prev, trustScore: data.trustScore } : prev));
+      }
+    } catch (err) {
+      console.error("Failed to recalculate trust score client-side:", err);
+    } finally {
+      setRecalculating(false);
+    }
+  };
 
   // Live profile builder states
   const [infoEditOpen, setInfoEditOpen] = useState(false);
@@ -525,6 +550,7 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
         await updateDoc(doc(db, "workers", worker.id), { avatar: url });
         setWorker((prev: any) => ({ ...prev, avatar: url }));
         alert("Profile avatar updated successfully!");
+        recalculateMyTrust(worker.id);
       } catch (err) {
         alert("Failed to upload avatar.");
       } finally {
@@ -537,6 +563,7 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
         await updateDoc(doc(db, "workers", worker.id), { coverImage: b64 });
         setWorker((prev: any) => ({ ...prev, coverImage: b64 }));
         alert("Cover banner updated successfully!");
+        recalculateMyTrust(worker.id);
       } catch {
         alert("Failed to process cover image.");
       } finally {
@@ -589,6 +616,7 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
       setWorker((prev: any) => ({ ...prev, ...payload }));
       alert("Profile credentials updated successfully!");
       setInfoEditOpen(false);
+      recalculateMyTrust(worker.id);
     } catch {
       alert("Failed to save profile changes.");
     } finally {
@@ -638,6 +666,7 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
       await updateDoc(doc(db, "workers", worker.id), { projectsShowcase: currentList });
       setWorker((prev: any) => ({ ...prev, projectsShowcase: currentList }));
       alert("Project removed successfully!");
+      recalculateMyTrust(worker.id);
     } catch {
       alert("Failed to delete project.");
     }
@@ -674,6 +703,7 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
       setWorker((prev: any) => ({ ...prev, projectsShowcase: currentList }));
       alert(editingProjectIdx !== null ? "Project case-study updated!" : "New project added successfully!");
       setProjectShowcaseModalOpen(false);
+      recalculateMyTrust(worker.id);
     } catch (err) {
       alert("Failed to save project.");
     }
@@ -1527,96 +1557,138 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
       {profileNavOpen && (
         <div className="fixed inset-0 z-[100] flex text-left font-sans transition-all duration-300">
           <div
-            className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-slate-950/45 backdrop-blur-xs transition-opacity"
             onClick={() => setProfileNavOpen(false)}
           />
 
-          <div className="relative w-80 sm:w-88 bg-white h-full border-r border-slate-200 shadow-2xl flex flex-col justify-between p-6 overflow-y-auto transition-transform duration-300">
-            <div className="space-y-6">
+          <div className="relative w-80 sm:w-88 bg-white h-full border-r border-slate-200 shadow-2xl flex flex-col justify-between p-6 sm:p-7 overflow-y-auto transition-transform duration-300">
+            <div className="space-y-6 sm:space-y-7">
 
+              {/* Drawer Header */}
               <div className="flex justify-between items-center border-b border-slate-100 pb-4">
-                <div>
-                  <span className="text-[9px] font-black text-[#1a3a5c] uppercase tracking-widest block">Menu</span>
-                  <span className="font-extrabold text-sm text-slate-900 mt-0.5 block">Zenzy Workspace</span>
-                </div>
+                <Link href="/" className="flex items-center gap-2" onClick={() => setProfileNavOpen(false)}>
+                  <img src="/logo.png" alt="Zenzy Logo" className="h-7 w-auto object-contain" />
+                </Link>
                 <button
                   onClick={() => setProfileNavOpen(false)}
-                  className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition cursor-pointer"
+                  className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition cursor-pointer border-none bg-transparent"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
+              {/* User Identity Info Card */}
               {user && (
-                <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/50">
-                  <img
-                    src={userData?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=40&h=40&q=80"}
-                    className="w-9 h-9 rounded-xl object-cover"
-                    alt=""
-                  />
+                <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/55 p-3.5 rounded-2xl">
+                  <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 border border-slate-200">
+                    <img
+                      src={userData?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&h=80&q=80"}
+                      className="w-full h-full object-cover"
+                      alt=""
+                    />
+                  </div>
                   <div className="min-w-0 flex-1 text-xs">
-                    <span className="font-bold text-slate-800 block truncate leading-tight">{userData?.name || "Client"}</span>
-                    <span className="text-[9px] text-slate-400 block truncate leading-tight mt-0.5">{userData?.email || user.email}</span>
+                    <span className="font-extrabold text-slate-850 block truncate leading-tight">{userData?.name || "Zenzy Member"}</span>
+                    <span className="text-[10px] text-slate-400 block truncate leading-tight mt-0.5">{userData?.email || user.email}</span>
                   </div>
                 </div>
               )}
 
+              {/* Main Navigation Links */}
               <div className="space-y-1">
-                <span className="text-[8.5px] font-black text-slate-400 uppercase tracking-wider block mb-2 px-3">Main</span>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-3.5">Navigation Menu</span>
+                
                 {[
-                  { label: "Home", href: "/" },
-                  { label: "Services Directory", href: "/services" },
-                  { label: "Rent Properties", href: "/rent" },
-                  { label: "Shop Storefront", href: "/shop" }
-                ].map((link, idx) => (
-                  <Link
-                    key={idx}
-                    href={link.href}
-                    onClick={() => setProfileNavOpen(false)}
-                    className="flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-50 transition font-bold text-[12px]"
-                  >
-                    <span>{link.label}</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                  </Link>
-                ))}
-              </div>
+                  { label: "Home", href: "/", icon: Home },
+                  { label: "Services Directory", href: "/services", icon: Briefcase },
+                  { label: "Rent Properties", href: "/rent", icon: Building2 },
+                  { label: "Shop Storefront", href: "/shop", icon: ShoppingBag },
+                  { label: "About Us", href: "/about", icon: Info },
+                  { label: "Contact Support", href: "#", icon: MessageSquare, onClick: () => { window.dispatchEvent(new CustomEvent("open-support-desk")); } }
+                ].map((link, idx) => {
+                  const Icon = link.icon;
+                  const isButton = link.href === "#";
+                  
+                  const content = (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-[#1a3a5c]/5 group-hover:text-[#1a3a5c] transition duration-200">
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <span className="text-[12.5px] font-extrabold text-slate-700 group-hover:text-slate-900 transition duration-200">{link.label}</span>
+                      </div>
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-450 group-hover:translate-x-0.5 transition-transform duration-200" />
+                    </>
+                  );
 
-              <div className="space-y-1 pt-2 border-t border-slate-100">
-                <span className="text-[8.5px] font-black text-slate-400 uppercase tracking-wider block mb-2 px-3">Sections</span>
-                {[
-                  { id: "overview", label: "Overview" },
-                  { id: "services", label: "Services" },
-                  { id: "projects", label: "Projects" },
-                  { id: "reviews", label: "Reviews" },
-                  { id: "portal", label: "Workspace" }
-                ].map((tab) => {
-                  const isSelected = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        if (tab.id === "portal" && !user) {
+                  if (isButton) {
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
                           setProfileNavOpen(false);
-                          openAuthModal("login");
-                          return;
-                        }
-                        setActiveTab(tab.id as any);
-                        setProfileNavOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-left font-bold text-[12px] cursor-pointer ${isSelected
-                        ? "bg-[#1a3a5c]/10 text-[#1a3a5c]"
-                        : "text-slate-600 hover:bg-slate-50"
-                        }`}
+                          if (link.onClick) link.onClick();
+                        }}
+                        className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl hover:bg-slate-50/60 border-none bg-transparent transition duration-200 group text-left cursor-pointer"
+                      >
+                        {content}
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={idx}
+                      href={link.href}
+                      onClick={() => setProfileNavOpen(false)}
+                      className="flex items-center justify-between px-3.5 py-2 rounded-xl hover:bg-slate-50/60 transition duration-200 group"
                     >
-                      <div className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-[#1a3a5c]" : "bg-transparent"}`} />
-                      <span>{tab.label}</span>
-                    </button>
+                      {content}
+                    </Link>
                   );
                 })}
               </div>
 
+              {/* User Dashboard Section */}
+              {user && (
+                <div className="space-y-1 pt-3 border-t border-slate-100">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-3.5">My Account</span>
+                  
+                  <Link
+                    href={role === "worker" ? "/worker/dashboard" : "/dashboard"}
+                    onClick={() => setProfileNavOpen(false)}
+                    className="flex items-center justify-between px-3.5 py-2 rounded-xl hover:bg-slate-50/60 transition duration-200 group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-[#1a3a5c]/5 group-hover:text-[#1a3a5c] transition duration-200">
+                        <Sliders className="w-4 h-4" />
+                      </div>
+                      <span className="text-[12.5px] font-extrabold text-slate-700 group-hover:text-slate-900 transition duration-200">My Dashboard</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-455 group-hover:translate-x-0.5 transition-transform duration-200" />
+                  </Link>
+
+                  {role === "admin" && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setProfileNavOpen(false)}
+                      className="flex items-center justify-between px-3.5 py-2 rounded-xl hover:bg-slate-50/60 transition duration-200 group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-650 transition duration-200">
+                          <BadgeCheck className="w-4 h-4" />
+                        </div>
+                        <span className="text-[12.5px] font-extrabold text-slate-700 group-hover:text-slate-900 transition duration-200">Admin Panel</span>
+                      </div>
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-455 group-hover:translate-x-0.5 transition-transform duration-200" />
+                    </Link>
+                  )}
+                </div>
+              )}
+
             </div>
 
+            {/* Bottom Actions footer */}
             <div className="space-y-4 pt-4 border-t border-slate-100">
               {user ? (
                 <button
@@ -1624,9 +1696,9 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                     setProfileNavOpen(false);
                     logout();
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition font-bold text-[12px] cursor-pointer text-left"
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-rose-500 hover:bg-rose-50/60 hover:text-rose-600 transition duration-200 font-extrabold text-[12px] cursor-pointer text-left border-none bg-transparent"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-4.5 h-4.5" />
                   <span>Sign Out</span>
                 </button>
               ) : (
@@ -1635,7 +1707,7 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                     setProfileNavOpen(false);
                     openAuthModal("login");
                   }}
-                  className="w-full bg-[#1a3a5c] hover:bg-[#0f2a4a] text-white py-3 rounded-[14px] font-bold text-xs uppercase tracking-wider transition cursor-pointer text-center shadow-md"
+                  className="w-full bg-[#1a3a5c] hover:bg-[#0f2a4a] text-white py-3 rounded-[14px] font-extrabold text-[11.5px] uppercase tracking-wider transition cursor-pointer text-center shadow-md active:scale-[0.98]"
                 >
                   Sign In
                 </button>
@@ -1887,6 +1959,16 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
         </div>
       </section>
 
+      {/* Trust Score Card integration */}
+      <section className="max-w-7xl mx-auto w-full px-5 py-2">
+        <TrustScoreCard
+          trustScore={worker.trustScore}
+          onRecalculate={() => recalculateMyTrust(workerId)}
+          isRecalculating={recalculating}
+          isOwner={canEdit}
+        />
+      </section>
+
       {/* Above-The-Fold Trust & Credentials Section (Goal 2.2) */}
       <section className="max-w-7xl mx-auto w-full px-5 py-2">
         <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-lg border border-slate-800 grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
@@ -1948,6 +2030,7 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                 { id: "overview", label: "Overview" },
                 { id: "services", label: "Services" },
                 { id: "projects", label: "Projects" },
+                { id: "trust", label: "Trust Score" },
                 { id: "reviews", label: `Reviews (${reviews.length || 230})` },
                 { id: "qna", label: "Q&A" }
               ].map((tab) => {
@@ -2678,6 +2761,18 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* TRUST TAB */}
+              {activeTab === "trust" && (
+                <div className="space-y-6 animate-fade-in text-left">
+                  <TrustScoreCard
+                    trustScore={worker.trustScore}
+                    onRecalculate={() => recalculateMyTrust(workerId)}
+                    isRecalculating={recalculating}
+                    isOwner={canEdit}
+                  />
                 </div>
               )}
             </div>
@@ -3727,6 +3822,7 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
               await updateDoc(doc(db, "workers", worker.id), { coverImage: b64 });
               setWorker((prev: any) => ({ ...prev, coverImage: b64 }));
               alert("Cover banner updated successfully!");
+              recalculateMyTrust(worker.id);
             } catch {
               alert("Failed to process cover image.");
             } finally {
@@ -3752,6 +3848,7 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
               await updateDoc(doc(db, "workers", worker.id), { avatar: url });
               setWorker((prev: any) => ({ ...prev, avatar: url }));
               alert("Profile avatar updated successfully!");
+              recalculateMyTrust(worker.id);
             } catch (err) {
               alert("Failed to upload avatar.");
             } finally {
@@ -4729,7 +4826,10 @@ export default function WorkerSlugProfilePage({ params }: PageProps) {
         isOpen={reviewOpen}
         onClose={() => setReviewOpen(false)}
         workerId={workerId}
-        onReviewSubmitted={() => setReviewOpen(false)}
+        onReviewSubmitted={() => {
+          setReviewOpen(false);
+          recalculateMyTrust(workerId);
+        }}
       />
 
       {/* Service Detail Popover Modal */}

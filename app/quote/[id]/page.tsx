@@ -210,6 +210,17 @@ export default function PublicQuotationPage() {
             read: false,
             createdAt: timestamp,
           });
+
+          // Trigger trust score recalculation
+          try {
+            await fetch("/api/recalculate-trust", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ workerId }),
+            });
+          } catch (e) {
+            console.error("Recalculate trust trigger failed:", e);
+          }
         }
       }
 
@@ -249,6 +260,20 @@ export default function PublicQuotationPage() {
           status: "Declined",
           declinedAt: timestamp,
         });
+
+        const workerId = quote.workerId || quote.businessId;
+        if (workerId) {
+          // Trigger trust score recalculation
+          try {
+            await fetch("/api/recalculate-trust", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ workerId }),
+            });
+          } catch (e) {
+            console.error("Recalculate trust trigger failed:", e);
+          }
+        }
       }
 
       setQuote((prev: any) => ({

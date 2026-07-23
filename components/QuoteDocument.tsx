@@ -13,6 +13,7 @@ import {
   ArrowUp,
   ArrowDown
 } from "lucide-react";
+import TrustScoreCard from "@/components/TrustScoreCard";
 
 interface QuoteDocumentProps {
   quote: any;
@@ -328,7 +329,10 @@ export default function QuoteDocument({
                 className="text-base font-medium text-gray-900 bg-transparent border-b border-dashed border-transparent hover:border-gray-300 focus:border-gray-800 outline-none w-72 px-1 py-0.5"
               />
             ) : (
-              <h2 className="text-base font-medium text-gray-900">{proName}</h2>
+              <h2 className="text-base font-medium text-gray-900 flex items-center gap-2 flex-wrap">
+                <span>{proName}</span>
+                {worker?.trustScore && <TrustScoreCard trustScore={worker.trustScore} compact={true} />}
+              </h2>
             )}
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600 mt-1.5">

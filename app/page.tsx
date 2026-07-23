@@ -205,6 +205,7 @@ export default function HomePage() {
       workerId: w.id || w.uid,
       rating: w.stars || 4.5,
       servicesGiven: w.servicesGiven || 0,
+      trustScoreOverall: w.trustScore?.overall,
     }));
 
     return [...staticItems, ...workerItems];

@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import TrustScoreCard from "@/components/TrustScoreCard";
 import {
   Search, MapPin, CheckCircle, SlidersHorizontal, Award, Sparkles,
   Heart, Bookmark, MessageSquare, ShieldCheck, ArrowRight, Clock, Check,
@@ -552,6 +553,12 @@ function ServicesContent() {
                         <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2.5 flex-wrap">
                           <span className="flex items-center gap-0.5 text-amber-500">★ {pro.stars || "5.0"}</span>
                           <span>({pro.reviewsCount || 0})</span>
+                          {pro.trustScore && (
+                            <>
+                              <span>·</span>
+                              <TrustScoreCard trustScore={pro.trustScore} compact={true} />
+                            </>
+                          )}
                           <span>·</span>
                           <span>{pro.experience || "2 years"}</span>
                           <span>·</span>
