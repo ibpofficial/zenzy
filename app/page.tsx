@@ -176,6 +176,26 @@ export default function HomePage() {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [userLocation, setUserLocation] = useState("Delhi NCR");
   const [workers, setWorkers] = useState<any[]>([]);
+  const [rawWorkers, setRawWorkers] = useState<WorkerDocument[]>([]);
+
+  useEffect(() => {
+    if (rawWorkers.length === 0) return;
+    const manualIds = siteConfig?.manualTrendingWorkerIds || [];
+
+    // 1. Extract manual trending workers (approved)
+    const manualFeatured = rawWorkers.filter((w) => manualIds.includes(w.id));
+    const manualFeaturedTagged = manualFeatured.map(w => ({ ...w, isManualTrending: true }));
+
+    // 2. Filter remaining workers for algorithm candidates
+    const algorithmCandidates = rawWorkers.filter((w) => !manualIds.includes(w.id));
+
+    // 3. Process candidates using the trust-decay algorithm (processTrendingWorkers)
+    const limitCount = Math.max(0, 3 - manualFeaturedTagged.length);
+    const algorithmic = limitCount > 0 ? processTrendingWorkers(algorithmCandidates, limitCount) : [];
+
+    const finalTrending = [...manualFeaturedTagged, ...algorithmic].slice(0, 3);
+    setWorkers(finalTrending);
+  }, [rawWorkers, siteConfig]);
 
   // Build combined searchable index (Static Categories + Live Firestore Workers)
   const searchIndex = React.useMemo<SearchIndexItem[]>(() => {
@@ -731,10 +751,7 @@ export default function HomePage() {
     const unsubscribeWorkers = onSnapshot(qWorkers, (snap) => {
       const items: WorkerDocument[] = [];
       snap.forEach((doc) => items.push({ id: doc.id, ...doc.data() } as WorkerDocument));
-
-      // Compute recency-decay trending scores & apply category diversity filtering
-      const processedTrending = processTrendingWorkers(items, 3);
-      setWorkers(processedTrending);
+      setRawWorkers(items);
     }, (err) => {
       console.error("Failed to fetch trending workers in candidate pool:", err);
     });
@@ -1348,7 +1365,11 @@ export default function HomePage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/40 via-transparent to-transparent"></div>
 
-                    {userLocation && pro.serviceArea && (
+                    {pro.isManualTrending ? (
+                      <span className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-600 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-md border border-amber-400/20">
+                        <Sparkles className="w-2.5 h-2.5 text-white" /> Featured Choice
+                      </span>
+                    ) : userLocation && pro.serviceArea && (
                       pro.serviceArea.toLowerCase().includes(userLocation.toLowerCase().split(',')[0]) ||
                       userLocation.toLowerCase().includes(pro.serviceArea.toLowerCase().split(',')[0])
                     ) ? (

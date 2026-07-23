@@ -440,7 +440,8 @@ export default function AdminPage() {
   const [iconSaving, setIconSaving] = useState(false);
 
   // Portal Configuration Settings States & Sub-tab
-  const [settingsSubTab, setSettingsSubTab] = useState<"branding" | "operations" | "communication" | "ai" | "system">("branding");
+  const [settingsSubTab, setSettingsSubTab] = useState<"branding" | "operations" | "communication" | "ai" | "system" | "manual-trending">("branding");
+  const [manualTrendingWorkerIds, setManualTrendingWorkerIds] = useState<string[]>([]);
   
   const [supportEmail, setSupportEmail] = useState("support@zenzy.in");
   const [supportPhone, setSupportPhone] = useState("+91 98765 43210");
@@ -1638,6 +1639,7 @@ export default function AdminPage() {
           setSessionLimitHours(d.sessionLimitHours ?? 24);
           setSessionRefreshIntervalHours(d.sessionRefreshIntervalHours ?? 24);
           setDefaultWorkerBanner(d.defaultWorkerBanner || "");
+          setManualTrendingWorkerIds(d.manualTrendingWorkerIds || []);
 
           // Load new customizable config fields
           setSupportEmail(d.supportEmail || "support@zenzy.in");
@@ -2845,6 +2847,7 @@ export default function AdminPage() {
         chatbotPersonality,
         appVersion,
         forceUpdate,
+        manualTrendingWorkerIds,
         
         updatedAt: new Date().toISOString()
       }, { merge: true });
@@ -3244,7 +3247,8 @@ export default function AdminPage() {
       title: "Marketing & Codes",
       items: [
         { id: "coupons", label: "Coupon Codes", icon: Tag },
-        { id: "promos", label: "Exclusive Protocols", icon: Sparkles }
+        { id: "promos", label: "Exclusive Protocols", icon: Sparkles },
+        { id: "manual-trending-main", label: "Featured Trending", icon: Award }
       ]
     },
     {
@@ -5631,6 +5635,112 @@ export default function AdminPage() {
             </div>
           )}
 
+          {activeTab === "manual-trending-main" && (
+            <div className="bg-white rounded-3xl border shadow-subtle p-6 sm:p-8 overflow-hidden max-w-5xl animate-fade-up w-full mx-auto text-xs font-semibold text-left">
+              <div className="space-y-6">
+                <div className="border-b pb-4 flex justify-between items-center">
+                  <div>
+                    <h4 className="font-extrabold text-sm uppercase tracking-wider text-primary-500">Manual Featured Trending</h4>
+                    <p className="text-[10px] text-slate-400 font-medium">Pin specific professional profiles as trending on the homepage, bypassing the standard trust-decay algorithm.</p>
+                  </div>
+                  <button
+                    onClick={handleSaveSettings}
+                    disabled={settingsSaving}
+                    className="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold uppercase text-[10px] tracking-wider transition hover:opacity-90 flex items-center gap-1.5 border-none cursor-pointer"
+                  >
+                    {settingsSaving ? "Saving..." : "Save Pinned list Live"}
+                  </button>
+                </div>
+                
+                {/* Search and Add input */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase block">Search and Add Professional</label>
+                  <div className="flex gap-2">
+                    <select
+                      id="manualTrendingSelectMain"
+                      className="flex-1 px-4 py-2.5 bg-slate-50 border rounded-xl font-bold text-slate-700 outline-none"
+                      defaultValue=""
+                    >
+                      <option value="" disabled>-- Select Professional --</option>
+                      {workers
+                        .filter(w => !manualTrendingWorkerIds.includes(w.id))
+                        .map(w => (
+                          <option key={w.id} value={w.id}>
+                            {w.name} ({w.category}) - Trust: {w.trustScore?.overall ?? w.trustScoreOverall ?? "N/A"}
+                          </option>
+                        ))
+                      }
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const selectEl = document.getElementById("manualTrendingSelectMain") as HTMLSelectElement;
+                        const val = selectEl?.value;
+                        if (val) {
+                          setManualTrendingWorkerIds([...manualTrendingWorkerIds, val]);
+                          selectEl.value = "";
+                          showToast("Added to manual trending list. Click 'Save Pinned list Live' to apply.");
+                        } else {
+                          showToast("Please select a professional.", "error");
+                        }
+                      }}
+                      className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold uppercase text-[10px] tracking-wider transition cursor-pointer"
+                    >
+                      Add to Featured
+                    </button>
+                  </div>
+                </div>
+
+                {/* List of currently manually featured */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase block">Currently Pinned Professionals (Prepend on Home Page)</label>
+                  {manualTrendingWorkerIds.length === 0 ? (
+                    <div className="bg-slate-50 border border-dashed rounded-2xl p-8 text-center text-slate-400 font-bold">
+                      No profiles are manually pinned. Standard trust-decay algorithm is active.
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {manualTrendingWorkerIds.map((id, index) => {
+                        const w = workers.find(worker => worker.id === id);
+                        return (
+                          <div key={id} className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 flex justify-between items-center gap-4 hover:border-slate-300 transition">
+                            <div className="flex items-center gap-3">
+                              <span className="w-7 h-7 rounded-full bg-slate-200 text-slate-655 font-black text-xs flex items-center justify-center">
+                                {index + 1}
+                              </span>
+                              {w?.avatar && (
+                                <img src={w.avatar} className="w-9 h-9 rounded-xl object-cover border border-slate-200" alt="" />
+                              )}
+                              <div>
+                                <span className="font-extrabold text-slate-800 text-xs block">{w?.name || `ID: ${id}`}</span>
+                                <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{w?.category || "Unknown category"}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <span className="text-[10.5px] font-black text-[#1a3a5c] bg-[#1a3a5c]/5 border border-[#1a3a5c]/10 px-2 py-1 rounded-md">
+                                Trust: {w?.trustScore?.overall ?? w?.trustScoreOverall ?? "N/A"}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setManualTrendingWorkerIds(manualTrendingWorkerIds.filter(item => item !== id));
+                                  showToast("Removed from manual list. Click 'Save Pinned list Live' to apply.");
+                                }}
+                                className="text-rose-500 hover:text-rose-650 font-black uppercase text-[9.5px] cursor-pointer"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* TAB: TEAM DIRECTORY Merged into Authority Tab */}
 
           {/* TAB: AUTHORITY ACCESS & CONFIGURATION */}
@@ -6743,7 +6853,8 @@ export default function AdminPage() {
                       { id: "operations", label: "Operations & Fees", icon: Settings },
                       { id: "communication", label: "Support & Socials", icon: MessageSquare },
                       { id: "ai", label: "AI Assistant", icon: Sparkles },
-                      { id: "system", label: "System Toggles", icon: ShieldAlert }
+                      { id: "system", label: "System Toggles", icon: ShieldAlert },
+                      { id: "manual-trending", label: "Featured Trending", icon: Award }
                     ].map((st) => {
                       const Icon = st.icon;
                       const isSubActive = settingsSubTab === st.id;
@@ -7086,6 +7197,97 @@ export default function AdminPage() {
                               )}
                             </button>
                           </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Manual Trending Panel */}
+                    {settingsSubTab === "manual-trending" && (
+                      <div className="space-y-6">
+                        <div className="border-b pb-2">
+                          <h4 className="font-extrabold text-sm uppercase tracking-wider text-primary-500">Manual Featured Trending</h4>
+                          <p className="text-[10px] text-slate-400 font-medium">Pin specific professional profiles as trending on the homepage, bypassing the standard trust-decay algorithm.</p>
+                        </div>
+                        
+                        {/* Search and Add input */}
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase block">Search and Add Professional</label>
+                          <div className="flex gap-2">
+                            <select
+                              id="manualTrendingSelect"
+                              className="flex-1 px-4 py-2 bg-slate-50 border rounded-xl font-bold"
+                              defaultValue=""
+                            >
+                              <option value="" disabled>-- Select Professional --</option>
+                              {workers
+                                .filter(w => !manualTrendingWorkerIds.includes(w.id))
+                                .map(w => (
+                                  <option key={w.id} value={w.id}>
+                                    {w.name} ({w.category}) - Trust: {w.trustScore?.overall ?? w.trustScoreOverall ?? "N/A"}
+                                  </option>
+                                ))
+                              }
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const selectEl = document.getElementById("manualTrendingSelect") as HTMLSelectElement;
+                                const val = selectEl?.value;
+                                if (val) {
+                                  setManualTrendingWorkerIds([...manualTrendingWorkerIds, val]);
+                                  selectEl.value = "";
+                                  showToast("Added to manual trending list. Save config to apply live.");
+                                } else {
+                                  showToast("Please select a professional.", "error");
+                                }
+                              }}
+                              className="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold uppercase text-[10px] tracking-wider transition cursor-pointer"
+                            >
+                              Add to Featured
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* List of currently manually featured */}
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase block">Currently Pinned Professionals</label>
+                          {manualTrendingWorkerIds.length === 0 ? (
+                            <div className="bg-slate-50 border border-dashed rounded-2xl p-6 text-center text-slate-400 font-bold">
+                              No profiles are manually pinned. Standard trust-decay algorithm is active.
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {manualTrendingWorkerIds.map((id, index) => {
+                                const w = workers.find(worker => worker.id === id);
+                                return (
+                                  <div key={id} className="bg-slate-50 border rounded-2xl p-3 flex justify-between items-center gap-4">
+                                    <div className="flex items-center gap-3">
+                                      <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-650 font-black text-[10px] flex items-center justify-center">
+                                        {index + 1}
+                                      </span>
+                                      {w?.avatar && (
+                                        <img src={w.avatar} className="w-8 h-8 rounded-lg object-cover" alt="" />
+                                      )}
+                                      <div>
+                                        <span className="font-extrabold text-slate-800 text-xs block">{w?.name || `ID: ${id}`}</span>
+                                        <span className="text-[9.5px] text-slate-400 font-bold block">{w?.category || "Unknown category"}</span>
+                                      </div>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setManualTrendingWorkerIds(manualTrendingWorkerIds.filter(item => item !== id));
+                                        showToast("Removed from manual trending list. Save config to apply live.");
+                                      }}
+                                      className="text-rose-500 hover:text-rose-650 font-bold uppercase text-[9.5px] cursor-pointer"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}

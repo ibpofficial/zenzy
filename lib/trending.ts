@@ -47,6 +47,10 @@ export function calculateTrendingScore(w: WorkerDocument, nowMs: number = Date.n
   const isTopRated = Boolean(w.topRated);
   const isAvailable = w.status === "Available";
 
+  // Incorporate Trust Score (cached overall score or nested object score)
+  const trustScoreVal = w.trustScore?.overall ?? w.trustScoreOverall ?? 0;
+  const trustPoints = (trustScoreVal / 100) * 35; // Up to 35 pts boost for 100% trust rating
+
   // Determine recency of last activity or update
   const lastActivityStr = w.lastScoreUpdate || w.lastStatusChange || w.createdAt;
   const lastActivityMs = lastActivityStr ? new Date(lastActivityStr).getTime() : nowMs - (30 * 24 * 60 * 60 * 1000);
@@ -56,14 +60,15 @@ export function calculateTrendingScore(w: WorkerDocument, nowMs: number = Date.n
   const recencyWeight = 1 / (1 + daysSinceLastActivity);
 
   const score =
-    (rating * 15) +
+    (rating * 10) +
     (bookings * 1.5) +
     (views * 0.2) +
     (servicesGiven * 0.5) +
     (isPremium ? 12 : 0) +
     (isTopRated ? 8 : 0) +
-    (recencyWeight * 25) +
-    (isAvailable ? 10 : 0);
+    (recencyWeight * 20) +
+    (isAvailable ? 10 : 0) +
+    trustPoints;
 
   return Math.round(score * 100) / 100;
 }
