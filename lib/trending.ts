@@ -39,36 +39,27 @@ export interface WorkerDocument {
  * - status === "Available" (+10 pts): Boosts currently available pros for immediate booking
  */
 export function calculateTrendingScore(w: WorkerDocument, nowMs: number = Date.now()): number {
-  const rating = w.stars ?? 4.0;
-  const bookings = w.bookingsCount ?? w.completedBookings ?? 0;
-  const views = w.profileViews ?? w.viewsCount ?? w.visitedCount ?? 0;
-  const servicesGiven = w.servicesGiven ?? w.reviewsCount ?? 0;
-  const isPremium = Boolean(w.premium);
-  const isTopRated = Boolean(w.topRated);
-  const isAvailable = w.status === "Available";
-
-  // Incorporate Trust Score (cached overall score or nested object score)
+  // 1. Primary Driver: Trust Score (0 to 100 points)
   const trustScoreVal = w.trustScore?.overall ?? w.trustScoreOverall ?? 0;
-  const trustPoints = (trustScoreVal / 100) * 35; // Up to 35 pts boost for 100% trust rating
+  const trustPoints = trustScoreVal; // Scale 1:1, up to 100 points
 
-  // Determine recency of last activity or update
+  // 2. Secondary Driver: Availability (boost of 15 points)
+  const isAvailable = w.status === "Available";
+  const availabilityPoints = isAvailable ? 15 : 0;
+
+  // 3. Tertiary Driver: Recency of activity (boost of 15 points)
   const lastActivityStr = w.lastScoreUpdate || w.lastStatusChange || w.createdAt;
   const lastActivityMs = lastActivityStr ? new Date(lastActivityStr).getTime() : nowMs - (30 * 24 * 60 * 60 * 1000);
   const daysSinceLastActivity = Math.max(0, (nowMs - lastActivityMs) / (1000 * 60 * 60 * 24));
-
-  // Time-decay formula: recencyWeight decays smoothly from 1.0 down to ~0.0
   const recencyWeight = 1 / (1 + daysSinceLastActivity);
+  const recencyPoints = recencyWeight * 15;
 
-  const score =
-    (rating * 10) +
-    (bookings * 1.5) +
-    (views * 0.2) +
-    (servicesGiven * 0.5) +
-    (isPremium ? 12 : 0) +
-    (isTopRated ? 8 : 0) +
-    (recencyWeight * 20) +
-    (isAvailable ? 10 : 0) +
-    trustPoints;
+  // 4. Premium status boost (boost of 10 points)
+  const isPremium = Boolean(w.premium);
+  const premiumPoints = isPremium ? 10 : 0;
+
+  // Total Score: Trust dictates the base, with availability and recency providing final active tuning.
+  const score = trustPoints + availabilityPoints + recencyPoints + premiumPoints;
 
   return Math.round(score * 100) / 100;
 }

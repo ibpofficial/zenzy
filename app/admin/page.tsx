@@ -4609,6 +4609,36 @@ export default function AdminPage() {
                           {pro.name}
                         </h4>
                         <span className="text-[10px] text-slate-400 block">{pro.category} · {pro.experience}</span>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5 mb-1">
+                          <span className={`px-2 py-0.5 rounded-md text-[8.5px] font-black uppercase tracking-wider ${
+                            (pro.documentVerifications?.aadharDoc || pro.aadharDoc) 
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
+                              : "bg-slate-100 text-slate-400 border border-slate-200"
+                          }`}>
+                            Aadhaar: {(pro.documentVerifications?.aadharDoc || pro.aadharDoc) ? "Uploaded" : "Pending File"}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-md text-[8.5px] font-black uppercase tracking-wider ${
+                            (pro.documentVerifications?.panDoc || pro.panDoc) 
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
+                              : "bg-slate-100 text-slate-400 border border-slate-200"
+                          }`}>
+                            PAN: {(pro.documentVerifications?.panDoc || pro.panDoc) ? "Uploaded" : "Pending File"}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-md text-[8.5px] font-black uppercase tracking-wider ${
+                            pro.documentVerifications?.gstDoc 
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
+                              : "bg-slate-100 text-slate-400 border border-slate-200"
+                          }`}>
+                            GSTIN: {pro.documentVerifications?.gstDoc ? "Uploaded" : "None"}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-md text-[8.5px] font-black uppercase tracking-wider ${
+                            pro.documentVerifications?.licenseDoc 
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
+                              : "bg-slate-100 text-slate-400 border border-slate-200"
+                          }`}>
+                            License: {pro.documentVerifications?.licenseDoc ? "Uploaded" : "None"}
+                          </span>
+                        </div>
                         <span className="text-[9px] text-slate-400 block font-mono">
                           Aadhaar: {pro.documentVerifications?.aadhar || pro.aadhaar || "No Aadhaar added"} | 
                           PAN: {pro.documentVerifications?.pan || pro.pan || "No PAN added"}

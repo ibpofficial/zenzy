@@ -13,8 +13,18 @@ export function calculateTrustScore(input: {
   const { profile, reviews, projects, avgResponseTimeHours } = input;
 
   // 1. Identity Verification (Max 20 pts)
-  const identityVerified = !!profile.verifiedBadges?.identity;
-  const identityVerificationScore = identityVerified ? 20 : 0;
+  const identityVerified = !!profile.verifiedBadges?.identity || (profile as any).verified === true || (profile as any).documentStatus === "approved";
+  
+  let identityVerificationScore = 0;
+  if (identityVerified) {
+    identityVerificationScore = 20;
+  } else {
+    // award partial credit for submission before admin verification
+    const hasAadhaarSubmitted = !!((profile.documentVerifications as any)?.aadharDoc || (profile as any).aadharDoc);
+    const hasPanSubmitted = !!((profile.documentVerifications as any)?.panDoc || (profile as any).panDoc);
+    if (hasAadhaarSubmitted) identityVerificationScore += 5;
+    if (hasPanSubmitted) identityVerificationScore += 5;
+  }
 
   // 2. Professional Documents (Max 15 pts)
   let professionalDocumentsScore = 0;
