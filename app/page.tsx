@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, MapPin, Award, CheckCircle, ChevronDown, RefreshCw, ShieldCheck, Sparkles, Building, Hammer, ArrowRight, Star, Zap, Users, Home, Clock, ChevronLeft, ChevronRight, LifeBuoy, X, Heart, Bookmark, MessageSquare, Check, Crown } from "lucide-react";
+import { Search, MapPin, Award, CheckCircle, ChevronDown, RefreshCw, ShieldCheck, Sparkles, Building, Hammer, ArrowRight, Star, Zap, Users, Home, Clock, ChevronLeft, ChevronRight, LifeBuoy, X, Heart, Bookmark, MessageSquare, Check, CheckCheck, Crown } from "lucide-react";
 import { collection, getDocs, addDoc, onSnapshot, setDoc, doc, query, where, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Navbar from "@/components/Navbar";
@@ -455,7 +455,8 @@ export default function HomePage() {
       desc: "Post your requirements, receive structured quotations from top-rated plumbers, electricians, and tradesmen, and collaborate in real-time.",
       bg: "https://images.unsplash.com/photo-1581244276823-86f7a47ef6c0?auto=format&fit=crop&w=1600&q=80",
       icon: "fa-bolt",
-      accent: "#2563eb"
+      accent: "#2563eb",
+      highlights: ["5-Star Vetted Tradesmen", "Structured Quotations", "Milestone Escrow Safe"]
     },
     {
       badge: "High-Value Construction",
@@ -463,7 +464,8 @@ export default function HomePage() {
       desc: "Hire verified architects, contractors, and builders. Compare bids side-by-side and monitor milestones from blueprint to handover.",
       bg: "https://images.unsplash.com/photo-1589939705384-5185138a04b9?auto=format&fit=crop&w=1600&q=80",
       icon: "fa-paint-roller",
-      accent: "#7c3aed"
+      accent: "#7c3aed",
+      highlights: ["Top Verified Contractors", "Blueprint to Handover Tracker", "Side-by-Side Bids Comparison"]
     },
     {
       badge: "Vetted Professionals",
@@ -471,7 +473,8 @@ export default function HomePage() {
       desc: "Hire background-verified local service professionals. Transparent rates, certified expertise, and escrow-safe milestones.",
       bg: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1600&q=80",
       icon: "fa-home",
-      accent: "#059669"
+      accent: "#059669",
+      highlights: ["100% Background-Verified Pros", "Zero Markup Direct Rates", "Certified Local Service Experts"]
     }
   ];
 
@@ -484,13 +487,20 @@ export default function HomePage() {
       const cleanTitle = rawTitle.replace(/zenzy/gi, "").trim() || "Quality Home Services";
       const cleanSub = rawSub.replace(/zenzy/gi, "").trim() || "India's best service marketplace.";
 
+      const fallbackHighlights = [
+        ["5-Star Vetted Tradesmen", "Structured Quotations", "Milestone Escrow Safe"],
+        ["Top Verified Contractors", "Blueprint to Handover Tracker", "Side-by-Side Bids Comparison"],
+        ["100% Background-Verified Pros", "Zero Markup Direct Rates", "Certified Local Service Experts"]
+      ];
+
       return {
         badge: cleanBadge,
         title: cleanTitle,
         desc: cleanSub,
         bg: s.url,
         icon: s.icon || "fa-star",
-        accent: "#2563eb"
+        accent: "#2563eb",
+        highlights: fallbackHighlights[i % fallbackHighlights.length]
       };
     })
     : defaultHeroSlides;
@@ -815,7 +825,7 @@ export default function HomePage() {
         <Navbar />
 
         {/* ═══════════════════════════════════ HERO SLIDESHOW ═══════════════════════════════════ */}
-        <section className="max-w-[1290px] mx-auto w-full px-[15px] sm:px-[27px] pt-24 sm:pt-28 pb-0">
+        <section className="max-w-[1292px] mx-auto w-full px-[15px] sm:px-[27px] pt-24 sm:pt-28 pb-0">
           <div className="relative h-[450px] sm:h-[470px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.12)]">
             {heroSlides.map((slide: any, idx: number) => (
               <div
@@ -837,7 +847,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/20" />
 
                 {/* Content */}
-                <div className="max-w-xl text-white space-y-4 sm:space-y-6 relative z-20">
+                <div className="max-w-2xl text-white space-y-4 sm:space-y-6 relative z-20">
                   {/* Badge */}
                   {slide.badge ? (
                     <div className={`transition-all duration-700 delay-100 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
@@ -861,22 +871,22 @@ export default function HomePage() {
                     {slide.desc}
                   </p>
 
-                  {/* Premium Square Buttons */}
-                  <div className={`flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1 sm:pt-2 transition-all duration-700 delay-400 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+                  {/* Premium Row Buttons */}
+                  <div className={`flex flex-row items-center gap-2.5 pt-1.5 sm:pt-2 transition-all duration-700 delay-400 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
                     }`}>
                     <Link
                       href="/services"
-                      className="group relative inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3 sm:py-3.5 bg-white text-slate-900 rounded-xl font-bold text-[13.5px] sm:text-[14px] transition-all duration-200 hover:bg-slate-100 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/20 w-full sm:w-auto"
+                      className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2.5 px-4 py-2.5 sm:px-6 sm:py-3.5 bg-white text-slate-900 rounded-xl font-bold text-[12px] sm:text-[14px] transition-all duration-200 hover:bg-slate-100 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/20 w-auto"
                     >
-                      Find Professionals
-                      <ArrowRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1" />
+                      <span>Find <span className="hidden sm:inline">Professionals</span><span className="inline sm:hidden">Pros</span></span>
+                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 group-hover:translate-x-1" />
                     </Link>
                     <Link
                       href="/rent"
-                      className="group inline-flex items-center justify-center gap-2.5 px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl font-bold text-[13.5px] sm:text-[14px] text-white transition-all duration-200 bg-white/15 hover:bg-white/25 active:scale-[0.98] border border-white/40 hover:border-white/70 backdrop-blur-md shadow-md w-full sm:w-auto"
+                      className="group inline-flex items-center justify-center gap-1.5 sm:gap-2.5 px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-xl font-bold text-[12px] sm:text-[14px] text-white transition-all duration-200 bg-white/15 hover:bg-white/25 active:scale-[0.98] border border-white/40 hover:border-white/70 backdrop-blur-md shadow-md w-auto"
                     >
-                      Browse Rentals
-                      <ArrowRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1" />
+                      <span>Browse <span className="hidden sm:inline">Rentals</span><span className="inline sm:hidden">Rent</span></span>
+                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 group-hover:translate-x-1" />
                     </Link>
                   </div>
                 </div>

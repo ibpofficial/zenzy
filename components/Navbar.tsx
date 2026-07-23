@@ -269,64 +269,57 @@ export default function Navbar({ isProfileView = false }: { isProfileView?: bool
             <div className="relative shrink-0" ref={notifRef}>
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-center text-slate-500 hover:bg-white hover:text-primary-600 hover:border-primary-300 transition-all duration-200 relative cursor-pointer"
+                className="p-2.5 rounded-xl text-slate-500 hover:text-primary-600 hover:bg-slate-50 transition-all duration-200 relative cursor-pointer focus:outline-none border-none bg-transparent"
               >
-                <Bell className="w-4.5 h-4.5" strokeWidth={1.8} />
+                <BellRing className="w-5 h-5" strokeWidth={1.8} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-rose-500 to-rose-600 border-2 border-white rounded-full flex items-center justify-center text-[8px] font-black text-white">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-gradient-to-r from-rose-500 to-rose-600 border border-white rounded-full flex items-center justify-center animate-pulse" />
                 )}
               </button>
 
               {/* ── Notification Panel ───────────────────────────────────── */}
               {notificationsOpen && (
-                <div className="absolute right-0 top-[calc(100%+12px)] w-[380px] max-w-[calc(100vw-24px)] bg-white rounded-2xl border border-slate-200/80 shadow-[0_20px_60px_rgba(0,0,0,0.12)] z-[999] animate-dropdown overflow-hidden">
+                <div className="absolute right-0 top-[calc(100%+12px)] w-[360px] max-w-[calc(100vw-24px)] bg-white/95 backdrop-blur-md rounded-2xl border border-slate-100 shadow-[0_20px_50px_rgba(15,23,42,0.06)] z-[999] animate-dropdown overflow-hidden">
 
                   {/* Panel header */}
-                  <div className="px-5 py-4 flex items-center justify-between border-b border-slate-100">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg shadow-primary-500/20">
-                        <Bell className="w-4 h-4 text-white" strokeWidth={1.8} />
-                      </div>
-                      <h4 className="font-extrabold text-[14px] text-slate-800 tracking-tight">Notifications</h4>
+                  <div className="px-5 py-4 flex items-center justify-between border-b border-slate-100/60">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-extrabold text-[13.5px] text-slate-800 tracking-tight">Notifications</h4>
                       {unreadCount > 0 && (
-                        <span className="bg-gradient-to-r from-primary-500 to-primary-600 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full leading-none">
+                        <span className="bg-primary-50 text-primary-600 text-[9.5px] font-semibold px-2 py-0.5 rounded-full">
                           {unreadCount} new
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       {unreadCount > 0 && (
                         <button
                           onClick={handleMarkAllAsRead}
-                          className="flex items-center gap-1.5 text-[10px] font-bold text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-lg transition-all duration-200 border-none cursor-pointer"
+                          className="text-[10px] font-bold text-primary-600 hover:text-primary-700 hover:bg-primary-50/50 px-2.5 py-1.5 rounded-lg transition-all duration-200 border-none cursor-pointer bg-transparent"
                         >
-                          <CheckCheck className="w-3.5 h-3.5" />
-                          Read all
+                          Mark all as read
                         </button>
                       )}
                       {notifications.length > 0 && (
                         <button
                           onClick={handleClearAll}
-                          className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-rose-500 hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-all duration-200 border-none cursor-pointer"
+                          className="text-[10px] font-bold text-slate-400 hover:text-rose-500 hover:bg-rose-50/50 px-2.5 py-1.5 rounded-lg transition-all duration-200 border-none cursor-pointer bg-transparent"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          Clear
+                          Clear all
                         </button>
                       )}
                     </div>
                   </div>
 
                   {/* List */}
-                  <div className="max-h-[360px] overflow-y-auto hide-scrollbar divide-y divide-slate-50">
+                  <div className="max-h-[340px] overflow-y-auto hide-scrollbar divide-y divide-slate-100/50">
                     {notifications.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-14 text-center px-6">
-                        <div className="w-14 h-14 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl flex items-center justify-center mb-4">
-                          <Bell className="w-6 h-6 text-slate-300" strokeWidth={1.5} />
+                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                          <BellRing className="w-5 h-5 text-slate-300" strokeWidth={1.5} />
                         </div>
-                        <p className="font-extrabold text-[15px] text-slate-600">All caught up</p>
-                        <p className="text-[12px] text-slate-400 mt-1 font-medium">No new notifications right now.</p>
+                        <p className="font-bold text-[13px] text-slate-700">All caught up</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">No new notifications at the moment.</p>
                       </div>
                     ) : (
                       notifications.map((item) => {
@@ -336,40 +329,34 @@ export default function Navbar({ isProfileView = false }: { isProfileView?: bool
                           <button
                             key={item.id}
                             onClick={() => handleMarkAsRead(item.id)}
-                            className={`w-full text-left flex items-start gap-3 px-5 py-4 transition-all duration-200 hover:bg-slate-50/80 group relative cursor-pointer border-none ${!item.read ? "bg-primary-50/30" : "bg-white"
-                              }`}
+                            className={`w-full text-left flex items-start gap-3 px-5 py-3.5 transition-all duration-200 hover:bg-slate-50/50 group relative cursor-pointer border-none ${
+                              !item.read ? "bg-primary-50/10" : "bg-transparent"
+                            }`}
                           >
-                            {/* Unread accent bar */}
+                            {/* Unread indicator dot */}
                             {!item.read && (
-                              <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-primary-400 to-primary-600 rounded-r-full" />
+                              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-primary-500 rounded-full" />
                             )}
 
                             {/* Icon badge */}
-                            <div className={`w-10 h-10 ${cfg.bg} rounded-xl flex items-center justify-center shrink-0 mt-0.5 shadow-sm`}>
-                              <Icon className={`w-4.5 h-4.5 ${item.read ? "text-slate-400" : "text-primary-600"}`} />
+                            <div className={`w-8.5 h-8.5 ${cfg.bg} rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-transform group-hover:scale-105`}>
+                              <Icon className={`w-4 h-4 ${item.read ? "text-slate-400" : "text-primary-650"}`} />
                             </div>
 
                             {/* Content */}
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-2">
-                                <p className={`font-extrabold text-[13px] leading-tight truncate ${item.read ? "text-slate-600" : "text-slate-900"
-                                  }`}>
+                              <div className="flex items-baseline justify-between gap-2">
+                                <p className={`font-bold text-[12.5px] leading-tight truncate ${item.read ? "text-slate-600" : "text-slate-800"}`}>
                                   {item.title}
                                 </p>
-                                <span className="text-[10px] text-slate-400 font-medium shrink-0 mt-0.5">
+                                <span className="text-[9.5px] text-slate-450 font-medium shrink-0">
                                   {timeAgo(item.createdAt)}
                                 </span>
                               </div>
-                              <p className={`text-[12px] leading-relaxed mt-0.5 font-medium ${item.read ? "text-slate-400" : "text-slate-500"
-                                }`}>
+                              <p className={`text-[11px] leading-relaxed mt-0.5 font-medium ${item.read ? "text-slate-400" : "text-slate-500"}`}>
                                 {item.text}
                               </p>
                             </div>
-
-                            {/* Unread dot */}
-                            {!item.read && (
-                              <span className="w-2 h-2 bg-primary-500 rounded-full shrink-0 mt-1.5" />
-                            )}
                           </button>
                         );
                       })
@@ -378,8 +365,8 @@ export default function Navbar({ isProfileView = false }: { isProfileView?: bool
 
                   {/* Footer */}
                   {notifications.length > 0 && (
-                    <div className="px-5 py-3.5 border-t border-slate-100 text-center bg-slate-50/30">
-                      <span className="text-[10px] text-slate-400 font-medium">
+                    <div className="px-5 py-3 border-t border-slate-100/60 text-center bg-slate-50/20">
+                      <span className="text-[10px] text-slate-450 font-semibold">
                         {notifications.length} notification{notifications.length !== 1 ? "s" : ""} total
                       </span>
                     </div>

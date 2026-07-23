@@ -552,6 +552,12 @@ export default function ProviderDashboardPage() {
 
         const isComp = userData.profileCompleted === true;
         setProfileCompletedState(isComp);
+        if (!isComp) {
+          const dismissed = sessionStorage.getItem("zenzy_onboarding_dismissed");
+          if (!dismissed) {
+            setShowFullPageOnboarding(true);
+          }
+        }
 
         hasInitialized.current = true;
       }
@@ -2182,7 +2188,7 @@ export default function ProviderDashboardPage() {
                               <div className="text-lg font-semibold text-slate-900">₹{book.price || "Quote"}</div>
                             </div>
                             <RequestTimer booking={book} onExpire={handleExpireBooking} />
-                             <div className="flex gap-2">
+                            <div className="flex gap-2">
                               <Link
                                 href={`/worker/quote-generator?clientName=${encodeURIComponent(book.customerName || "")}&clientPhone=${encodeURIComponent(book.customerPhone || "")}&service=${encodeURIComponent(book.projectTitle || book.notes || "Service Estimate")}&notes=${encodeURIComponent(book.notes || "")}`}
                                 className="px-3 py-1.5 text-sm font-medium border border-indigo-200 text-indigo-700 bg-indigo-50/50 hover:bg-indigo-50 hover:text-indigo-800 rounded-lg transition shadow-xs flex items-center gap-1 cursor-pointer"
@@ -3650,15 +3656,27 @@ export default function ProviderDashboardPage() {
                             </div>
                           </div>
 
-                          {/* Status Badge */}
-                          <span className={`px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${userData?.documentStatus === "approved"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200/60"
-                            : userData?.documentStatus === "submitted"
-                              ? "bg-blue-50 text-blue-700 border-blue-200/60"
-                              : "bg-amber-50 text-amber-700 border-amber-200/60"
-                            }`}>
-                            {userData?.documentStatus ? userData.documentStatus : "PENDING"}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOnboardingStep(1);
+                                setShowFullPageOnboarding(true);
+                              }}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition mr-2 cursor-pointer"
+                            >
+                              Launch Verification Wizard
+                            </button>
+                            {/* Status Badge */}
+                            <span className={`px-2.5 py-1 rounded text-[9px] font-bold uppercase tracking-wider border ${userData?.documentStatus === "approved"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200/60"
+                              : userData?.documentStatus === "submitted"
+                                ? "bg-blue-50 text-blue-700 border-blue-200/60"
+                                : "bg-amber-50 text-amber-700 border-amber-200/60"
+                              }`}>
+                              {userData?.documentStatus ? userData.documentStatus : "PENDING"}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Aadhaar & PAN Cards */}
@@ -5091,18 +5109,18 @@ export default function ProviderDashboardPage() {
 
       {/* ═══════ FULL-PAGE ONBOARDING & VERIFICATION WIZARD ═══════ */}
       {showFullPageOnboarding && (
-        <div className="fixed inset-0 z-[450] bg-slate-900/80 backdrop-blur-sm overflow-y-auto p-4 sm:p-6 font-sans text-slate-800 flex justify-center items-start sm:items-center animate-fade-in">
-          <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col my-auto relative animate-scale-in">
+        <div className="fixed inset-0 z-[450] bg-slate-900/60 backdrop-blur-sm overflow-y-auto p-4 sm:p-6 flex justify-center items-start sm:items-center animate-fade-in">
+          <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200/60 overflow-hidden flex flex-col my-auto relative animate-scale-in">
 
-            {/* Header Banner */}
-            <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-6 sm:px-8 py-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 sm:px-8 py-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25 shrink-0">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg tracking-tight">Professional Verification</h3>
-                  <p className="text-xs text-slate-400 font-medium mt-0.5">Complete your profile to get verified badge</p>
+                  <h3 className="font-semibold text-white text-lg tracking-tight">Get Verified</h3>
+                  <p className="text-sm text-slate-300 font-normal mt-0.5">Complete your profile to unlock all features</p>
                 </div>
               </div>
               <button
@@ -5113,69 +5131,78 @@ export default function ProviderDashboardPage() {
                   }
                   setShowFullPageOnboarding(false);
                 }}
-                className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-medium border border-white/20 transition cursor-pointer flex items-center gap-1.5 active:scale-95 shrink-0"
+                className="text-slate-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium transition border border-white/10 flex items-center gap-1.5"
               >
-                Skip for Now
+                <X className="w-4 h-4" />
+                Skip for now
               </button>
             </div>
 
-            {/* Navigation Steps */}
-            <div className="grid grid-cols-4 border-b border-slate-200/80 bg-slate-50/50 text-xs font-medium text-slate-600">
+            {/* Steps */}
+            <div className="grid grid-cols-4 border-b border-slate-200/60 bg-slate-50/80">
               {[
-                { step: 1, title: "Identity" },
-                { step: 2, title: "Category & Pricing" },
-                { step: 3, title: "Contact" },
-                { step: 4, title: "Documents" }
+                { step: 1, label: "Identity" },
+                { step: 2, label: "Category" },
+                { step: 3, label: "Contact" },
+                { step: 4, label: "Documents" }
               ].map((s) => (
                 <button
                   key={s.step}
                   type="button"
                   onClick={() => setOnboardingStep(s.step as any)}
-                  className={`py-3 px-3 border-r last:border-r-0 border-slate-200/60 transition cursor-pointer flex items-center justify-center gap-2 ${onboardingStep === s.step
-                    ? "bg-white text-indigo-600 border-b-2 border-b-indigo-600 font-semibold"
-                    : "hover:bg-slate-100/50 opacity-70"
+                  className={`py-3.5 px-3 border-r last:border-r-0 border-slate-200/60 transition cursor-pointer flex items-center justify-center gap-2.5 text-sm ${onboardingStep === s.step
+                      ? "bg-white text-emerald-700 border-b-2 border-b-emerald-500 font-medium"
+                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/60"
                     }`}
                 >
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${onboardingStep === s.step
-                    ? "bg-indigo-600 text-white"
-                    : "bg-slate-200 text-slate-600"
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${onboardingStep === s.step
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-slate-200 text-slate-500"
                     }`}>
                     {s.step}
                   </span>
-                  <span className="hidden sm:inline">{s.title}</span>
+                  <span className="hidden sm:inline">{s.label}</span>
                 </button>
               ))}
             </div>
 
-            {/* Step Content */}
-            <div className="p-6 sm:p-8 space-y-6 max-h-[60vh] overflow-y-auto text-sm">
+            {/* Content */}
+            <div className="p-6 sm:p-8 space-y-6 max-h-[55vh] overflow-y-auto">
 
-              {/* STEP 1: IDENTITY */}
+              {/* Step 1: Identity */}
               {onboardingStep === 1 && (
                 <div className="space-y-5 animate-fade-in">
                   <div>
-                    <h4 className="font-semibold text-base text-slate-900 mb-1">Identity & Photos</h4>
-                    <p className="text-slate-500 text-sm">Upload your business avatar and cover photo.</p>
+                    <h4 className="font-semibold text-slate-900 text-base">Profile Identity</h4>
+                    <p className="text-sm text-slate-500 mt-0.5">Add your business photos and basic information</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 space-y-3">
-                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Profile Picture</span>
-                      <div className="flex items-center gap-4">
-                        <img src={pAvatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=120&h=120&q=80"} className="w-16 h-16 rounded-xl object-cover border border-slate-200 shadow-sm" alt="" />
-                        <label className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-medium cursor-pointer transition shadow-sm">
-                          {avatarUploading ? "Uploading..." : "Change"}
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/60">
+                      <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Profile Photo</span>
+                      <div className="flex items-center gap-4 mt-3">
+                        <img
+                          src={pAvatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=120&h=120&q=80"}
+                          className="w-16 h-16 rounded-xl object-cover border-2 border-white shadow-sm"
+                          alt="Avatar"
+                        />
+                        <label className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition shadow-sm">
+                          {avatarUploading ? "Uploading..." : "Upload"}
                           <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
                         </label>
                       </div>
                     </div>
 
-                    <div className="p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 space-y-3">
-                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Cover Photo</span>
-                      <div className="flex items-center gap-4">
-                        <img src={pCover || "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=300&q=80"} className="w-24 h-16 rounded-lg object-cover border border-slate-200 shadow-sm" alt="" />
-                        <label className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-medium cursor-pointer transition shadow-sm">
-                          {coverUploading ? "Uploading..." : "Change"}
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/60">
+                      <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Cover Banner</span>
+                      <div className="flex items-center gap-4 mt-3">
+                        <img
+                          src={pCover || "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=200&h=80&q=80"}
+                          className="w-28 h-16 rounded-lg object-cover border-2 border-white shadow-sm"
+                          alt="Cover"
+                        />
+                        <label className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition shadow-sm">
+                          {coverUploading ? "Uploading..." : "Upload"}
                           <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
                         </label>
                       </div>
@@ -5183,67 +5210,67 @@ export default function ProviderDashboardPage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-slate-600">Business Name *</label>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1.5">Business Name *</label>
                       <input
                         type="text"
                         value={pName}
                         onChange={(e) => setPName(e.target.value)}
                         placeholder="e.g. PowerFix Electricals"
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-slate-600">Owner Name</label>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1.5">Owner Name</label>
                       <input
                         type="text"
                         value={pOwnerName}
                         onChange={(e) => setPOwnerName(e.target.value)}
                         placeholder="e.g. Rajesh Kumar"
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-600">Tagline</label>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 block mb-1.5">Tagline</label>
                     <input
                       type="text"
                       value={pTagline}
                       onChange={(e) => setPTagline(e.target.value)}
                       placeholder="e.g. 15+ Years Licensed Electrical Contractors"
-                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-600">Bio / Overview</label>
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 block mb-1.5">Professional Bio</label>
                     <textarea
                       rows={3}
                       value={pBio}
                       onChange={(e) => setPBio(e.target.value)}
-                      placeholder="Describe your services, experience, and quality guarantees..."
-                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm resize-none"
+                      placeholder="Describe your services, experience, and quality standards..."
+                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm resize-none"
                     />
                   </div>
                 </div>
               )}
 
-              {/* STEP 2: CATEGORY & PRICING */}
+              {/* Step 2: Category */}
               {onboardingStep === 2 && (
                 <div className="space-y-5 animate-fade-in">
                   <div>
-                    <h4 className="font-semibold text-base text-slate-900 mb-1">Category & Pricing</h4>
-                    <p className="text-slate-500 text-sm">Select your category, specialization, and rates.</p>
+                    <h4 className="font-semibold text-slate-900 text-base">Category & Pricing</h4>
+                    <p className="text-sm text-slate-500 mt-0.5">Define your specialization and service rates</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-slate-600">Primary Category *</label>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1.5">Primary Category *</label>
                       <select
                         value={pCategories[0] || ""}
                         onChange={(e) => setPCategories([e.target.value])}
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm cursor-pointer"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm cursor-pointer"
                       >
                         <option value="">Select Category</option>
                         {categoriesList.map((c) => (
@@ -5251,148 +5278,148 @@ export default function ProviderDashboardPage() {
                         ))}
                       </select>
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-slate-600">Subcategory</label>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1.5">Subcategory</label>
                       <input
                         type="text"
                         value={pSubcategory}
                         onChange={(e) => setPSubcategory(e.target.value)}
                         placeholder="e.g. High-Voltage Wiring"
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-slate-600">Experience</label>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1.5">Experience</label>
                       <input
                         type="text"
                         value={pExp}
                         onChange={(e) => setPExp(e.target.value)}
                         placeholder="e.g. 10 Years"
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-slate-600">Price Starting From</label>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1.5">Starting Price</label>
                       <input
                         type="text"
                         value={pPriceStartingFrom}
                         onChange={(e) => setPPriceStartingFrom(e.target.value)}
                         placeholder="e.g. ₹299"
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-slate-600">Languages</label>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1.5">Languages</label>
                       <input
                         type="text"
                         value={pLanguages}
                         onChange={(e) => setPLanguages(e.target.value)}
                         placeholder="e.g. Hindi, English"
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* STEP 3: CONTACT */}
+              {/* Step 3: Contact */}
               {onboardingStep === 3 && (
                 <div className="space-y-5 animate-fade-in">
                   <div>
-                    <h4 className="font-semibold text-base text-slate-900 mb-1">Contact & Reach</h4>
-                    <p className="text-slate-500 text-sm">Provide contact details and service coverage.</p>
+                    <h4 className="font-semibold text-slate-900 text-base">Contact & Location</h4>
+                    <p className="text-sm text-slate-500 mt-0.5">Make it easy for clients to reach you</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-slate-600">Phone Number *</label>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1.5">Phone Number *</label>
                       <input
                         type="text"
                         value={pPhone}
                         onChange={(e) => setPPhone(e.target.value)}
                         placeholder="+91 98290 12345"
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-slate-600">WhatsApp Number</label>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1.5">WhatsApp Number</label>
                       <input
                         type="text"
                         value={pWhatsapp}
                         onChange={(e) => setPWhatsapp(e.target.value)}
                         placeholder="+91 98290 12345"
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-slate-600">Service Area</label>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1.5">Service Area</label>
                       <input
                         type="text"
                         value={pArea}
                         onChange={(e) => setPArea(e.target.value)}
                         placeholder="e.g. Jaipur, Mansarovar"
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-slate-600">Website</label>
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 block mb-1.5">Website</label>
                       <input
                         type="text"
                         value={pWebsite}
                         onChange={(e) => setPWebsite(e.target.value)}
                         placeholder="https://example.com"
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
                     </div>
                   </div>
 
-                  <div className="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200/60">
                     <div>
-                      <span className="font-medium text-slate-900 block">24/7 Emergency Service</span>
-                      <span className="text-xs text-slate-500">Accept urgent calls at any hour</span>
+                      <span className="font-medium text-slate-900">24/7 Emergency Service</span>
+                      <p className="text-sm text-slate-500">Accept urgent calls anytime</p>
                     </div>
                     <input
                       type="checkbox"
                       checked={pEmergencyService}
                       onChange={(e) => setPEmergencyService(e.target.checked)}
-                      className="w-5 h-5 accent-indigo-600 rounded cursor-pointer"
+                      className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-400 focus:ring-offset-0 cursor-pointer"
                     />
                   </div>
                 </div>
               )}
 
-              {/* STEP 4: DOCUMENTS */}
+              {/* Step 4: Documents */}
               {onboardingStep === 4 && (
                 <div className="space-y-5 animate-fade-in">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-200/60 pb-3">
                     <div>
-                      <h4 className="font-semibold text-base text-slate-900 mb-0.5">Document Verification</h4>
-                      <p className="text-slate-500 text-sm">Upload documents to get verified badge</p>
+                      <h4 className="font-semibold text-slate-900 text-base">Document Verification</h4>
+                      <p className="text-sm text-slate-500 mt-0.5">Upload identity proofs to get verified</p>
                     </div>
-                    <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200/60 px-3 py-1 rounded-full shrink-0">
+                    <span className="text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200/60 px-3 py-1 rounded-full">
                       Max 5MB per file
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 space-y-3">
-                      <label className="text-xs font-medium text-slate-600 block">Aadhaar Number</label>
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/60">
+                      <label className="text-sm font-medium text-slate-700 block mb-2">Aadhaar Number</label>
                       <input
                         type="text"
                         value={pDocumentVerifications.aadhar || ""}
                         onChange={(e) => setPDocumentVerifications(prev => ({ ...prev, aadhar: e.target.value }))}
-                        placeholder="12-Digit Aadhaar"
-                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        placeholder="XXXX XXXX XXXX"
+                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
-                        <span className="text-[10px] text-slate-400">JPG, PNG, PDF</span>
-                        <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition flex items-center gap-1.5">
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200/60">
+                        <span className="text-xs text-slate-400">JPG, PNG, PDF</span>
+                        <label className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition flex items-center gap-1.5 shadow-sm">
                           <Upload className="w-3.5 h-3.5" />
                           {pDocumentVerifications.aadharDoc ? "Change" : "Upload"}
                           <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "aadharDoc")} />
@@ -5400,18 +5427,18 @@ export default function ProviderDashboardPage() {
                       </div>
                     </div>
 
-                    <div className="p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 space-y-3">
-                      <label className="text-xs font-medium text-slate-600 block">PAN Number</label>
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/60">
+                      <label className="text-sm font-medium text-slate-700 block mb-2">PAN Number</label>
                       <input
                         type="text"
                         value={pDocumentVerifications.pan || ""}
                         onChange={(e) => setPDocumentVerifications(prev => ({ ...prev, pan: e.target.value.toUpperCase() }))}
-                        placeholder="10-Digit PAN"
-                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        placeholder="ABCDE1234F"
+                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
-                        <span className="text-[10px] text-slate-400">JPG, PNG, PDF</span>
-                        <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition flex items-center gap-1.5">
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200/60">
+                        <span className="text-xs text-slate-400">JPG, PNG, PDF</span>
+                        <label className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition flex items-center gap-1.5 shadow-sm">
                           <Upload className="w-3.5 h-3.5" />
                           {pDocumentVerifications.panDoc ? "Change" : "Upload"}
                           <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "panDoc")} />
@@ -5421,18 +5448,18 @@ export default function ProviderDashboardPage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 space-y-3">
-                      <label className="text-xs font-medium text-slate-600 block">GST Number</label>
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/60">
+                      <label className="text-sm font-medium text-slate-700 block mb-2">GST Number</label>
                       <input
                         type="text"
                         value={pDocumentVerifications.gstNumber || ""}
                         onChange={(e) => setPDocumentVerifications(prev => ({ ...prev, gstNumber: e.target.value.toUpperCase() }))}
-                        placeholder="15-Digit GSTIN"
-                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        placeholder="29GGGGG1314R9Z6"
+                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
-                        <span className="text-[10px] text-slate-400">JPG, PNG, PDF</span>
-                        <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition flex items-center gap-1.5">
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200/60">
+                        <span className="text-xs text-slate-400">JPG, PNG, PDF</span>
+                        <label className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition flex items-center gap-1.5 shadow-sm">
                           <Upload className="w-3.5 h-3.5" />
                           {pDocumentVerifications.gstDoc ? "Change" : "Upload"}
                           <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "gstDoc")} />
@@ -5440,18 +5467,18 @@ export default function ProviderDashboardPage() {
                       </div>
                     </div>
 
-                    <div className="p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 space-y-3">
-                      <label className="text-xs font-medium text-slate-600 block">License Number</label>
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/60">
+                      <label className="text-sm font-medium text-slate-700 block mb-2">License Number</label>
                       <input
                         type="text"
                         value={pDocumentVerifications.licenseNumber || ""}
                         onChange={(e) => setPDocumentVerifications(prev => ({ ...prev, licenseNumber: e.target.value }))}
                         placeholder="License / Certificate No."
-                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition text-sm"
+                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition text-sm"
                       />
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
-                        <span className="text-[10px] text-slate-400">JPG, PNG, PDF</span>
-                        <label className="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 px-4 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition flex items-center gap-1.5">
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-200/60">
+                        <span className="text-xs text-slate-400">JPG, PNG, PDF</span>
+                        <label className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition flex items-center gap-1.5 shadow-sm">
                           <Upload className="w-3.5 h-3.5" />
                           {pDocumentVerifications.licenseDoc ? "Change" : "Upload"}
                           <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => handleDocFileUpload(e, "licenseDoc")} />
@@ -5463,14 +5490,14 @@ export default function ProviderDashboardPage() {
               )}
             </div>
 
-            {/* Footer Actions */}
+            {/* Footer */}
             <div className="px-6 sm:px-8 py-4 bg-slate-50/80 border-t border-slate-200/60 flex flex-wrap justify-between items-center gap-3">
               <div className="flex gap-2">
                 {onboardingStep > 1 && (
                   <button
                     type="button"
                     onClick={() => setOnboardingStep((onboardingStep - 1) as any)}
-                    className="px-5 py-2.5 rounded-lg bg-white border border-slate-200 text-slate-700 font-medium text-sm hover:bg-slate-50 transition cursor-pointer"
+                    className="px-5 py-2.5 rounded-lg bg-white border border-slate-200 text-slate-700 font-medium text-sm hover:bg-slate-50 transition"
                   >
                     ← Back
                   </button>
@@ -5479,7 +5506,7 @@ export default function ProviderDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setOnboardingStep((onboardingStep + 1) as any)}
-                    className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm transition shadow-sm"
+                    className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition shadow-sm"
                   >
                     Next →
                   </button>
@@ -5495,7 +5522,7 @@ export default function ProviderDashboardPage() {
                     }
                     setShowFullPageOnboarding(false);
                   }}
-                  className="px-5 py-2.5 rounded-lg bg-slate-200 text-slate-700 font-medium text-sm hover:bg-slate-300 transition cursor-pointer"
+                  className="px-5 py-2.5 rounded-lg bg-slate-200 text-slate-700 font-medium text-sm hover:bg-slate-300 transition"
                 >
                   Skip
                 </button>
@@ -5541,9 +5568,10 @@ export default function ProviderDashboardPage() {
                       setSavingProfile(false);
                     }
                   }}
-                  className="px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition shadow-sm flex items-center gap-1.5"
+                  className="px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition shadow-sm flex items-center gap-2"
                 >
-                  <CheckCircle className="w-4 h-4" /> Complete
+                  <CheckCircle className="w-4 h-4" />
+                  Complete Verification
                 </button>
               </div>
             </div>
