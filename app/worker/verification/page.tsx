@@ -225,38 +225,40 @@ export default function ProfessionalVerificationPage() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    const MAX_SIZE_MB = 5;
+    const MAX_SIZE_MB = 4;
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
       showToast(`File size exceeds ${MAX_SIZE_MB}MB limit`, "error");
       return;
     }
 
     try {
-      showToast("Uploading document to storage...", "info");
-      let fileToUpload: Blob | File = file;
-
+      showToast("Processing document file...", "info");
+      
       if (file.type.startsWith("image/")) {
-        try {
-          const { compressImageToBlob } = await import("@/lib/imageUtils");
-          fileToUpload = await compressImageToBlob(file, 1200, 0.8, 300);
-        } catch (compressErr) {
-          console.error("Compression failed, uploading original image:", compressErr);
-        }
+        const b64 = await compressImageToBase64(file, 1000, 0.78);
+        setDocumentVerifications(prev => ({
+          ...prev,
+          [fieldName]: b64
+        }));
+        showToast("Document saved successfully!", "success");
+      } else {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const base64Url = event.target?.result as string;
+          setDocumentVerifications(prev => ({
+            ...prev,
+            [fieldName]: base64Url
+          }));
+          showToast("Document saved successfully!", "success");
+        };
+        reader.onerror = () => {
+          showToast("Failed to process document file.", "error");
+        };
+        reader.readAsDataURL(file);
       }
-
-      const fileExtension = file.name.split('.').pop() || "jpg";
-      const storageRef = ref(storage, `verification_docs/${user.uid}/${fieldName}_${Date.now()}.${fileExtension}`);
-      await uploadBytes(storageRef, fileToUpload);
-      const downloadURL = await getDownloadURL(storageRef);
-
-      setDocumentVerifications(prev => ({
-        ...prev,
-        [fieldName]: downloadURL
-      }));
-      showToast("Document uploaded successfully!", "success");
     } catch (err) {
-      console.error("Upload error:", err);
-      showToast("Failed to upload document.", "error");
+      console.error("Doc upload processing error:", err);
+      showToast("Failed to process document file.", "error");
     }
   };
 
