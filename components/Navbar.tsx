@@ -226,7 +226,6 @@ export default function Navbar({ isProfileView = false }: { isProfileView?: bool
             </button>
             <Link href="/" className="flex items-center gap-2 text-2xl font-extrabold text-slate-900 tracking-tight">
               <img src="/logo.png" alt="Zenzy Logo" className="h-8 w-auto object-contain" />
-              <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-primary-500 to-primary-600 mt-1.5 brand-pulse-dot" />
             </Link>
           </div>
 
