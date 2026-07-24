@@ -57,6 +57,7 @@ export default function MeetingChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -207,147 +208,79 @@ export default function MeetingChatPage() {
     Pending: "from-amber-400 to-amber-500 bg-amber-100 text-amber-700",
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex flex-col font-sans">
-      {/* Top Banner Navigation */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
-        className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 sticky top-0 z-50 px-4 py-3 sm:px-6 shadow-sm"
-      >
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => router.back()}
-              className="p-2.5 hover:bg-slate-100 rounded-2xl transition-all duration-200 text-slate-600 hover:text-slate-900"
-              title="Return"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </motion.button>
-            <div className="h-8 w-px bg-slate-200" />
-            <div className="text-left">
-              <div className="flex items-center gap-3">
-                <h2 className="text-sm font-bold text-slate-900 leading-tight flex items-center gap-2">
-                  Discussion with {participantName}
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-full text-[9px] font-bold">
-                    <Sparkles className="w-2.5 h-2.5" />
-                    Active
-                  </span>
-                </h2>
-              </div>
-              <p className="text-[10px] text-slate-400 font-medium mt-0.5 flex items-center gap-2">
-                <span>Ref: #{meeting.id.slice(0, 8).toUpperCase()}</span>
-                <button
-                  onClick={copyMeetingId}
-                  className="hover:text-slate-600 transition-colors duration-200"
-                >
-                  {copied ? (
-                    <Check className="w-3 h-3 text-emerald-500" />
-                  ) : (
-                    <Copy className="w-3 h-3" />
-                  )}
-                </button>
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <motion.span
-              whileHover={{ scale: 1.05 }}
-              className={`text-[10px] font-black uppercase px-3 py-1 rounded-full bg-gradient-to-r ${statusColors[meeting.status] || statusColors.Pending
-                } shadow-sm`}
-            >
-              {meeting.status}
-            </motion.span>
-          </div>
-        </div>
-      </motion.header>
-
-      {/* Main Container Split Layout */}
-      <div className="flex-1 max-w-7xl w-full mx-auto flex flex-col md:flex-row overflow-hidden">
-        {/* Left Sidebar - Meeting Meta */}
-        <motion.aside
-          initial={{ x: -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="w-full md:w-80 bg-white/60 backdrop-blur-sm border-b md:border-b-0 md:border-r border-slate-200/60 p-6 flex flex-col justify-between shrink-0 space-y-6"
-        >
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <CalendarDays className="w-3.5 h-3.5" />
-                Meeting Schedule
-              </h3>
-              <div className="space-y-4">
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="flex items-start gap-3 text-xs text-slate-650 font-medium p-3 bg-white/50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-all duration-200"
-                >
-                  <Calendar className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="block text-slate-400 text-[9px] uppercase tracking-wider font-bold">Meeting Date</span>
-                    <strong className="text-slate-800 font-semibold text-sm">
-                      {new Date(meeting.date).toLocaleDateString('en-IN', { dateStyle: 'long' })}
-                    </strong>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.25 }}
-                  className="flex items-start gap-3 text-xs text-slate-650 font-medium p-3 bg-white/50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-all duration-200"
-                >
-                  <Clock className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="block text-slate-400 text-[9px] uppercase tracking-wider font-bold">Meeting Time</span>
-                    <strong className="text-slate-800 font-semibold text-sm">{meeting.time}</strong>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="flex items-start gap-3 text-xs text-slate-650 font-medium p-3 bg-white/50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-all duration-200"
-                >
-                  <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="block text-slate-400 text-[9px] uppercase tracking-wider font-bold">Consultation Site</span>
-                    <strong className="text-slate-800 font-semibold text-sm">{meeting.location}</strong>
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-
-            {meeting.notes && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35 }}
-                className="pt-4 border-t border-slate-200/50"
-              >
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <FileText className="w-3.5 h-3.5" />
-                  Meeting Notes
-                </h3>
-                <div className="bg-gradient-to-br from-slate-50/80 to-white p-4 rounded-2xl text-xs text-slate-600 italic leading-relaxed border border-slate-200/50 shadow-sm">
-                  "{meeting.notes}"
-                </div>
-              </motion.div>
-            )}
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="pt-6 border-t border-slate-200/50 space-y-3.5"
+  const renderSidebar = () => {
+    return (
+      <div className="flex flex-col h-full">
+        {/* Sidebar Header: 3 dots left, arrow button back right. No text. */}
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200/50">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-500 hover:text-slate-800"
+            aria-label="More Options"
           >
+            <MoreVertical className="w-5 h-5" />
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => router.back()}
+            className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-500 hover:text-slate-800"
+            aria-label="Go Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </motion.button>
+        </div>
+
+        {/* Sidebar Content */}
+        <div className="flex-1 overflow-y-auto py-6 space-y-6 scrollbar-none">
+          <div>
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <CalendarDays className="w-3.5 h-3.5" />
+              Meeting Schedule
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 text-xs text-slate-650 font-medium p-3 bg-white/50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-all duration-200">
+                <Calendar className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                <div>
+                  <span className="block text-slate-400 text-[9px] uppercase tracking-wider font-bold">Meeting Date</span>
+                  <strong className="text-slate-800 font-semibold text-sm">
+                    {new Date(meeting.date).toLocaleDateString('en-IN', { dateStyle: 'long' })}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 text-xs text-slate-650 font-medium p-3 bg-white/50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-all duration-200">
+                <Clock className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                <div>
+                  <span className="block text-slate-400 text-[9px] uppercase tracking-wider font-bold">Meeting Time</span>
+                  <strong className="text-slate-800 font-semibold text-sm">{meeting.time}</strong>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 text-xs text-slate-650 font-medium p-3 bg-white/50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-all duration-200">
+                <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                <div>
+                  <span className="block text-slate-400 text-[9px] uppercase tracking-wider font-bold">Consultation Site</span>
+                  <strong className="text-slate-800 font-semibold text-sm">{meeting.location}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {meeting.notes && (
+            <div className="pt-4 border-t border-slate-200/50">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <FileText className="w-3.5 h-3.5" />
+                Meeting Notes
+              </h3>
+              <div className="bg-gradient-to-br from-slate-50/80 to-white p-4 rounded-2xl text-xs text-slate-600 italic leading-relaxed border border-slate-200/50 shadow-sm">
+                "{meeting.notes}"
+              </div>
+            </div>
+          )}
+
+          <div className="pt-6 border-t border-slate-200/50 space-y-3.5">
             <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
               <Users className="w-3.5 h-3.5" />
               Participants
@@ -376,13 +309,74 @@ export default function MeetingChatPage() {
                 </div>
               </div>
             </div>
-          </motion.div>
-        </motion.aside>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="h-[100dvh] w-full bg-gradient-to-br from-slate-50 via-white to-slate-50 flex flex-col font-sans overflow-hidden relative">
+      {/* Mobile Drawer (Sidebar) */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsSidebarOpen(false)}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 md:hidden"
+            />
+            {/* Sidebar drawer content */}
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="fixed inset-y-0 left-0 w-80 bg-white z-50 p-6 flex flex-col justify-between shadow-2xl md:hidden"
+            >
+              {renderSidebar()}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      <div className="flex-1 flex overflow-hidden">
+        {/* Desktop Static Sidebar */}
+        <aside className="hidden md:flex w-80 bg-white/60 backdrop-blur-sm border-r border-slate-200/60 p-6 flex-col justify-between shrink-0">
+          {renderSidebar()}
+        </aside>
 
         {/* Central Chat Stream Section */}
-        <main className="flex-1 flex flex-col bg-gradient-to-b from-slate-50/30 to-white h-[calc(100vh-140px)] md:h-[calc(100vh-62px)] relative">
+        <main className="flex-1 flex flex-col bg-gradient-to-b from-slate-50/30 to-white h-full relative overflow-hidden">
+          {/* Floating Action Buttons for mobile (since there is no top navbar) */}
+          <div className="md:hidden absolute top-4 left-4 z-40 flex gap-2">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-3 bg-white/95 backdrop-blur-md shadow-md hover:shadow-lg rounded-2xl border border-slate-200/60 text-slate-600 hover:text-slate-900 transition-all"
+              aria-label="Open sidebar details"
+            >
+              <MoreVertical className="w-5 h-5" />
+            </motion.button>
+          </div>
+          <div className="md:hidden absolute top-4 right-4 z-40 flex gap-2">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.back()}
+              className="p-3 bg-white/95 backdrop-blur-md shadow-md hover:shadow-lg rounded-2xl border border-slate-200/60 text-slate-600 hover:text-slate-900 transition-all"
+              aria-label="Back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </motion.button>
+          </div>
+
           {/* Messages Feed */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 pt-20 md:pt-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
             <AnimatePresence>
               {messages.length === 0 ? (
                 <motion.div
@@ -430,7 +424,7 @@ export default function MeetingChatPage() {
                       </span>
                       <motion.div
                         whileHover={{ scale: 1.01 }}
-                        className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm font-medium leading-relaxed shadow-sm ${isMe
+                        className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-3 text-sm font-medium leading-relaxed shadow-sm ${isMe
                           ? "bg-gradient-to-br from-slate-800 to-slate-900 text-white rounded-tr-none shadow-slate-200"
                           : "bg-white border border-slate-200/80 text-slate-800 rounded-tl-none shadow-slate-100"
                           }`}
