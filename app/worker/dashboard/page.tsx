@@ -22,7 +22,6 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import MeetingChatModal from "@/components/MeetingChatModal";
 import {
   TrendingUp,
   Briefcase,
@@ -912,6 +911,17 @@ export default function ProviderDashboardPage() {
       await triggerNotification(customerId, `Booking Status Update: ${status}`, alertText, "booking");
     } catch (err) {
       showToast("Failed to update booking status.");
+    }
+  };
+
+  const handleDeleteQuotation = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this estimate? This action cannot be undone.")) return;
+    try {
+      await deleteDoc(doc(db, "quotations", id));
+      showToast("Estimate deleted successfully.");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to delete estimate.");
     }
   };
 
@@ -2214,7 +2224,7 @@ export default function ProviderDashboardPage() {
                         {quotations.filter(q => q.status === "Accepted" || q.status === "accepted").map((q) => {
                           const quoteMeeting = meetings.find(m => m.quoteId === q.id);
                           return (
-                            <div key={q.id} className="border border-slate-200 rounded-xl p-5 hover:border-slate-350 transition-all space-y-4">
+                            <div key={q.id} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 space-y-5 text-left">
                               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
                                 <div>
                                   <div className="flex items-center gap-2">
@@ -2227,31 +2237,31 @@ export default function ProviderDashboardPage() {
                                 </div>
                                 <div className="text-right sm:text-right flex sm:flex-col items-center sm:items-end gap-2 justify-between w-full sm:w-auto">
                                   <span className="text-xs text-slate-400">Grand Total</span>
-                                  <span className="text-sm font-extrabold text-slate-950">₹{q.grandTotal?.toLocaleString('en-IN') || q.total?.toLocaleString('en-IN')}</span>
+                                  <span className="text-sm font-extrabold text-slate-955">₹{q.grandTotal?.toLocaleString('en-IN') || q.total?.toLocaleString('en-IN')}</span>
                                 </div>
                               </div>
 
-                              {/* Acceptance details: Gmail and comments */}
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 bg-slate-50/50 p-4 rounded-xl border border-slate-150/40">
+                              {/* Acceptance details: Gmail and comments - flat style */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 pt-4 border-t border-slate-100">
                                 <div className="space-y-1.5">
                                   <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Sign-off Authorized Gmail / Email</span>
-                                  <div className="flex items-center gap-1.5 text-slate-800">
-                                    <Mail className="w-3.5 h-3.5 text-slate-400" />
+                                  <div className="flex items-center gap-1.5 text-slate-805">
+                                    <Mail className="w-3.5 h-3.5 text-slate-405" />
                                     <span className="font-mono text-xs text-slate-900">{q.acceptedEmail || "N/A"}</span>
                                   </div>
                                 </div>
                                 <div className="space-y-1.5">
                                   <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Customer Signature / Full Name</span>
                                   <div className="flex items-center gap-1.5 text-slate-805">
-                                    <User className="w-3.5 h-3.5 text-slate-400" />
+                                    <User className="w-3.5 h-3.5 text-slate-450" />
                                     <span>{q.signatureName || q.acceptedSignature || "N/A"}</span>
                                   </div>
                                 </div>
 
                                 {q.acceptedNotes && (
-                                  <div className="col-span-1 md:col-span-2 pt-2 border-t border-slate-200/50">
-                                    <span className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Customer Comments / What they wrote:</span>
-                                    <p className="text-xs text-slate-700 italic bg-white p-3 rounded-lg border border-slate-200/80 leading-relaxed font-normal">
+                                  <div className="col-span-1 md:col-span-2 pt-3 border-t border-slate-100">
+                                    <span className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1.5">Customer Comments / What they wrote:</span>
+                                    <p className="text-xs text-slate-700 italic bg-slate-50/60 p-3 rounded-xl leading-relaxed font-normal">
                                       "{q.acceptedNotes}"
                                     </p>
                                   </div>
@@ -2261,8 +2271,8 @@ export default function ProviderDashboardPage() {
                               {/* Offline Meeting Block */}
                               <div className="pt-2">
                                 {quoteMeeting ? (
-                                  <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
-                                    <div className="flex items-center justify-between border-b border-slate-150 pb-2.5">
+                                  <div className="pt-4 border-t border-slate-100 space-y-3.5">
+                                    <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-1.5">
                                         <Calendar className="w-4 h-4 text-slate-500" />
                                         <span className="text-xs font-bold text-slate-850">Offline Meeting Detail</span>
@@ -2275,19 +2285,19 @@ export default function ProviderDashboardPage() {
                                         {quoteMeeting.status}
                                       </span>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold text-slate-600">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold text-slate-650">
                                       <div>Date & Time: <strong className="text-slate-850">{new Date(quoteMeeting.date).toLocaleDateString('en-IN', { dateStyle: 'medium' })} at {quoteMeeting.time}</strong></div>
                                       <div>Location: <strong className="text-slate-850">{quoteMeeting.location}</strong></div>
                                     </div>
                                     {quoteMeeting.notes && (
-                                      <div className="text-xs italic text-slate-500 bg-slate-50 p-2.5 rounded border border-slate-100">
+                                      <div className="text-xs italic text-slate-705 bg-slate-50/60 p-3 rounded-xl">
                                         "{quoteMeeting.notes}"
                                       </div>
                                     )}
                                     <div className="flex gap-2 justify-end pt-1">
                                       <button
                                         type="button"
-                                        onClick={() => setChatMeetingId(quoteMeeting.id)}
+                                        onClick={() => router.push('/meeting-chat/' + quoteMeeting.id)}
                                         className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] uppercase rounded-lg transition cursor-pointer flex items-center gap-1"
                                       >
                                         <MessageSquare className="w-3.5 h-3.5 text-emerald-455" /> Message Client
@@ -2314,7 +2324,7 @@ export default function ProviderDashboardPage() {
                                                 showToast("Meeting Cancelled.");
                                               }
                                             }}
-                                            className="px-3 py-1.5 bg-red-50 hover:bg-red-105 text-red-600 border border-red-200 font-bold text-[10px] uppercase rounded-lg transition cursor-pointer"
+                                            className="px-3 py-1.5 bg-red-50 hover:bg-red-105 text-red-605 border border-red-200 font-bold text-[10px] uppercase rounded-lg transition cursor-pointer"
                                           >
                                             Decline
                                           </button>
@@ -2342,7 +2352,7 @@ export default function ProviderDashboardPage() {
                                                 showToast("Meeting Cancelled.");
                                               }
                                             }}
-                                            className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 font-bold text-[10px] uppercase rounded-lg transition cursor-pointer"
+                                            className="px-3 py-1.5 bg-slate-50 hover:bg-slate-105 text-slate-600 border border-slate-200 font-bold text-[10px] uppercase rounded-lg transition cursor-pointer"
                                           >
                                             Cancel
                                           </button>
@@ -2351,9 +2361,9 @@ export default function ProviderDashboardPage() {
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="flex flex-col sm:flex-row justify-between items-center bg-slate-50 border border-dashed border-slate-200 p-4 rounded-xl gap-3 text-left">
+                                  <div className="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-slate-100 gap-3 text-left">
                                     <div>
-                                      <span className="text-xs font-bold text-slate-800 block">No Offline Meeting Scheduled</span>
+                                      <span className="text-xs font-bold text-slate-850 block">No Offline Meeting Scheduled</span>
                                       <span className="text-[10px] text-slate-400 mt-0.5 block">Schedule a physical inspection or discussion with this client.</span>
                                     </div>
                                     <button
@@ -2389,10 +2399,10 @@ export default function ProviderDashboardPage() {
                         No pending or declined quotations.
                       </div>
                     ) : (
-                      <div className="divide-y divide-slate-100">
+                      <div className="divide-y divide-slate-100 text-left">
                         {quotations.filter(q => q.status !== "Accepted" && q.status !== "accepted").map((q) => (
                           <div key={q.id} className="py-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                            <div className="space-y-1">
+                            <div className="space-y-1 text-left">
                               <div className="flex items-center gap-2">
                                 <span className="text-[9.5px] font-mono text-slate-400 font-bold uppercase">#{q.quoteNumber || q.id.slice(0, 8)}</span>
                                 <span className={`text-[8.5px] font-black uppercase px-2 py-0.5 rounded ${q.status === 'Declined' || q.status === 'declined' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
@@ -2401,20 +2411,30 @@ export default function ProviderDashboardPage() {
                                 </span>
                               </div>
                               <span className="font-bold text-sm text-slate-900 block">{q.projectTitle}</span>
-                              <div className="text-[10px] text-slate-450 font-medium">
+                              <div className="text-[10px] text-slate-455 font-medium">
                                 Client: <strong className="text-slate-750">{q.customerName}</strong> · Issued: {new Date(q.createdAt || q.issueDate).toLocaleDateString('en-IN')}
                               </div>
                             </div>
-                            <div className="text-right sm:text-right shrink-0">
-                              <span className="text-xs font-extrabold text-slate-950 block">₹{q.grandTotal?.toLocaleString('en-IN') || q.total?.toLocaleString('en-IN')}</span>
-                              <a
-                                href={`/quote/${q.id}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-[10px] font-bold text-blue-500 hover:underline mt-1 block"
+                            <div className="text-right sm:text-right shrink-0 flex items-center gap-3">
+                              <div>
+                                <span className="text-xs font-extrabold text-slate-955 block">₹{q.grandTotal?.toLocaleString('en-IN') || q.total?.toLocaleString('en-IN')}</span>
+                                <a
+                                  href={`/quote/${q.id}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-[10px] font-bold text-blue-500 hover:underline mt-1 block"
+                                >
+                                  View Live Proposal ↗
+                                </a>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteQuotation(q.id)}
+                                className="p-2 text-slate-450 hover:text-red-500 bg-slate-50 hover:bg-red-50 rounded-xl transition duration-180 cursor-pointer"
+                                title="Delete Estimate"
                               >
-                                View Live Proposal ↗
-                              </a>
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
                           </div>
                         ))}
@@ -2425,7 +2445,6 @@ export default function ProviderDashboardPage() {
               </div>
             )}
 
-            {/* TAB: REQUESTS (Client Inquiry & Project Requests) */}
             {activeTab === "requests" && (
               <div className="space-y-6 animate-fade-up">
                 {/* Header */}
@@ -4877,15 +4896,7 @@ export default function ProviderDashboardPage() {
         </div>
       )}
 
-      {/* Meeting Chat Modal Overlay */}
-      {chatMeetingId && (
-        <MeetingChatModal
-          meetingId={chatMeetingId}
-          onClose={() => setChatMeetingId(null)}
-          currentUser={user}
-          currentUserName={user?.displayName || userData?.name || "Professional"}
-        />
-      )}
+      {/* Meeting Chat Modal Overlay Removed in favor of dedicated page */}
 
       {/* ═══════ RESCHEDULE BOOKING MODAL ═══════ */}
       {rescheduleModalOpen && selectedBookingForReschedule && (

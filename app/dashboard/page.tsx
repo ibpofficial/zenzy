@@ -24,7 +24,6 @@ import Footer from "@/components/Footer";
 import BookingTracker from "@/components/BookingTracker";
 import ReviewModal from "@/components/ReviewModal";
 import LoadingScreen from "@/components/LoadingScreen";
-import MeetingChatModal from "@/components/MeetingChatModal";
 import { reverseGeocode } from "@/lib/locationUtils";
 
 const MapPinPicker = dynamic(() => import("@/components/MapPinPicker"), { ssr: false });
@@ -547,6 +546,17 @@ export default function CustomerDashboardPage() {
     }
   };
 
+  const handleDeleteQuotation = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this estimate? This action cannot be undone.")) return;
+    try {
+      await deleteDoc(doc(db, "quotations", id));
+      showToast("Estimate deleted successfully.");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to delete estimate.");
+    }
+  };
+
   // Remove Favorite
   const handleRemoveFavorite = async (favId: string) => {
     try {
@@ -914,7 +924,7 @@ export default function CustomerDashboardPage() {
                           const isDeclined = q.status === "Declined" || q.status === "declined";
 
                           return (
-                            <div key={q.id} className="border border-slate-200 rounded-xl p-5 hover:border-slate-350 transition-all space-y-4">
+                            <div key={q.id} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 space-y-5 text-left">
                               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
                                 <div>
                                   <div className="flex items-center gap-2">
@@ -936,28 +946,28 @@ export default function CustomerDashboardPage() {
                                 </div>
                               </div>
 
-                              {/* Acceptance State Details */}
+                              {/* Acceptance State Details - clean inline flat design */}
                               {isAccepted && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 bg-slate-50/50 p-4 rounded-xl border border-slate-150/40">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 pt-4 border-t border-slate-100">
                                   <div className="space-y-1.5">
                                     <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Gmail / Email Account Signed-With</span>
-                                    <div className="flex items-center gap-1.5 text-slate-800">
+                                    <div className="flex items-center gap-1.5 text-slate-850">
                                       <Mail className="w-3.5 h-3.5 text-slate-450" />
                                       <span className="font-mono text-xs text-slate-900">{q.acceptedEmail || "N/A"}</span>
                                     </div>
                                   </div>
                                   <div className="space-y-1.5">
                                     <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Authorized Signature Name</span>
-                                    <div className="flex items-center gap-1.5 text-slate-800">
+                                    <div className="flex items-center gap-1.5 text-slate-850">
                                       <User className="w-3.5 h-3.5 text-slate-450" />
                                       <span>{q.signatureName || q.acceptedSignature || "N/A"}</span>
                                     </div>
                                   </div>
 
                                   {q.acceptedNotes && (
-                                    <div className="col-span-1 md:col-span-2 pt-2 border-t border-slate-200/50">
-                                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Your comments to contractor:</span>
-                                      <p className="text-xs text-slate-700 italic bg-white p-3 rounded-lg border border-slate-200/80 leading-relaxed font-normal">
+                                    <div className="col-span-1 md:col-span-2 pt-3 border-t border-slate-100">
+                                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1.5">Your comments to contractor:</span>
+                                      <p className="text-xs text-slate-700 italic bg-slate-50/60 p-3 rounded-xl leading-relaxed font-normal">
                                         "{q.acceptedNotes}"
                                       </p>
                                     </div>
@@ -965,12 +975,12 @@ export default function CustomerDashboardPage() {
                                 </div>
                               )}
 
-                              {/* Offline Meeting scheduling panel */}
+                              {/* Offline Meeting scheduling panel - flat style without double nested cards */}
                               <div className="pt-2">
                                 {isAccepted ? (
                                   quoteMeeting ? (
-                                    <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
-                                      <div className="flex items-center justify-between border-b border-slate-150 pb-2.5">
+                                    <div className="pt-4 border-t border-slate-100 space-y-3.5">
+                                      <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-1.5">
                                           <Calendar className="w-4 h-4 text-slate-500" />
                                           <span className="text-xs font-bold text-slate-850">Offline Meeting Details</span>
@@ -984,19 +994,19 @@ export default function CustomerDashboardPage() {
                                           {quoteMeeting.status}
                                         </span>
                                       </div>
-                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold text-slate-600">
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold text-slate-650">
                                         <div>Date & Time: <strong className="text-slate-850">{new Date(quoteMeeting.date).toLocaleDateString('en-IN', { dateStyle: 'medium' })} at {quoteMeeting.time}</strong></div>
                                         <div>Meeting Location: <strong className="text-slate-850">{quoteMeeting.location}</strong></div>
                                       </div>
                                       {quoteMeeting.notes && (
-                                        <div className="text-xs italic text-slate-505 bg-slate-50 p-2.5 rounded border border-slate-100">
+                                        <div className="text-xs italic text-slate-700 bg-slate-50/60 p-3 rounded-xl">
                                           "{quoteMeeting.notes}"
                                         </div>
                                       )}
                                       <div className="flex gap-2 justify-end pt-1">
                                         <button
                                           type="button"
-                                          onClick={() => setChatMeetingId(quoteMeeting.id)}
+                                          onClick={() => router.push('/meeting-chat/' + quoteMeeting.id)}
                                           className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] uppercase rounded-lg transition cursor-pointer flex items-center gap-1"
                                         >
                                           <MessageSquare className="w-3.5 h-3.5 text-emerald-450" /> Message Contractor
@@ -1018,9 +1028,9 @@ export default function CustomerDashboardPage() {
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="flex flex-col sm:flex-row justify-between items-center bg-slate-50 border border-dashed border-slate-200 p-4 rounded-xl gap-3">
+                                    <div className="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-slate-100 gap-3">
                                       <div className="text-center sm:text-left">
-                                        <span className="text-xs font-bold text-slate-800 block">Schedule Site Inspection / Offline Meeting</span>
+                                        <span className="text-xs font-bold text-slate-850 block">Schedule Site Inspection / Offline Meeting</span>
                                         <span className="text-[10px] text-slate-400 mt-0.5 block">Arrange a physical site consultation with {q.workerName || "contractor"}.</span>
                                       </div>
                                       <button
@@ -1036,7 +1046,15 @@ export default function CustomerDashboardPage() {
                                     </div>
                                   )
                                 ) : !isDeclined ? (
-                                  <div className="flex justify-end">
+                                  <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteQuotation(q.id)}
+                                      className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 rounded-lg text-[10.5px] font-black uppercase tracking-wider transition cursor-pointer inline-flex items-center gap-1.5 animate-fade-in"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                      <span>Delete</span>
+                                    </button>
                                     <Link
                                       href={`/quote/${q.id}`}
                                       className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10.5px] font-black uppercase tracking-wider transition cursor-pointer text-center inline-flex items-center gap-1"
@@ -1046,8 +1064,18 @@ export default function CustomerDashboardPage() {
                                     </Link>
                                   </div>
                                 ) : (
-                                  <div className="text-xs text-slate-450 italic">
-                                    This estimate was declined. Contact the contractor if you would like to request revisions.
+                                  <div className="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-slate-100 gap-3">
+                                    <div className="text-xs text-slate-500 italic">
+                                      This estimate was declined. Contact the contractor if you would like to request revisions.
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteQuotation(q.id)}
+                                      className="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 rounded-lg text-[10.5px] font-black uppercase tracking-wider transition cursor-pointer inline-flex items-center gap-1.5"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                      <span>Delete</span>
+                                    </button>
                                   </div>
                                 )}
                               </div>
@@ -2156,15 +2184,7 @@ export default function CustomerDashboardPage() {
         </div>
       )}
 
-      {/* Meeting Chat Modal Overlay */}
-      {chatMeetingId && (
-        <MeetingChatModal
-          meetingId={chatMeetingId}
-          onClose={() => setChatMeetingId(null)}
-          currentUser={user}
-          currentUserName={user?.displayName || userData?.name || "Client"}
-        />
-      )}
+      {/* Meeting Chat Modal Overlay Removed in favor of dedicated page */}
 
       {/* COMPLAINT MODAL */}
       {complaintModalOpen && complaintBooking && (

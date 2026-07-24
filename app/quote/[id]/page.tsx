@@ -17,7 +17,6 @@ import {
 import { db } from "@/lib/firebase";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
-import MeetingChatModal from "@/components/MeetingChatModal";
 import { useAuth } from "@/context/AuthContext";
 import {
   ShieldCheck,
@@ -252,6 +251,17 @@ export default function PublicQuotationPage() {
           createdAt: quote.createdAt || timestamp
         };
         await setDoc(doc(db, "quotations", quote.id), quotePayload);
+      }
+
+      // If there is an associated enquiry, update its status to "Won" to reflect in CRM Kanban
+      if (quote.enquiryId) {
+        try {
+          await updateDoc(doc(db, "professionalEnquiries", quote.enquiryId), {
+            status: "Won"
+          });
+        } catch (err) {
+          console.warn("Failed to update related inquiry status to 'Won':", err);
+        }
       }
 
       const workerId = quote.workerId || quote.businessId;
@@ -510,8 +520,8 @@ export default function PublicQuotationPage() {
 
               <div className="border-t border-green-100 pt-6 max-w-2xl mx-auto">
                 {meeting ? (
-                  <div className="bg-white border border-gray-150 rounded-xl p-5 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                  <div className="space-y-4 text-left">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-700" />
                         <h5 className="font-bold text-sm text-gray-800">Offline Meeting Scheduled</h5>
@@ -526,27 +536,27 @@ export default function PublicQuotationPage() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-gray-600">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-650">
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-400" />
+                        <Clock className="w-4 h-4 text-slate-400" />
                         <span>Date & Time: <strong>{new Date(meeting.date).toLocaleDateString('en-IN', { dateStyle: 'medium' })}</strong> at <strong>{meeting.time}</strong></span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-gray-400" />
+                        <MapPin className="w-4 h-4 text-slate-400" />
                         <span>Location: <strong>{meeting.location}</strong></span>
                       </div>
                     </div>
 
                     {meeting.notes && (
-                      <div className="bg-gray-55 border border-gray-100 p-3 rounded-lg text-xs text-gray-600 italic">
-                        <MessageSquare className="w-3.5 h-3.5 text-gray-400 inline-block mr-1.5 align-text-bottom" />
+                      <div className="bg-slate-50/60 p-3 rounded-xl text-xs text-slate-650 italic leading-relaxed">
+                        <MessageSquare className="w-3.5 h-3.5 text-slate-400 inline-block mr-1.5 align-text-bottom" />
                         "{meeting.notes}"
                       </div>
                     )}
                     <div className="flex justify-end pt-1">
                       <button
                         type="button"
-                        onClick={() => setChatMeetingId(meeting.id)}
+                        onClick={() => router.push('/meeting-chat/' + meeting.id)}
                         className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10.5px] font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5"
                       >
                         <MessageSquare className="w-3.5 h-3.5 text-emerald-400" /> Discuss details / Chat
@@ -886,15 +896,7 @@ export default function PublicQuotationPage() {
         </div>
       )}
 
-      {/* Meeting Chat Modal Overlay */}
-      {chatMeetingId && (
-        <MeetingChatModal
-          meetingId={chatMeetingId}
-          onClose={() => setChatMeetingId(null)}
-          currentUser={user}
-          currentUserName={user?.displayName || userData?.name || "Client"}
-        />
-      )}
+      {/* Meeting Chat Modal Overlay Removed in favor of dedicated page */}
 
       <div className="print:hidden">
         <Footer />

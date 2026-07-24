@@ -564,6 +564,7 @@ function QuoteComposerContent() {
         taxAmount,
         grandTotal,
         status: "Pending",
+        enquiryId: selectedInquiryId || null,
         createdAt: new Date().toISOString()
       };
 

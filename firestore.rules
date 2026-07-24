@@ -185,7 +185,16 @@ service cloud.firestore {
         request.auth.uid == resource.data.clientId || 
         isAdmin()
       );
-      allow delete: if isAdmin();
+      allow delete: if request.auth != null && (
+        request.auth.uid == resource.data.businessId || 
+        request.auth.uid == resource.data.workerId || 
+        request.auth.uid == resource.data.clientId || 
+        (request.auth.token.email != null && (
+          ('customerEmail' in resource.data && request.auth.token.email.toLowerCase() == resource.data.customerEmail.toLowerCase()) ||
+          ('acceptedEmail' in resource.data && request.auth.token.email.toLowerCase() == resource.data.acceptedEmail.toLowerCase())
+        )) ||
+        isAdmin()
+      );
     }
 
     // Meetings Collection
