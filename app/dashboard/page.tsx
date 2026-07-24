@@ -24,6 +24,7 @@ import Footer from "@/components/Footer";
 import BookingTracker from "@/components/BookingTracker";
 import ReviewModal from "@/components/ReviewModal";
 import LoadingScreen from "@/components/LoadingScreen";
+import MeetingChatModal from "@/components/MeetingChatModal";
 import { reverseGeocode } from "@/lib/locationUtils";
 
 const MapPinPicker = dynamic(() => import("@/components/MapPinPicker"), { ssr: false });
@@ -96,6 +97,7 @@ export default function CustomerDashboardPage() {
   const [meetings, setMeetings] = useState<any[]>([]);
   const [dashboardMeetingModalOpen, setDashboardMeetingModalOpen] = useState(false);
   const [selectedQuoteForMeeting, setSelectedQuoteForMeeting] = useState<any | null>(null);
+  const [chatMeetingId, setChatMeetingId] = useState<string | null>(null);
 
   // Profile Edit fields
   const [profName, setProfName] = useState("");
@@ -991,8 +993,15 @@ export default function CustomerDashboardPage() {
                                           "{quoteMeeting.notes}"
                                         </div>
                                       )}
-                                      {quoteMeeting.status === 'Pending' && (
-                                        <div className="flex justify-end pt-1">
+                                      <div className="flex gap-2 justify-end pt-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => setChatMeetingId(quoteMeeting.id)}
+                                          className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] uppercase rounded-lg transition cursor-pointer flex items-center gap-1"
+                                        >
+                                          <MessageSquare className="w-3.5 h-3.5 text-emerald-450" /> Message Contractor
+                                        </button>
+                                        {quoteMeeting.status === 'Pending' && (
                                           <button
                                             type="button"
                                             onClick={async () => {
@@ -1005,8 +1014,8 @@ export default function CustomerDashboardPage() {
                                           >
                                             Cancel Request
                                           </button>
-                                        </div>
-                                      )}
+                                        )}
+                                      </div>
                                     </div>
                                   ) : (
                                     <div className="flex flex-col sm:flex-row justify-between items-center bg-slate-50 border border-dashed border-slate-200 p-4 rounded-xl gap-3">
@@ -2145,6 +2154,16 @@ export default function CustomerDashboardPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Meeting Chat Modal Overlay */}
+      {chatMeetingId && (
+        <MeetingChatModal
+          meetingId={chatMeetingId}
+          onClose={() => setChatMeetingId(null)}
+          currentUser={user}
+          currentUserName={user?.displayName || userData?.name || "Client"}
+        />
       )}
 
       {/* COMPLAINT MODAL */}

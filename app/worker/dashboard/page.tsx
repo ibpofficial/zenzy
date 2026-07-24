@@ -22,6 +22,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MeetingChatModal from "@/components/MeetingChatModal";
 import {
   TrendingUp,
   Briefcase,
@@ -251,6 +252,7 @@ export default function ProviderDashboardPage() {
   const [meetings, setMeetings] = useState<any[]>([]);
   const [selectedQuoteForMeeting, setSelectedQuoteForMeeting] = useState<any | null>(null);
   const [dashboardMeetingModalOpen, setDashboardMeetingModalOpen] = useState(false);
+  const [chatMeetingId, setChatMeetingId] = useState<string | null>(null);
 
   // Expanded profile fields
   const [pOwnerName, setPOwnerName] = useState("");
@@ -2265,12 +2267,11 @@ export default function ProviderDashboardPage() {
                                         <Calendar className="w-4 h-4 text-slate-500" />
                                         <span className="text-xs font-bold text-slate-850">Offline Meeting Detail</span>
                                       </div>
-                                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
-                                        quoteMeeting.status === 'Confirmed' ? 'bg-green-100 text-green-800' :
-                                        quoteMeeting.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
-                                        quoteMeeting.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
-                                        'bg-amber-100 text-amber-800'
-                                      }`}>
+                                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${quoteMeeting.status === 'Confirmed' ? 'bg-green-100 text-green-800' :
+                                          quoteMeeting.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                                            quoteMeeting.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
+                                              'bg-amber-100 text-amber-800'
+                                        }`}>
                                         {quoteMeeting.status}
                                       </span>
                                     </div>
@@ -2284,6 +2285,13 @@ export default function ProviderDashboardPage() {
                                       </div>
                                     )}
                                     <div className="flex gap-2 justify-end pt-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => setChatMeetingId(quoteMeeting.id)}
+                                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] uppercase rounded-lg transition cursor-pointer flex items-center gap-1"
+                                      >
+                                        <MessageSquare className="w-3.5 h-3.5 text-emerald-455" /> Message Client
+                                      </button>
                                       {quoteMeeting.status === 'Pending' && (
                                         <>
                                           <button
@@ -2387,9 +2395,8 @@ export default function ProviderDashboardPage() {
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
                                 <span className="text-[9.5px] font-mono text-slate-400 font-bold uppercase">#{q.quoteNumber || q.id.slice(0, 8)}</span>
-                                <span className={`text-[8.5px] font-black uppercase px-2 py-0.5 rounded ${
-                                  q.status === 'Declined' || q.status === 'declined' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
-                                }`}>
+                                <span className={`text-[8.5px] font-black uppercase px-2 py-0.5 rounded ${q.status === 'Declined' || q.status === 'declined' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
+                                  }`}>
                                   {q.status}
                                 </span>
                               </div>
@@ -4870,6 +4877,16 @@ export default function ProviderDashboardPage() {
         </div>
       )}
 
+      {/* Meeting Chat Modal Overlay */}
+      {chatMeetingId && (
+        <MeetingChatModal
+          meetingId={chatMeetingId}
+          onClose={() => setChatMeetingId(null)}
+          currentUser={user}
+          currentUserName={user?.displayName || userData?.name || "Professional"}
+        />
+      )}
+
       {/* ═══════ RESCHEDULE BOOKING MODAL ═══════ */}
       {rescheduleModalOpen && selectedBookingForReschedule && (
         <div className="fixed inset-0 z-[180] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 animate-fade-in text-left">
@@ -5586,13 +5603,13 @@ export default function ProviderDashboardPage() {
                   type="button"
                   onClick={() => setOnboardingStep(s.step as any)}
                   className={`py-3.5 px-3 border-r last:border-r-0 border-slate-200/60 transition cursor-pointer flex items-center justify-center gap-2.5 text-sm ${onboardingStep === s.step
-                      ? "bg-white text-emerald-700 border-b-2 border-b-emerald-500 font-medium"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/60"
+                    ? "bg-white text-emerald-700 border-b-2 border-b-emerald-500 font-medium"
+                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-100/60"
                     }`}
                 >
                   <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${onboardingStep === s.step
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-slate-200 text-slate-500"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-slate-200 text-slate-500"
                     }`}>
                     {s.step}
                   </span>

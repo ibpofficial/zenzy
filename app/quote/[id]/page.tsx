@@ -12,10 +12,13 @@ import {
   query,
   where,
   getDocs,
+  setDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
+import MeetingChatModal from "@/components/MeetingChatModal";
+import { useAuth } from "@/context/AuthContext";
 import {
   ShieldCheck,
   CheckCircle,
@@ -71,6 +74,8 @@ export default function PublicQuotationPage() {
   const params = useParams();
   const quoteId = params?.id as string;
   const router = useRouter();
+  const { user, userData } = useAuth();
+  const [chatMeetingId, setChatMeetingId] = useState<string | null>(null);
 
   const [quote, setQuote] = useState<any>(null);
   const [worker, setWorker] = useState<any>(null);
@@ -100,13 +105,23 @@ export default function PublicQuotationPage() {
         if (quoteId.startsWith("url_")) {
           const decoded = decodeQuote(quoteId);
           if (decoded) {
-            setQuote(decoded);
-            if (decoded.status === "Accepted" || decoded.status === "accepted")
+            let finalQuote = decoded;
+            try {
+              const qSnap = await getDoc(doc(db, "quotations", decoded.id));
+              if (qSnap.exists()) {
+                finalQuote = { id: qSnap.id, ...qSnap.data() };
+              }
+            } catch (err) {
+              console.warn("Failed to check quote status in Firestore (using offline decoded info):", err);
+            }
+
+            setQuote(finalQuote);
+            if (finalQuote.status === "Accepted" || finalQuote.status === "accepted")
               setAccepted(true);
-            if (decoded.status === "Declined" || decoded.status === "declined")
+            if (finalQuote.status === "Declined" || finalQuote.status === "declined")
               setDeclined(true);
 
-            const wId = decoded.workerId || decoded.businessId;
+            const wId = finalQuote.workerId || finalQuote.businessId;
             if (wId) {
               try {
                 const wRef = doc(db, "workers", wId);
@@ -225,27 +240,38 @@ export default function PublicQuotationPage() {
           acceptedEmail: acceptedEmail.trim(),
           acceptedNotes: acceptedNotes.trim(),
         });
+      } else {
+        const quotePayload = {
+          ...quote,
+          status: "Accepted",
+          acceptedAt: timestamp,
+          acceptedSignature: sigText,
+          signatureName: sigText,
+          acceptedEmail: acceptedEmail.trim(),
+          acceptedNotes: acceptedNotes.trim(),
+          createdAt: quote.createdAt || timestamp
+        };
+        await setDoc(doc(db, "quotations", quote.id), quotePayload);
+      }
 
-        const workerId = quote.workerId || quote.businessId;
-        if (workerId) {
-          await addDoc(collection(db, "notifications"), {
-            userId: workerId,
-            title: "Quotation Accepted & Signed! 🎉",
-            text: `Client ${sigText} accepted and digitally signed Quotation #${quote.quoteNumber || quote.id.slice(0, 8)}. Grand Total: ₹${quote.grandTotal?.toLocaleString() || quote.total}`,
-            read: false,
-            createdAt: timestamp,
+      const workerId = quote.workerId || quote.businessId;
+      if (workerId) {
+        await addDoc(collection(db, "notifications"), {
+          userId: workerId,
+          title: "Quotation Accepted & Signed! 🎉",
+          text: `Client ${sigText} accepted and digitally signed Quotation #${quote.quoteNumber || quote.id.slice(0, 8)}. Grand Total: ₹${quote.grandTotal?.toLocaleString() || quote.total}`,
+          read: false,
+          createdAt: timestamp,
+        });
+
+        try {
+          await fetch("/api/recalculate-trust", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ workerId }),
           });
-
-          // Trigger trust score recalculation
-          try {
-            await fetch("/api/recalculate-trust", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ workerId }),
-            });
-          } catch (e) {
-            console.error("Recalculate trust trigger failed:", e);
-          }
+        } catch (e) {
+          console.error("Recalculate trust trigger failed:", e);
         }
       }
 
@@ -287,19 +313,26 @@ export default function PublicQuotationPage() {
           status: "Declined",
           declinedAt: timestamp,
         });
+      } else {
+        const quotePayload = {
+          ...quote,
+          status: "Declined",
+          declinedAt: timestamp,
+          createdAt: quote.createdAt || timestamp
+        };
+        await setDoc(doc(db, "quotations", quote.id), quotePayload);
+      }
 
-        const workerId = quote.workerId || quote.businessId;
-        if (workerId) {
-          // Trigger trust score recalculation
-          try {
-            await fetch("/api/recalculate-trust", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ workerId }),
-            });
-          } catch (e) {
-            console.error("Recalculate trust trigger failed:", e);
-          }
+      const workerId = quote.workerId || quote.businessId;
+      if (workerId) {
+        try {
+          await fetch("/api/recalculate-trust", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ workerId }),
+          });
+        } catch (e) {
+          console.error("Recalculate trust trigger failed:", e);
         }
       }
 
@@ -510,6 +543,15 @@ export default function PublicQuotationPage() {
                         "{meeting.notes}"
                       </div>
                     )}
+                    <div className="flex justify-end pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setChatMeetingId(meeting.id)}
+                        className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10.5px] font-black uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5 text-emerald-400" /> Discuss details / Chat
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center bg-white border border-gray-150 p-6 rounded-xl shadow-sm space-y-4">
@@ -842,6 +884,16 @@ export default function PublicQuotationPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Meeting Chat Modal Overlay */}
+      {chatMeetingId && (
+        <MeetingChatModal
+          meetingId={chatMeetingId}
+          onClose={() => setChatMeetingId(null)}
+          currentUser={user}
+          currentUserName={user?.displayName || userData?.name || "Client"}
+        />
       )}
 
       <div className="print:hidden">
