@@ -35,7 +35,7 @@ export default function MeetingChatPage() {
   
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch meeting metadata and verify authorization
+  // Fetch meeting metadata
   useEffect(() => {
     if (!meetingId || !user) return;
 
@@ -51,19 +51,6 @@ export default function MeetingChatPage() {
         }
 
         const mData: any = { id: mSnap.id, ...mSnap.data() };
-        
-        // Authorization check: User must be worker, customer or associated with the quote
-        const isWorker = mData.workerId === user.uid || mData.businessId === user.uid;
-        const isCustomer = mData.customerId === user.uid;
-        // Check email alignment if IDs don't match directly
-        const clientEmailMatch = mData.customerEmail?.toLowerCase() === user.email?.toLowerCase();
-        
-        if (!isWorker && !isCustomer && !clientEmailMatch) {
-          setError("You do not have permission to access this chat room.");
-          setLoading(false);
-          return;
-        }
-
         setMeeting(mData);
         setLoading(false);
       } catch (err) {
@@ -278,7 +265,7 @@ export default function MeetingChatPage() {
                 <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xs border border-slate-100">
                   <MessageSquare className="w-6 h-6 text-slate-350" />
                 </div>
-                <p className="text-xs font-bold text-slate-805">Start of Consultation Chat</p>
+                <p className="text-xs font-bold text-slate-850">Start of Consultation Chat</p>
                 <p className="text-[10px] text-slate-400 max-w-[280px]">
                   Use this discussion panel to align on project parameters, timelines, design updates or site access requirements.
                 </p>
