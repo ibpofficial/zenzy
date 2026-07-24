@@ -69,6 +69,7 @@ type Tab =
   | "overview"
   | "bookings"
   | "shop_orders"
+  | "quotations"
   | "addresses"
   | "favorites"
   | "profile"
@@ -91,6 +92,10 @@ export default function CustomerDashboardPage() {
   const [recentRentals, setRecentRentals] = useState<any[]>([]);
   const [userReviews, setUserReviews] = useState<any[]>([]);
   const [supportTickets, setSupportTickets] = useState<any[]>([]);
+  const [quotations, setQuotations] = useState<any[]>([]);
+  const [meetings, setMeetings] = useState<any[]>([]);
+  const [dashboardMeetingModalOpen, setDashboardMeetingModalOpen] = useState(false);
+  const [selectedQuoteForMeeting, setSelectedQuoteForMeeting] = useState<any | null>(null);
 
   // Profile Edit fields
   const [profName, setProfName] = useState("");
@@ -254,6 +259,39 @@ export default function CustomerDashboardPage() {
       setShopOrders(list);
     });
 
+    // 5c. Sync Customer Quotations
+    const qQuotes = query(collection(db, "quotations"));
+    const unsubQuotes = onSnapshot(qQuotes, (snap) => {
+      const list: any[] = [];
+      snap.forEach((docSnap) => {
+        const q = docSnap.data();
+        const clientEmail = (q.customerEmail || "").toLowerCase().trim();
+        const acceptedEmail = (q.acceptedEmail || "").toLowerCase().trim();
+        const loggedEmail = (user.email || "").toLowerCase().trim();
+        if (clientEmail === loggedEmail || acceptedEmail === loggedEmail) {
+          list.push({ id: docSnap.id, ...q });
+        }
+      });
+      list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+      setQuotations(list);
+    });
+
+    // 5d. Sync Customer Meetings
+    const qMeetings = query(collection(db, "meetings"));
+    const unsubMeetings = onSnapshot(qMeetings, (snap) => {
+      const list: any[] = [];
+      snap.forEach((docSnap) => {
+        const m = docSnap.data();
+        const mEmail = (m.clientEmail || "").toLowerCase().trim();
+        const loggedEmail = (user.email || "").toLowerCase().trim();
+        if (mEmail === loggedEmail) {
+          list.push({ id: docSnap.id, ...m });
+        }
+      });
+      list.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+      setMeetings(list);
+    });
+
     // 6. Fetch Recently Viewed from localStorage
     const loadRecentlyViewed = async () => {
       try {
@@ -285,8 +323,10 @@ export default function CustomerDashboardPage() {
       unsubTickets();
       unsubReviews();
       unsubShopOrders();
+      unsubQuotes();
+      unsubMeetings();
     };
-  }, [user?.uid]);
+  }, [user?.uid, user?.email]);
 
   // Load chat messages in real time
   useEffect(() => {
@@ -699,6 +739,7 @@ export default function CustomerDashboardPage() {
                   { id: "overview", label: "Overview", icon: User },
                   { id: "bookings", label: "My Bookings", icon: Calendar, badge: bookings.filter(b => ["Pending", "Accepted", "OnTheWay", "Started", "Job Done"].includes(b.status)).length },
                   { id: "shop_orders", label: "My Shop Orders", icon: ShoppingBag, badge: shopOrders.filter(o => o.status === "Pending" || o.status === "Shipped").length },
+                  { id: "quotations", label: "Quotations & Meetings", icon: Calendar, badge: quotations.filter(q => q.status === "Pending" || q.status === "pending").length },
                   { id: "addresses", label: "Saved Addresses", icon: MapPin },
                   { id: "favorites", label: "Favourite Providers", icon: Heart },
                   { id: "profile", label: "Profile Settings", icon: Settings },
@@ -830,6 +871,183 @@ export default function CustomerDashboardPage() {
                     )}
                   </div>
 
+                </div>
+              </div>
+            )}
+
+            {/* TAB: QUOTATIONS & OFFLINE MEETINGS */}
+            {activeTab === "quotations" && (
+              <div className="space-y-6 animate-fade-up text-left">
+                {/* Header Card */}
+                <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-slate-500" />
+                      Quotations & Offline Meetings Workspace
+                    </h3>
+                    <p className="text-xs text-slate-450 mt-1">
+                      Review estimates, sign digital proposals, and schedule offline site consultations with your service contractors.
+                    </p>
+                  </div>
+                </div>
+
+                {/* List of Quotes */}
+                <div className="space-y-6">
+                  <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6">
+                    <div className="border-b border-slate-100 pb-3">
+                      <h4 className="font-extrabold text-xs text-slate-700 uppercase tracking-wider">
+                        My Estimates & Quotations ({quotations.length})
+                      </h4>
+                    </div>
+
+                    {quotations.length === 0 ? (
+                      <div className="text-center py-12 text-slate-400 italic text-xs font-semibold">
+                        No quotations or estimates sent to your account email yet.
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {quotations.map((q) => {
+                          const quoteMeeting = meetings.find(m => m.quoteId === q.id);
+                          const isAccepted = q.status === "Accepted" || q.status === "accepted";
+                          const isDeclined = q.status === "Declined" || q.status === "declined";
+
+                          return (
+                            <div key={q.id} className="border border-slate-200 rounded-xl p-5 hover:border-slate-350 transition-all space-y-4">
+                              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-mono text-slate-400 font-bold uppercase">#{q.quoteNumber || q.id.slice(0, 8)}</span>
+                                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
+                                      isAccepted ? 'bg-emerald-100 text-emerald-800' :
+                                      isDeclined ? 'bg-red-100 text-red-800' :
+                                      'bg-amber-100 text-amber-800'
+                                    }`}>
+                                      {q.status}
+                                    </span>
+                                  </div>
+                                  <h5 className="font-bold text-sm text-slate-905 mt-1">{q.projectTitle}</h5>
+                                  <span className="text-[10px] text-slate-455">Contractor: <strong>{q.workerName || "Verified Zenzy Contractor"}</strong></span>
+                                </div>
+                                <div className="text-right sm:text-right flex sm:flex-col items-center sm:items-end gap-2 justify-between w-full sm:w-auto">
+                                  <span className="text-xs text-slate-400">Total Estimate</span>
+                                  <span className="text-sm font-extrabold text-slate-955">₹{q.grandTotal?.toLocaleString('en-IN') || q.total?.toLocaleString('en-IN')}</span>
+                                </div>
+                              </div>
+
+                              {/* Acceptance State Details */}
+                              {isAccepted && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-slate-600 bg-slate-50/50 p-4 rounded-xl border border-slate-150/40">
+                                  <div className="space-y-1.5">
+                                    <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Gmail / Email Account Signed-With</span>
+                                    <div className="flex items-center gap-1.5 text-slate-800">
+                                      <Mail className="w-3.5 h-3.5 text-slate-450" />
+                                      <span className="font-mono text-xs text-slate-900">{q.acceptedEmail || "N/A"}</span>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Authorized Signature Name</span>
+                                    <div className="flex items-center gap-1.5 text-slate-800">
+                                      <User className="w-3.5 h-3.5 text-slate-450" />
+                                      <span>{q.signatureName || q.acceptedSignature || "N/A"}</span>
+                                    </div>
+                                  </div>
+
+                                  {q.acceptedNotes && (
+                                    <div className="col-span-1 md:col-span-2 pt-2 border-t border-slate-200/50">
+                                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block mb-1">Your comments to contractor:</span>
+                                      <p className="text-xs text-slate-700 italic bg-white p-3 rounded-lg border border-slate-200/80 leading-relaxed font-normal">
+                                        "{q.acceptedNotes}"
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Offline Meeting scheduling panel */}
+                              <div className="pt-2">
+                                {isAccepted ? (
+                                  quoteMeeting ? (
+                                    <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+                                      <div className="flex items-center justify-between border-b border-slate-150 pb-2.5">
+                                        <div className="flex items-center gap-1.5">
+                                          <Calendar className="w-4 h-4 text-slate-500" />
+                                          <span className="text-xs font-bold text-slate-850">Offline Meeting Details</span>
+                                        </div>
+                                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
+                                          quoteMeeting.status === 'Confirmed' ? 'bg-green-100 text-green-800' :
+                                          quoteMeeting.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                                          quoteMeeting.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
+                                          'bg-amber-100 text-amber-800'
+                                        }`}>
+                                          {quoteMeeting.status}
+                                        </span>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-semibold text-slate-600">
+                                        <div>Date & Time: <strong className="text-slate-850">{new Date(quoteMeeting.date).toLocaleDateString('en-IN', { dateStyle: 'medium' })} at {quoteMeeting.time}</strong></div>
+                                        <div>Meeting Location: <strong className="text-slate-850">{quoteMeeting.location}</strong></div>
+                                      </div>
+                                      {quoteMeeting.notes && (
+                                        <div className="text-xs italic text-slate-505 bg-slate-50 p-2.5 rounded border border-slate-100">
+                                          "{quoteMeeting.notes}"
+                                        </div>
+                                      )}
+                                      {quoteMeeting.status === 'Pending' && (
+                                        <div className="flex justify-end pt-1">
+                                          <button
+                                            type="button"
+                                            onClick={async () => {
+                                              if (confirm("Cancel this offline meeting request?")) {
+                                                await updateDoc(doc(db, "meetings", quoteMeeting.id), { status: "Cancelled" });
+                                                showToast("Meeting Request Cancelled.");
+                                              }
+                                            }}
+                                            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-605 border border-red-200 font-bold text-[10px] uppercase rounded-lg transition cursor-pointer"
+                                          >
+                                            Cancel Request
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-col sm:flex-row justify-between items-center bg-slate-50 border border-dashed border-slate-200 p-4 rounded-xl gap-3">
+                                      <div className="text-center sm:text-left">
+                                        <span className="text-xs font-bold text-slate-800 block">Schedule Site Inspection / Offline Meeting</span>
+                                        <span className="text-[10px] text-slate-400 mt-0.5 block">Arrange a physical site consultation with {q.workerName || "contractor"}.</span>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setSelectedQuoteForMeeting(q);
+                                          setDashboardMeetingModalOpen(true);
+                                        }}
+                                        className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10.5px] font-black uppercase tracking-wider transition cursor-pointer active:scale-95 inline-flex items-center gap-1.5"
+                                      >
+                                        <Calendar className="w-3.5 h-3.5" /> Book Offline Meeting
+                                      </button>
+                                    </div>
+                                  )
+                                ) : !isDeclined ? (
+                                  <div className="flex justify-end">
+                                    <Link
+                                      href={`/quote/${q.id}`}
+                                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10.5px] font-black uppercase tracking-wider transition cursor-pointer text-center inline-flex items-center gap-1"
+                                    >
+                                      <span>Review & Sign Quotation</span>
+                                      <ArrowUpRight className="w-3.5 h-3.5" />
+                                    </Link>
+                                  </div>
+                                ) : (
+                                  <div className="text-xs text-slate-450 italic">
+                                    This estimate was declined. Contact the contractor if you would like to request revisions.
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -1778,6 +1996,153 @@ export default function CustomerDashboardPage() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Client Dashboard Offline Meeting Modal */}
+      {dashboardMeetingModalOpen && selectedQuoteForMeeting && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs text-left">
+          <div className="bg-white max-w-md w-full p-8 border border-slate-200 rounded-2xl shadow-xl space-y-6 animate-scale-in">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-slate-900" />
+                <h3 className="font-bold text-slate-900 text-base">Book Offline Meeting</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setDashboardMeetingModalOpen(false);
+                  setSelectedQuoteForMeeting(null);
+                }}
+                className="text-slate-400 hover:text-slate-655 transition text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const date = formData.get("date") as string;
+                const time = formData.get("time") as string;
+                const location = formData.get("location") as string;
+                const notes = formData.get("notes") as string;
+
+                if (!date || !time || !location) {
+                  alert("Please fill in all required fields.");
+                  return;
+                }
+
+                setSavingProfile(true);
+                try {
+                  const meetingPayload = {
+                    quoteId: selectedQuoteForMeeting.id,
+                    quoteNumber: selectedQuoteForMeeting.quoteNumber || selectedQuoteForMeeting.id.slice(0, 8),
+                    workerId: selectedQuoteForMeeting.workerId || selectedQuoteForMeeting.businessId,
+                    workerName: selectedQuoteForMeeting.workerName || "Contractor",
+                    clientName: selectedQuoteForMeeting.signatureName || selectedQuoteForMeeting.acceptedSignature || userData?.name || "Client",
+                    clientEmail: selectedQuoteForMeeting.acceptedEmail || user?.email || "",
+                    date,
+                    time,
+                    location,
+                    notes,
+                    status: "Pending", // Pending when client requests it
+                    createdAt: new Date().toISOString(),
+                  };
+
+                  await addDoc(collection(db, "meetings"), meetingPayload);
+                  setDashboardMeetingModalOpen(false);
+                  setSelectedQuoteForMeeting(null);
+                  showToast("✓ Offline meeting requested! The contractor has been notified.");
+                } catch (err) {
+                  console.error(err);
+                  alert("Failed to request meeting.");
+                } finally {
+                  setSavingProfile(false);
+                }
+              }}
+              className="space-y-4 text-xs font-semibold text-slate-600"
+            >
+              <div>
+                <p className="text-[11px] text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100 leading-relaxed">
+                  Requesting physical offline consultation with contractor <strong className="text-slate-805">{selectedQuoteForMeeting.workerName || "Pro"}</strong> for estimate <strong className="text-slate-800">#{selectedQuoteForMeeting.quoteNumber || selectedQuoteForMeeting.id.slice(0, 8)}</strong>.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    Preferred Date *
+                  </label>
+                  <input
+                    type="date"
+                    name="date"
+                    required
+                    min={new Date().toISOString().split("T")[0]}
+                    className="w-full px-4 py-2.5 border border-slate-200 text-sm text-slate-900 rounded-xl outline-none focus:border-slate-450 transition font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    Preferred Time *
+                  </label>
+                  <input
+                    type="time"
+                    name="time"
+                    required
+                    className="w-full px-4 py-2.5 border border-slate-200 text-sm text-slate-900 rounded-xl outline-none focus:border-slate-450 transition font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Meeting Location / Site Address *
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  required
+                  defaultValue={selectedQuoteForMeeting.customerAddress || ""}
+                  placeholder="e.g. Site Plot No., Office location"
+                  className="w-full px-4 py-2.5 border border-slate-200 text-sm text-slate-900 rounded-xl outline-none focus:border-slate-450 transition font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Agenda / Notes (Optional)
+                </label>
+                <textarea
+                  name="notes"
+                  rows={3}
+                  placeholder="e.g. Site measurements, material quality review..."
+                  className="w-full px-4 py-2.5 border border-slate-200 text-sm text-slate-900 rounded-xl outline-none focus:border-slate-450 transition resize-none font-semibold"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDashboardMeetingModalOpen(false);
+                    setSelectedQuoteForMeeting(null);
+                  }}
+                  className="flex-1 py-3 border border-slate-200 text-slate-655 text-xs font-bold uppercase tracking-wider rounded-xl transition hover:bg-slate-55 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingProfile}
+                  className="flex-1 bg-slate-900 hover:bg-slate-805 text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                >
+                  Request Meeting
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -9,6 +9,9 @@ import {
   updateDoc,
   addDoc,
   collection,
+  query,
+  where,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Footer from "@/components/Footer";
@@ -80,6 +83,10 @@ export default function PublicQuotationPage() {
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [signatureName, setSignatureName] = useState("");
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [acceptedEmail, setAcceptedEmail] = useState("");
+  const [acceptedNotes, setAcceptedNotes] = useState("");
+  const [meeting, setMeeting] = useState<any>(null);
+  const [meetingModalOpen, setMeetingModalOpen] = useState(false);
 
   // Attachment lightbox preview state
   const [showAttachmentLightbox, setShowAttachmentLightbox] = useState(false);
@@ -170,6 +177,22 @@ export default function PublicQuotationPage() {
     fetchQuote();
   }, [quoteId]);
 
+  useEffect(() => {
+    async function fetchMeeting() {
+      if (!quoteId || quoteId.startsWith("url_") || !accepted) return;
+      try {
+        const q = query(collection(db, "meetings"), where("quoteId", "==", quoteId));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          setMeeting({ id: snap.docs[0].id, ...snap.docs[0].data() });
+        }
+      } catch (err) {
+        console.warn("Failed to fetch meeting details:", err);
+      }
+    }
+    fetchMeeting();
+  }, [quoteId, accepted]);
+
   const handleOpenSignatureModal = () => {
     setSignatureName(quote?.customerName || "");
     setSignatureModalOpen(true);
@@ -199,6 +222,8 @@ export default function PublicQuotationPage() {
           acceptedAt: timestamp,
           acceptedSignature: sigText,
           signatureName: sigText,
+          acceptedEmail: acceptedEmail.trim(),
+          acceptedNotes: acceptedNotes.trim(),
         });
 
         const workerId = quote.workerId || quote.businessId;
@@ -230,6 +255,8 @@ export default function PublicQuotationPage() {
         acceptedAt: timestamp,
         acceptedSignature: sigText,
         signatureName: sigText,
+        acceptedEmail: acceptedEmail.trim(),
+        acceptedNotes: acceptedNotes.trim(),
       }));
       setAccepted(true);
       setSignatureModalOpen(false);
@@ -439,12 +466,70 @@ export default function PublicQuotationPage() {
         {/* Action Buttons */}
         <div className="mt-6 print:hidden">
           {accepted ? (
-            <div className="border border-green-200 bg-green-50/50 p-6 text-center">
-              <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <h4 className="font-medium text-green-800">Quotation Accepted</h4>
-              <p className="text-sm text-green-600 mt-1">
-                {proName} has been notified. Project will commence as scheduled.
-              </p>
+            <div className="border border-green-200 bg-green-50/30 p-8 rounded-2xl space-y-6">
+              <div className="text-center max-w-xl mx-auto">
+                <CheckCircle2 className="w-10 h-10 text-green-600 mx-auto mb-3" />
+                <h4 className="text-lg font-bold text-green-805">Quotation Digitally Accepted & Signed</h4>
+                <p className="text-sm text-green-700 mt-1">
+                  Thank you! The quotation has been authorized by <strong>{quote.signatureName || quote.acceptedSignature}</strong>. The professional has been notified.
+                </p>
+              </div>
+
+              <div className="border-t border-green-100 pt-6 max-w-2xl mx-auto">
+                {meeting ? (
+                  <div className="bg-white border border-gray-150 rounded-xl p-5 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-700" />
+                        <h5 className="font-bold text-sm text-gray-800">Offline Meeting Scheduled</h5>
+                      </div>
+                      <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
+                        meeting.status === 'Confirmed' ? 'bg-green-100 text-green-800' :
+                        meeting.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                        meeting.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
+                        'bg-amber-100 text-amber-800'
+                      }`}>
+                        {meeting.status}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-gray-400" />
+                        <span>Date & Time: <strong>{new Date(meeting.date).toLocaleDateString('en-IN', { dateStyle: 'medium' })}</strong> at <strong>{meeting.time}</strong></span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-gray-400" />
+                        <span>Location: <strong>{meeting.location}</strong></span>
+                      </div>
+                    </div>
+
+                    {meeting.notes && (
+                      <div className="bg-gray-55 border border-gray-100 p-3 rounded-lg text-xs text-gray-600 italic">
+                        <MessageSquare className="w-3.5 h-3.5 text-gray-400 inline-block mr-1.5 align-text-bottom" />
+                        "{meeting.notes}"
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center bg-white border border-gray-150 p-6 rounded-xl shadow-sm space-y-4">
+                    <div>
+                      <h5 className="font-bold text-sm text-gray-850">Align on Execution Details</h5>
+                      <p className="text-xs text-gray-450 mt-0.5">
+                        Schedule a physical face-to-face site inspection or offline meeting to finalise timelines.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setMeetingModalOpen(true)}
+                      className="px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider transition active:scale-[0.98] inline-flex items-center gap-2 cursor-pointer"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      <span>Book Offline Meeting</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ) : declined ? (
             <div className="border border-red-200 bg-red-50/50 p-6 text-center">
@@ -532,6 +617,33 @@ export default function PublicQuotationPage() {
                 />
               </div>
 
+              <div>
+                <label className="text-xs font-medium text-gray-400 uppercase tracking-wider block mb-1.5">
+                  Gmail / Email Account
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={acceptedEmail}
+                  onChange={(e) => setAcceptedEmail(e.target.value)}
+                  placeholder="your.gmail@gmail.com"
+                  className="w-full px-4 py-2.5 border border-gray-200 text-sm text-gray-900 outline-none focus:border-gray-400 transition"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-gray-400 uppercase tracking-wider block mb-1.5">
+                  Comments / Message to Contractor
+                </label>
+                <textarea
+                  value={acceptedNotes}
+                  onChange={(e) => setAcceptedNotes(e.target.value)}
+                  placeholder="e.g. Look forward to starting the construction phase!"
+                  rows={3}
+                  className="w-full px-4 py-2.5 border border-gray-200 text-sm text-gray-900 outline-none focus:border-gray-400 transition resize-none"
+                />
+              </div>
+
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -593,6 +705,141 @@ export default function PublicQuotationPage() {
                 className="max-h-[68vh] object-contain max-w-full"
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Offline Meeting Booking Modal */}
+      {meetingModalOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs">
+          <div className="bg-white max-w-md w-full p-8 border border-gray-200 rounded-2xl shadow-xl space-y-6">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-gray-900" />
+                <h3 className="font-bold text-gray-900 text-base">Book Offline Meeting</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMeetingModalOpen(false)}
+                className="text-gray-400 hover:text-gray-655 transition text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const date = formData.get("date") as string;
+                const time = formData.get("time") as string;
+                const location = formData.get("location") as string;
+                const notes = formData.get("notes") as string;
+
+                if (!date || !time || !location) {
+                  alert("Please fill in all required fields.");
+                  return;
+                }
+
+                setUpdatingStatus(true);
+                try {
+                  const meetingPayload = {
+                    quoteId: quote.id,
+                    quoteNumber: quote.quoteNumber || quote.id.slice(0, 8),
+                    workerId: quote.workerId || quote.businessId,
+                    workerName: proName,
+                    clientName: quote.signatureName || quote.acceptedSignature || "Client",
+                    clientEmail: quote.acceptedEmail || "",
+                    date,
+                    time,
+                    location,
+                    notes,
+                    status: "Pending",
+                    createdAt: new Date().toISOString(),
+                  };
+
+                  const docRef = await addDoc(collection(db, "meetings"), meetingPayload);
+                  setMeeting({ id: docRef.id, ...meetingPayload });
+                  setMeetingModalOpen(false);
+                  alert("✓ Offline meeting requested! The contractor has been notified.");
+                } catch (err) {
+                  console.error(err);
+                  alert("Failed to schedule meeting.");
+                } finally {
+                  setUpdatingStatus(false);
+                }
+              }}
+              className="space-y-4 text-xs font-semibold text-gray-600"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
+                    Preferred Date *
+                  </label>
+                  <input
+                    type="date"
+                    name="date"
+                    required
+                    min={new Date().toISOString().split("T")[0]}
+                    className="w-full px-4 py-2.5 border border-gray-200 text-sm text-gray-900 rounded-xl outline-none focus:border-gray-450 transition"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
+                    Preferred Time *
+                  </label>
+                  <input
+                    type="time"
+                    name="time"
+                    required
+                    className="w-full px-4 py-2.5 border border-gray-200 text-sm text-gray-900 rounded-xl outline-none focus:border-gray-450 transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
+                  Meeting Location / Site Address *
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  required
+                  defaultValue={proAddress}
+                  placeholder="e.g. Plot No. 12, Vaishali Nagar, Jaipur"
+                  className="w-full px-4 py-2.5 border border-gray-200 text-sm text-gray-900 rounded-xl outline-none focus:border-gray-450 transition"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
+                  Agenda / Notes (Optional)
+                </label>
+                <textarea
+                  name="notes"
+                  rows={3}
+                  placeholder="What would you like to discuss? e.g. Site measurements, material select..."
+                  className="w-full px-4 py-2.5 border border-gray-200 text-sm text-gray-900 rounded-xl outline-none focus:border-gray-450 transition resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setMeetingModalOpen(false)}
+                  className="flex-1 py-3 border border-gray-200 text-gray-655 text-xs font-bold uppercase tracking-wider rounded-xl transition hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updatingStatus}
+                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  Confirm Request
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

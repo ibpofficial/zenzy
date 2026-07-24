@@ -188,6 +188,19 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Meetings Collection
+    match /meetings/{meetingId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.workerId || 
+        request.auth.uid == resource.data.customerId || 
+        request.auth.uid == resource.data.clientId || 
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
     // Payments Collection
     match /payments/{paymentId} {
       allow read: if request.auth != null && (
