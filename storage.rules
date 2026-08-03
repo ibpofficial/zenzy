@@ -1,0 +1,66 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper: checks if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper: checks if user owns the path
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Helper: image validation (< 10MB and image MIME)
+    function isImage(maxMB) {
+      return request.resource.size < maxMB * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Avatars collection (user and worker profile photos)
+    match /avatars/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(userId) && isImage(5);
+    }
+
+    // Worker profile images (avatars, covers, portfolio)
+    match /workers/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(userId) && isImage(10);
+    }
+
+    // Verification Documents (KYC: Aadhaar, PAN, GST, License)
+    match /verification_docs/{userId}/{fileName} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || request.auth.token.email in [
+        "ishantpbupadhyay@gmail.com",
+        "25tec2cs089@vgu.ac.in",
+        "zenzyconnect@gmail.com"
+      ]);
+      allow write: if isOwner(userId) && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // Service catalog & gallery images
+    match /services/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(userId) && isImage(10);
+    }
+
+    // Inquiry photos attached by client or guest
+    match /inquiry_photos/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // Workspace & Project room document attachments
+    match /projects/{projectId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.resource.size < 25 * 1024 * 1024;
+    }
+
+    match /workspaces/{projectId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.resource.size < 25 * 1024 * 1024;
+    }
+  }
+}

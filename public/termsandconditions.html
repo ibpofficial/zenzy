@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zenzy · Terms & Conditions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f5f7fa;
+      --paper: #ffffff;
+      --ink: #0b1a2e;
+      --ink-soft: #1f3347;
+      --ink-faint: #5b6f82;
+      --navy: #0b1a2e;
+      --navy-light: #e3e9f2;
+      --gold: #c9a84c;
+      --gold-light: #f0e6c5;
+      --line: rgba(11, 26, 46, 0.08);
+      --shadow-card: 0 8px 24px -8px rgba(11, 26, 46, 0.06);
+      --shadow-hover: 0 16px 36px -12px rgba(11, 26, 46, 0.12);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ---- full page background canvas ---- */
+    #bgCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      /* allow clicks to pass through */
+      background: #f0f3f8;
+      display: block;
+    }
+
+    /* ---- all content sits on top ---- */
+    .page-wrap {
+      position: relative;
+      z-index: 2;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    /* progress bar */
+    .progress-rail {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: rgba(11, 26, 46, 0.08);
+      z-index: 1000;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--navy), var(--gold));
+      transition: width 0.12s linear;
+    }
+
+    /* sidebar */
+    .toc-rail {
+      position: sticky;
+      top: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(6px);
+      padding: 18px 16px 22px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 8px 32px -12px rgba(11, 26, 46, 0.08);
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--navy);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: gap 0.2s ease, color 0.2s;
+      width: fit-content;
+    }
+
+    .back-btn:hover {
+      gap: 12px;
+      color: var(--gold);
+    }
+
+    .emblem {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--navy);
+    }
+
+    .emblem-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .toc-list {
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--line);
+    }
+
+    .toc-item {
+      font-size: 13px;
+      color: var(--ink-faint);
+      padding: 6px 0 6px 16px;
+      border-left: 2px solid transparent;
+      margin-left: -1px;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      gap: 8px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .toc-item .n {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+
+    .toc-item:hover {
+      color: var(--ink);
+    }
+
+    .toc-item.active {
+      color: var(--navy);
+      border-left-color: var(--gold);
+      font-weight: 600;
+    }
+
+    /* snake status (mini) */
+    .snake-status-badge {
+      font-size: 11px;
+      color: var(--ink-faint);
+      text-align: center;
+      margin-top: 8px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.5);
+      padding: 6px 10px;
+      border-radius: 30px;
+      border: 1px solid var(--line);
+    }
+
+    .snake-status-badge b {
+      color: var(--navy);
+    }
+
+    /* main content */
+    .content {
+      min-width: 0;
+    }
+
+    .cover {
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 24px;
+      padding: 36px 34px 32px;
+      margin-bottom: 28px;
+      box-shadow: 0 8px 32px -12px rgba(11, 26, 46, 0.06);
+    }
+
+    .cover h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(28px, 4.2vw, 42px);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .cover p {
+      font-size: 15px;
+      color: var(--ink-soft);
+      max-width: 560px;
+    }
+
+    .doc-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .section {
+      background: rgba(255, 255, 255, 0.80);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 20px;
+      padding: 22px 28px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 20px -8px rgba(11, 26, 46, 0.04);
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    .section.visible {
+      animation: riseIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes riseIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .section:hover {
+      border-color: rgba(11, 26, 46, 0.18);
+      box-shadow: 0 8px 32px -12px rgba(11, 26, 46, 0.10);
+    }
+
+    .section h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .section .badge {
+      background: var(--navy-light);
+      color: var(--navy);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+
+    .section.visible .badge {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .section p,
+    .section li {
+      font-size: 14.5px;
+      color: #1a2c3d;
+      line-height: 1.8;
+    }
+
+    .section ul {
+      list-style: none;
+      margin-top: 8px;
+    }
+
+    .section li {
+      padding: 3px 0 3px 24px;
+      position: relative;
+    }
+
+    .section li::before {
+      content: '—';
+      position: absolute;
+      left: 2px;
+      color: var(--gold);
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 12px;
+      color: var(--ink-faint);
+      padding-top: 22px;
+      border-top: 1px solid rgba(255, 255, 255, 0.3);
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(2px);
+      padding: 16px 20px;
+      border-radius: 40px;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .footer-note span {
+      color: var(--navy);
+      font-weight: 600;
+    }
+
+    .back-to-top {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 999;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--line);
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.15, 0.75, 0.4, 1);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(12px) scale(0.92);
+      pointer-events: none;
+      box-shadow: var(--shadow-card);
+    }
+
+    .back-to-top.visible-btn {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .back-to-top:hover {
+      transform: translateY(-4px) scale(1.06);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .mobile-toc {
+      display: none;
+    }
+
+    @media (max-width: 880px) {
+      .page-wrap {
+        grid-template-columns: 1fr;
+        padding: 20px 16px 70px;
+      }
+
+      .toc-rail {
+        display: none;
+      }
+
+      .mobile-toc {
+        display: block;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 16px;
+        padding: 4px 16px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow-card);
+      }
+
+      .mobile-toc summary {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        letter-spacing: 0.6px;
+        color: var(--navy);
+        padding: 12px 0;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .mobile-toc-list {
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 12px;
+      }
+
+      .mobile-toc-list a {
+        font-size: 13px;
+        color: var(--ink-soft);
+        padding: 5px 0;
+        text-decoration: none;
+      }
+
+      .cover {
+        padding: 24px 18px;
+      }
+
+      .section {
+        padding: 18px 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- full page background canvas -->
+  <canvas id="bgCanvas"></canvas>
+
+  <div class="progress-rail">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <div class="page-wrap">
+    <aside class="toc-rail">
+      <a href="/" class="back-btn">← Back to Zenzy</a>
+      <div class="emblem"><span class="emblem-mark">Z</span> Zenzy</div>
+      <nav class="toc-list" id="tocList"></nav>
+      <div class="snake-status-badge">🐍 <b id="snakeCount">0</b> snakes roaming · eating food</div>
+    </aside>
+
+    <main class="content">
+      <details class="mobile-toc">
+        <summary>Jump to clause <span>▾</span></summary>
+        <div class="mobile-toc-list" id="mobileTocList"></div>
+      </details>
+
+      <div class="cover">
+        <div class="doc-meta"><span>ZY-T&C-11</span><span>June 2025</span><span>India</span></div>
+        <h1>Terms &amp; Conditions</h1>
+        <p>Eleven clauses, plainly stated. Watch the snakes roam in the background — they move in 90° turns and eat
+          food.</p>
+      </div>
+
+      <!-- sections -->
+      <div class="section" data-animate data-title="Acceptance of Terms">
+        <h2><span class="badge">1</span> Acceptance</h2>
+        <p>By accessing or using Zenzy, you agree to be bound by these Terms. If you do not agree, please do not use our
+          services. Continued use constitutes acceptance of updates.</p>
+      </div>
+      <div class="section" data-animate data-title="Eligibility">
+        <h2><span class="badge">2</span> Eligibility</h2>
+        <p>You must be at least 18 years old. By registering, you confirm your information is accurate and you have
+          legal authority. Zenzy may suspend accounts that violate eligibility.</p>
+      </div>
+      <div class="section" data-animate data-title="Services">
+        <h2><span class="badge">3</span> Services</h2>
+        <p>Zenzy is a marketplace connecting users with local service professionals. We do not directly provide
+          services.</p>
+        <ul>
+          <li>Facilitate connections with verified providers</li>
+          <li>Digital booking, communication &amp; payments</li>
+          <li>Rental property listings</li>
+          <li>Quality assurance via ratings</li>
+        </ul>
+      </div>
+      <div class="section" data-animate data-title="User Responsibilities">
+        <h2><span class="badge">4</span> Responsibilities</h2>
+        <ul>
+          <li>Provide accurate information</li>
+          <li>No fraudulent or unlawful activity</li>
+          <li>Treat providers with respect</li>
+          <li>Make timely payments</li>
+          <li>Report issues promptly</li>
+        </ul>
+      </div>
+      <div class="section" data-animate data-title="Provider Obligations">
+        <h2><span class="badge">5</span> Providers</h2>
+        <p>Providers must maintain valid credentials, accurate availability, and deliver services as described. Zenzy
+          may remove providers who fail standards.</p>
+      </div>
+      <div class="section" data-animate data-title="Payments & Refunds">
+        <h2><span class="badge">6</span> Payments</h2>
+        <p>Secure payment processing. Refund policies vary; platform fees disclosed before payment. Disputes must be
+          raised within 48 hours of service completion.</p>
+      </div>
+      <div class="section" data-animate data-title="Intellectual Property">
+        <h2><span class="badge">7</span> IP</h2>
+        <p>All content, branding, and technology are the exclusive property of Zenzy Technologies Private Limited.
+          Reproduction without consent is prohibited.</p>
+      </div>
+      <div class="section" data-animate data-title="Limitation of Liability">
+        <h2><span class="badge">8</span> Liability</h2>
+        <p>Zenzy is not liable for indirect or consequential damages. We verify providers but do not guarantee quality,
+          safety, or legality of third-party services.</p>
+      </div>
+      <div class="section" data-animate data-title="Privacy & Data">
+        <h2><span class="badge">9</span> Privacy</h2>
+        <p>Your data is processed per our Privacy Policy. We never sell your data. See our Privacy Policy for details.
+        </p>
+      </div>
+      <div class="section" data-animate data-title="Modifications & Termination">
+        <h2><span class="badge">10</span> Modifications</h2>
+        <p>Zenzy may modify terms; users will be notified. Accounts may be suspended or terminated for violations.</p>
+      </div>
+      <div class="section" data-animate data-title="Governing Law">
+        <h2><span class="badge">11</span> Governing Law</h2>
+        <p>These terms are governed by the laws of India. Disputes are subject to the exclusive jurisdiction of courts
+          in New Delhi.</p>
+      </div>
+
+      <div class="footer-note">© 2026 <span>Zenzy</span> Technologies Private Limited. All rights reserved.</div>
+    </main>
+  </div>
+
+  <button class="back-to-top" id="backToTopBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+      <path d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+    </svg></button>
+
+  <script>
+    // ---- TOC ----
+    const sections = Array.from(document.querySelectorAll('.section[data-animate]'));
+    const total = sections.length;
+    const tocList = document.getElementById('tocList');
+    const mobileTocList = document.getElementById('mobileTocList');
+    sections.forEach((sec, i) => {
+      sec.id = 'clause-' + (i + 1);
+      const item = document.createElement('div');
+      item.className = 'toc-item';
+      item.dataset.target = sec.id;
+      item.innerHTML = `<span class="n">${String(i + 1).padStart(2, '0')}</span> ${sec.dataset.title}`;
+      item.addEventListener('click', () => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      tocList.appendChild(item);
+      const mLink = document.createElement('a');
+      mLink.href = '#' + sec.id;
+      mLink.textContent = `${i + 1}. ${sec.dataset.title}`;
+      mobileTocList.appendChild(mLink);
+    });
+
+    // ---- SNAKE BACKGROUND (full screen canvas) ----
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    const snakeCountEl = document.getElementById('snakeCount');
+
+    let W, H;
+
+    function resizeCanvas() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const snakeColors = ['#1f4b3f', '#b28b4a', '#2b5f7a', '#9b6b43', '#4a6b5a', '#8f6b4a', '#2f5f6f', '#a0704a', '#3d6b5a', '#b07a4a'];
+
+    class Snake {
+      constructor() {
+        this.body = [];
+        const startX = 40 + Math.random() * (W - 80);
+        const startY = 40 + Math.random() * (H - 80);
+        const len = 4 + Math.floor(Math.random() * 5);
+        for (let i = 0; i < len; i++) {
+          this.body.push({ x: startX - i * 8, y: startY });
+        }
+        this.dir = Math.floor(Math.random() * 4);
+        this.color = snakeColors[Math.floor(Math.random() * snakeColors.length)];
+        this.foodEaten = 0;
+        this.speed = 80 + Math.random() * 60;
+        this.time = 0;
+      }
+
+      update(delta) {
+        this.time += delta;
+        if (this.time < this.speed) return false;
+        this.time = 0;
+
+        const head = this.body[0];
+        let newX = head.x, newY = head.y;
+
+        // 90° turn with probability
+        if (Math.random() < 0.2) {
+          this.dir = Math.floor(Math.random() * 4);
+        }
+
+        switch (this.dir) {
+          case 0: newX += 8; break;
+          case 1: newY += 8; break;
+          case 2: newX -= 8; break;
+          case 3: newY -= 8; break;
+        }
+
+        // wrap
+        if (newX < 0) newX = W;
+        if (newX > W) newX = 0;
+        if (newY < 0) newY = H;
+        if (newY > H) newY = 0;
+
+        // eat food
+        let ate = false;
+        for (let i = 0; i < foods.length; i++) {
+          const f = foods[i];
+          const dx = newX - f.x, dy = newY - f.y;
+          if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+            ate = true;
+            foods.splice(i, 1);
+            this.foodEaten++;
+            spawnFood();
+            break;
+          }
+        }
+
+        this.body.unshift({ x: newX, y: newY });
+        if (!ate) {
+          this.body.pop();
+        } else {
+          if (this.body.length > 40) this.body.pop();
+        }
+        return true;
+      }
+
+      draw(ctx) {
+        for (let i = 0; i < this.body.length; i++) {
+          const p = this.body[i];
+          const radius = 6 - (i / this.body.length) * 1.8;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, Math.max(3, radius), 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.shadowColor = 'rgba(0,0,0,0.05)';
+          ctx.shadowBlur = 8;
+          ctx.fill();
+          if (i === 0) {
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(p.x - 4, p.y - 4, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(p.x + 4, p.y - 4, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#111';
+            ctx.beginPath();
+            ctx.arc(p.x - 4, p.y - 4, 1.4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(p.x + 4, p.y - 4, 1.4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    let foods = [];
+    function spawnFood() {
+      const x = 12 + Math.random() * (W - 24);
+      const y = 12 + Math.random() * (H - 24);
+      foods.push({ x, y });
+    }
+    for (let i = 0; i < 18; i++) spawnFood();
+
+    let snakes = [];
+    function initSnakes(count = 10) {
+      snakes = [];
+      for (let i = 0; i < count; i++) {
+        snakes.push(new Snake());
+      }
+      snakeCountEl.textContent = count;
+    }
+    initSnakes(10);
+
+    let lastTime = 0;
+    function animate(time) {
+      const delta = lastTime ? time - lastTime : 16;
+      lastTime = time;
+
+      snakes.forEach(s => s.update(delta));
+
+      ctx.clearRect(0, 0, W, H);
+
+      // draw food
+      foods.forEach(f => {
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#c0392b';
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = 'rgba(192,57,43,0.25)';
+        ctx.fill();
+      });
+      ctx.shadowBlur = 0;
+
+      snakes.forEach(s => s.draw(ctx));
+
+      if (foods.length < 14) spawnFood();
+
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+
+    // ---- section observer ----
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+    sections.forEach(s => revealObserver.observe(s));
+
+    // ---- active TOC ----
+    const tocItems = Array.from(document.querySelectorAll('.toc-item'));
+    const activeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const link = tocItems.find(t => t.dataset.target === entry.target.id);
+        if (!link) return;
+        if (entry.isIntersecting) {
+          tocItems.forEach(t => t.classList.remove('active'));
+          link.classList.add('active');
+        }
+      });
+    }, { threshold: 0.5, rootMargin: '-20% 0px -60% 0px' });
+    sections.forEach(s => activeObserver.observe(s));
+
+    // ---- progress ----
+    const progressFill = document.getElementById('progressFill');
+    function updateProgress() {
+      const h = document.documentElement;
+      const scrolled = h.scrollTop;
+      const height = h.scrollHeight - h.clientHeight;
+      progressFill.style.width = (height > 0 ? (scrolled / height) * 100 : 0) + '%';
+    }
+    window.addEventListener('scroll', updateProgress);
+    updateProgress();
+
+    // ---- back to top ----
+    const backBtn = document.getElementById('backToTopBtn');
+    window.addEventListener('scroll', () => {
+      backBtn.classList.toggle('visible-btn', window.scrollY > 400);
+    });
+    backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  </script>
+</body>
+
+</html>

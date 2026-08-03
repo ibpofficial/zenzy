@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pehchaan – book the person, not just a service</title>
+    <!-- Font Awesome 6 (free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Outfit + Space Grotesk for fresh vibe -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(165deg, #f1eae4 0%, #e3d9d0 100%);
+            color: #1e1a26;
+            line-height: 1.5;
+        }
+
+        /* glassmorphism core */
+        .glass {
+            background: rgba(255, 245, 240, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 220, 190, 0.7);
+            border-radius: 36px;
+            box-shadow: 0 20px 40px -18px rgba(160, 70, 25, 0.2);
+        }
+
+        .glass-card {
+            background: rgba(255, 240, 230, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 210, 170, 0.8);
+            border-radius: 42px;
+            box-shadow: 0 22px 44px -18px rgba(180, 80, 30, 0.25);
+            transition: all 0.25s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 245, 235, 0.85);
+            border-color: #ffad7a;
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 30px 50px -18px #b45728;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 28px;
+        }
+
+        /* navbar ultra glass */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 32px;
+            margin: 24px 0 28px;
+            background: rgba(255, 240, 230, 0.6);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 220, 180, 0.7);
+            border-radius: 80px;
+            box-shadow: 0 16px 32px -14px rgba(140, 70, 20, 0.15);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 2rem;
+            background: linear-gradient(145deg, #cb492a, #ac3b8b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo i {
+            font-size: 2.3rem;
+            background: linear-gradient(145deg, #d94e1f, #b83b8c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-search {
+            flex: 1;
+            max-width: 440px;
+            display: flex;
+            background: rgba(255, 250, 240, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 190, 140, 0.8);
+            border-radius: 60px;
+            padding: 4px 4px 4px 24px;
+        }
+
+        .nav-search input {
+            flex: 1;
+            border: none;
+            padding: 14px 0;
+            font-size: 1rem;
+            background: transparent;
+            outline: none;
+        }
+
+        .nav-search button {
+            background: linear-gradient(135deg, #f3623a, #ce428d);
+            border: none;
+            color: white;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 18px -8px #d64b2c;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: #302a36;
+            font-weight: 520;
+        }
+        .btn-glossy {
+            background: rgba(255,255,250,0.8);
+            border: 1px solid #f58b5e;
+            color: #b6491a;
+            padding: 10px 26px;
+            border-radius: 40px;
+            font-weight: 600;
+        }
+
+        /* hero with big image integration */
+        .hero-section {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 40px;
+            background: rgba(240, 225, 215, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 64px;
+            padding: 48px 52px;
+            margin: 40px 0 60px;
+            border: 1px solid rgba(255, 210, 170, 0.7);
+            box-shadow: 0 28px 48px -20px #a35830;
+        }
+
+        .hero-left {
+            flex: 1 1 300px;
+        }
+
+        .hero-left h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.1;
+            background: linear-gradient(145deg, #26233a, #c64223);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-left .highlight {
+            background: linear-gradient(145deg, #ff6130, #b33e99);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            border-bottom: 3px solid #ffb392;
+        }
+
+        .hero-desc {
+            font-size: 1.2rem;
+            color: #3d3546;
+            margin: 24px 0 28px;
+            max-width: 500px;
+        }
+
+        .pill-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .pill {
+            background: rgba(255,255,245,0.7);
+            backdrop-filter: blur(4px);
+            padding: 8px 24px;
+            border-radius: 60px;
+            border: 1px solid #fecab0;
+            font-weight: 600;
+        }
+
+        .hero-right {
+            flex: 0 0 300px;
+        }
+        .hero-right img {
+            width: 100%;
+            border-radius: 48px;
+            box-shadow: 0 28px 38px -16px #b1582b;
+            border: 3px solid rgba(255,240,220,0.9);
+            object-fit: cover;
+            height: 240px;
+        }
+
+        /* category grid */
+        .section-title {
+            font-size: 2.4rem;
+            font-weight: 700;
+            margin: 60px 0 20px;
+            background: linear-gradient(145deg, #292542, #c64528);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 24px;
+        }
+
+        .category-card {
+            background: rgba(255, 240, 230, 0.6);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 200, 160, 0.8);
+            border-radius: 48px;
+            padding: 32px 16px;
+            text-align: center;
+            transition: 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .category-card:hover {
+            background: rgba(255, 250, 240, 0.85);
+            border-color: #ff9f6e;
+            transform: translateY(-8px);
+        }
+
+        .category-icon {
+            font-size: 3rem;
+            background: linear-gradient(145deg, #f0643a, #c23f88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        /* worker cards with real images (font-awesome as placeholder but with avatar-like img) */
+        .worker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+        }
+
+        .worker-card {
+            background: rgba(255, 240, 230, 0.6);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 200, 160, 0.8);
+            border-radius: 54px;
+            padding: 28px 24px;
+            transition: 0.25s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .worker-card:hover {
+            background: rgba(255, 250, 240, 0.85);
+            border-color: #ff9f6e;
+            transform: translateY(-8px);
+        }
+
+        .worker-avatar-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #c9845e, #a5437a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 12px 22px -6px #a64b22;
+            /* simulate an image via background pattern, but we'll use font-awesome as placeholder image feel */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23ffffff40"><circle cx="50" cy="50" r="50"/></svg>');
+            background-size: cover;
+            border: 3px solid white;
+        }
+
+        .pehchaan-badge {
+            background: rgba(200, 90, 40, 0.2);
+            backdrop-filter: blur(4px);
+            border-radius: 60px;
+            padding: 6px 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #aa3f1a;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #ff9966;
+            margin-bottom: 18px;
+        }
+
+        .video-resume {
+            background: rgba(220, 190, 170, 0.3);
+            backdrop-filter: blur(4px);
+            border-radius: 40px;
+            padding: 14px 20px;
+            margin: 18px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .portfolio-pics {
+            display: flex;
+            gap: 10px;
+            margin: 16px 0;
+        }
+        .work-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            background: #cfa27e;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="%23ffffff60"><rect width="40" height="40"/></svg>');
+            background-size: cover;
+            border: 2px solid white;
+        }
+
+        .booking-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 22px;
+        }
+        .availability {
+            background: rgba(80, 180, 100, 0.3);
+            color: #1f6e2b;
+            font-weight: 700;
+            padding: 6px 18px;
+            border-radius: 60px;
+        }
+        .busy {
+            background: rgba(230, 100, 60, 0.2);
+            color: #b6491a;
+        }
+
+        .btn-book {
+            background: linear-gradient(135deg, #f3623a, #d63e8d);
+            border: none;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 12px 18px -10px #b63f1c;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+        /* no direct call / whatsapp shown – only book now */
+
+        /* profile page */
+        .profile-header {
+            background: rgba(255, 240, 230, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 70px;
+            padding: 48px;
+            margin: 32px 0;
+            border: 1px solid #ffd7ba;
+        }
+
+        .profile-avatar-large {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #c97f58;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23ffffff60"><circle cx="50" cy="50" r="50"/></svg>');
+            background-size: cover;
+            border: 4px solid white;
+            box-shadow: 0 18px 28px -8px #9f4d26;
+        }
+
+        .service-menu {
+            background: rgba(255, 235, 220, 0.55);
+            backdrop-filter: blur(18px);
+            border-radius: 60px;
+            padding: 40px;
+            margin: 32px 0;
+            border: 1px solid #ffc9a5;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 18px 0;
+            border-bottom: 1px solid #ffc5a5;
+            font-size: 1.2rem;
+        }
+
+        .booking-card {
+            background: rgba(255, 235, 215, 0.65);
+            backdrop-filter: blur(18px);
+            border-radius: 60px;
+            padding: 40px;
+            text-align: center;
+            border: 2px solid #ffaa77;
+        }
+
+        .book-action {
+            background: linear-gradient(145deg, #f3623a, #ce428d);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            border-radius: 80px;
+            font-weight: 800;
+            font-size: 1.4rem;
+            margin: 24px 0;
+            cursor: pointer;
+            box-shadow: 0 18px 28px -10px #bc4120;
+        }
+
+        .back-link {
+            color: #c7431e;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        /* page switch */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* footer */
+        .footer {
+            border-top: 1px solid rgba(200,160,120,0.3);
+            padding: 48px 0;
+            margin-top: 60px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 80px;
+        }
+    </style>
+</head>
+<body>
+    <!-- HOME PAGE (visible) -->
+    <div id="home-page" class="page active">
+        <div class="container">
+            <div class="navbar">
+                <div class="logo"><i class="fas fa-id-badge"></i> Pehchaan</div>
+                <div class="nav-search"><input placeholder="Search electrician, plumber, cook..."><button><i class="fas fa-search"></i> Find</button></div>
+                <div class="nav-links"><a href="#">For workers</a><a href="#" class="btn-glossy">Create Pehchaan ID</a></div>
+            </div>
+
+            <!-- hero with actual image (placeholder but styled) -->
+            <div class="hero-section">
+                <div class="hero-left">
+                    <h2>Choose the <span class="highlight">person,</span> not just a service.</h2>
+                    <p class="hero-desc">Hyperlocal storefronts for every professional. Verified video resumes, real portfolios & transparent pricing — book the human behind the work.</p>
+                    <div class="pill-group">
+                        <span class="pill"><i class="fas fa-shield-alt"></i> Aadhaar‑linked</span>
+                        <span class="pill"><i class="fas fa-video"></i> 15s video resume</span>
+                        <span class="pill"><i class="fas fa-map-pin"></i> 2‑5 km radius</span>
+                    </div>
+                </div>
+                <div class="hero-right">
+                    <img src="https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=400&h=300&fit=crop&auto=format" alt="worker" style="border-radius:48px; width:100%; height:auto; aspect-ratio:4/3; object-fit:cover;">
+                </div>
+            </div>
+
+            <div class="section-title">Browse by profession <i class="fas fa-arrow-right" style="color:#c4450c;"></i></div>
+            <div class="category-grid" id="category-grid"></div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin: 50px 0 20px;">
+                <h2 class="section-title" style="margin:0;">✨ Featured workers near you</h2>
+                <a href="#" style="color:#c4450c; font-weight:600;">View all →</a>
+            </div>
+            <div class="worker-grid" id="worker-grid"></div>
+
+            <div class="footer">
+                <div><div class="logo"><i class="fas fa-id-badge"></i> Pehchaan</div><p style="max-width:240px;">Book the person, not just a service. Zero middleman.</p></div>
+                <div style="display:flex; gap:60px;"><div><strong>Discover</strong><br><a href="#" style="color:#4f3f38;">Electricians</a><a href="#" style="color:#4f3f38;">Plumbers</a></div><div><strong>For workers</strong><br><a href="#" style="color:#4f3f38;">Create ID</a></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CATEGORY PAGE (hidden) -->
+    <div id="category-page" class="page">
+        <div class="container">
+            <div class="navbar">
+                <div class="logo" onclick="showHome()" style="cursor:pointer;"><i class="fas fa-id-badge"></i> Pehchaan</div>
+                <div class="nav-search"><input placeholder="Filter in category"><button>Go</button></div>
+                <div class="nav-links"><a href="#" onclick="showHome()">Home</a><a href="#" class="btn-glossy">Create ID</a></div>
+            </div>
+            <a href="#" class="back-link" onclick="showHome()"><i class="fas fa-arrow-left"></i> Back to home</a>
+            <h1 style="font-size:3rem; font-weight:800; background: linear-gradient(145deg,#c73a1e,#b1439b); -webkit-background-clip:text; -webkit-text-fill-color:transparent;" id="category-title">Electricians</h1>
+            <p id="category-desc" style="color:#4a3f52;">24 workers available within 3km</p>
+            <div class="filter-bar" style="display:flex; gap:16px; margin:30px 0;">
+                <span class="filter-chip" style="background:rgba(255,255,240,0.6); padding:10px 26px; border-radius:60px;">All</span>
+                <span class="filter-chip">Nearby</span>
+                <span class="filter-chip">Rating 4.5+</span>
+            </div>
+            <div class="worker-grid" id="category-worker-grid"></div>
+        </div>
+    </div>
+
+    <!-- PROFILE PAGE (hidden) with BOOKING FLOW (no WhatsApp number) -->
+    <div id="profile-page" class="page">
+        <div class="container">
+            <div class="navbar">
+                <div class="logo" onclick="showHome()" style="cursor:pointer;"><i class="fas fa-id-badge"></i> Pehchaan</div>
+                <div class="nav-search"><input placeholder="Search..."><button>Go</button></div>
+                <div class="nav-links"><a href="#" onclick="showHome()">Home</a><a href="#" class="btn-glossy">Create ID</a></div>
+            </div>
+            <a href="#" class="back-link" onclick="showCategory('electrician')"><i class="fas fa-arrow-left"></i> Back to category</a>
+            <div class="profile-header" id="profile-header"></div>
+            <div class="service-menu" id="service-menu"></div>
+            <!-- BOOKING SECTION - no phone/WhatsApp -->
+            <div class="booking-card">
+                <h2 style="font-size:2.4rem;">Book <span id="worker-name-display">Rajesh</span> directly</h2>
+                <p style="margin:16px 0; color:#423b48;">✓ No contact number shared · ✓ All communication through Pehchaan</p>
+                <button class="book-action" onclick="alert('Booking request sent to worker. You will be connected via in-app chat.')"><i class="fas fa-calendar-check"></i> Request booking</button>
+                <p style="margin-top:20px;"><i class="fas fa-shield-alt"></i> You only pay after work confirmation</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ---------- DATA WITH IMAGE URL hints (Unsplash variety) ----------
+        const categories = [
+            { id: 'electrician', name: 'Electrician', icon: 'fa-bolt', count: 24, desc: 'wiring / repair' },
+            { id: 'plumber', name: 'Plumber', icon: 'fa-wrench', count: 18, desc: 'leakage / install' },
+            { id: 'cook', name: 'Cook', icon: 'fa-utensils', count: 32, desc: 'home chef' },
+            { id: 'painter', name: 'Painter', icon: 'fa-paint-brush', count: 15, desc: 'texture / wall' },
+            { id: 'carpenter', name: 'Carpenter', icon: 'fa-hammer', count: 21, desc: 'furniture' },
+            { id: 'contractor', name: 'Contractor', icon: 'fa-hard-hat', count: 9, desc: 'renovation' },
+            { id: 'houseworker', name: 'House worker', icon: 'fa-broom', count: 27, desc: 'cleaning / help' },
+            { id: 'thermadar', name: 'Thermadar', icon: 'fa-water', count: 12, desc: 'geyser expert' },
+            { id: 'mason', name: 'Mason', icon: 'fa-trowel', count: 14, desc: 'plaster' },
+            { id: 'acrepair', name: 'AC repair', icon: 'fa-tools', count: 11, desc: 'gas / service' }
+        ];
+
+        // workers with image id from unsplash (placeholders, but feel like real photos)
+        const workers = [
+            { id:1, name:'Rajesh Kumar', role:'electrician', exp:12, avatar:'R', badge:'blockchain', video:'High‑voltage specialist', portfolio:['panel','mcb'], menu:'Fan repair ₹150 · New connection ₹500', available:true, rating:4.8, jobs:342, img:'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=100&h=100&fit=crop' },
+            { id:2, name:'Sunita Devi', role:'cook', exp:8, avatar:'S', badge:'Aadhaar linked', video:'Home style cooking', portfolio:['thali','snacks'], menu:'Veg thali ₹120 · Non‑veg ₹180', available:false, busy:true, rating:4.9, jobs:567, img:'https://images.unsplash.com/photo-1607631568010-a87245c0daf8?w=100&h=100&fit=crop' },
+            { id:3, name:'Arjun Mehta', role:'carpenter', exp:15, avatar:'A', badge:'5⭐ trust', video:'Custom furniture', portfolio:['sofa','door'], menu:'Repair ₹250 · New chair ₹700', available:true, rating:4.7, jobs:289, img:'https://images.unsplash.com/photo-1611485988300-b7e681c5d5b6?w=100&h=100&fit=crop' },
+            { id:4, name:'Vijay Singh', role:'contractor', exp:18, avatar:'V', badge:'project proofs', video:'Geyser / heating expert', portfolio:['geyser','piping'], menu:'Geyser repair ₹300 · New ₹650', available:true, rating:4.6, jobs:178, img:'https://images.unsplash.com/photo-1595152772835-219674b2a8a6?w=100&h=100&fit=crop' },
+            { id:5, name:'Manoj Yadav', role:'plumber', exp:10, avatar:'M', badge:'verified', video:'Leakage expert', portfolio:['pipe','tap'], menu:'Tap repair ₹120 · Install ₹400', available:false, busy:true, rating:4.5, jobs:412, img:'https://images.unsplash.com/photo-1611800066795-9c6f44a80b1c?w=100&h=100&fit=crop' },
+            { id:6, name:'Priya Sharma', role:'painter', exp:7, avatar:'P', badge:'portfolio pro', video:'Texture & waterproof', portfolio:['bedroom'], menu:'Per sqft ₹25', available:true, rating:4.8, jobs:231, img:'https://images.unsplash.com/photo-1605721912198-707e4d2c7d9a?w=100&h=100&fit=crop' }
+        ];
+
+        function renderHome() {
+            const catG = document.getElementById('category-grid');
+            catG.innerHTML = categories.map(c => `
+                <a class="category-card" onclick="showCategory('${c.id}')">
+                    <div class="category-icon"><i class="fas ${c.icon}"></i></div>
+                    <h4 style="font-size:1.6rem;">${c.name}</h4>
+                    <p>${c.desc}</p>
+                </a>
+            `).join('');
+
+            const workG = document.getElementById('worker-grid');
+            workG.innerHTML = workers.map(w => {
+                const isBusy = w.busy ? 'busy' : '';
+                return `
+                <a class="worker-card" onclick="showProfile(${w.id})">
+                    <div class="pehchaan-badge"><i class="fas fa-id-card"></i> Pehchaan ID · ${w.badge}</div>
+                    <div style="display:flex; gap:18px; align-items:center;">
+                        <div class="worker-avatar-img" style="background-image: url('${w.img}'); background-size: cover;"></div>
+                        <div><div class="worker-name" style="font-size:1.6rem;">${w.name}</div><div style="color:#b6491a;">${w.role} (${w.exp}yrs)</div></div>
+                    </div>
+                    <div class="video-resume"><i class="fas fa-play-circle fa-2x" style="color:#a0471f;"></i><div>🎥 "${w.video}"</div></div>
+                    <div class="portfolio-pics">${w.portfolio.map(()=>'<div class="work-thumb"></div>').join('')}</div>
+                    <div style="background:rgba(240,200,170,0.3); border-radius:28px; padding:14px; margin:10px 0;">${w.menu}</div>
+                    <div class="booking-area">
+                        <span class="availability ${isBusy}">${w.available ? '✅ Available' : '⏳ Busy'}</span>
+                        <span class="btn-book" onclick="event.stopPropagation(); showProfile(${w.id})">Book now</span>
+                    </div>
+                </a>
+            `}).join('');
+        }
+
+        window.showCategory = function(id) {
+            document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+            document.getElementById('category-page').classList.add('active');
+            const cat = categories.find(c=>c.id===id);
+            document.getElementById('category-title').innerText = cat.name + 's';
+            document.getElementById('category-desc').innerText = cat.count + ' workers available nearby';
+            const filtered = workers.filter(w=>w.role===id);
+            const grid = document.getElementById('category-worker-grid');
+            grid.innerHTML = filtered.map(w=>`
+                <a class="worker-card" onclick="showProfile(${w.id})">
+                    <div style="display:flex; gap:18px;"><div class="worker-avatar-img" style="background-image: url('${w.img}');"></div><div><span class="worker-name">${w.name}</span><div>⭐ ${w.rating} · ${w.jobs} jobs</div></div></div>
+                    <div class="video-resume">🎥 ${w.video}</div>
+                    <div class="booking-area"><span>${w.available ? '✅ Available' : '⏳'}</span><span class="btn-book">View</span></div>
+                </a>
+            `).join('');
+        };
+
+        window.showProfile = function(id) {
+            document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+            document.getElementById('profile-page').classList.add('active');
+            const w = workers.find(w=>w.id===id);
+            document.getElementById('profile-header').innerHTML = `
+                <div style="display:flex; gap:40px; flex-wrap:wrap;">
+                    <div class="profile-avatar-large" style="background-image: url('${w.img}');"></div>
+                    <div><h1 style="font-size:3rem;">${w.name}</h1>
+                    <div style="display:flex; gap:24px; margin:20px 0;">
+                        <span class="meta-item" style="background:rgba(255,215,190,0.6); padding:8px 22px; border-radius:40px;"><i class="fas fa-star"></i> ${w.rating}</span>
+                        <span class="meta-item" style="background:rgba(255,215,190,0.6); padding:8px 22px; border-radius:40px;"><i class="fas fa-briefcase"></i> ${w.jobs}+ jobs</span>
+                    </div>
+                    <p style="font-size:1.2rem;">${w.exp} years experience · ${w.role}</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('service-menu').innerHTML = `<h2 style="margin-bottom:28px;"><i class="fas fa-receipt"></i> Price menu</h2>${w.menu.split('·').map(m=>`<div class="menu-item"><span>${m.trim()}</span><span>✔️</span></div>`).join('')}`;
+            document.getElementById('worker-name-display').innerText = w.name.split(' ')[0];
+        };
+
+        window.showHome = function() {
+            document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+            document.getElementById('home-page').classList.add('active');
+        };
+
+        renderHome();
+    </script>
+</body>
+</html>

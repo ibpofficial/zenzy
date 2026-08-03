@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenzy Admin · God Mode</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { primary: '#2563eb', secondary: '#0f172a', accent: '#10b981', surface: '#f8fafc', gold: '#f59e0b' }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .modal { opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 9999; }
+        .modal.active { opacity: 1; pointer-events: auto; }
+        .modal-content { transform: scale(0.95); transition: all 0.3s ease; }
+        .modal.active .modal-content { transform: scale(1); }
+        .upload-btn-wrapper { position: relative; overflow: hidden; display: inline-block; }
+        .upload-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
+    </style>
+</head>
+<body class="bg-surface text-slate-800 h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-secondary text-white flex flex-col shadow-xl z-20 h-full shrink-0">
+        <div class="p-6 border-b border-slate-700 flex items-center justify-between">
+            <h1 class="text-2xl font-extrabold tracking-tight">zenzy<span class="text-primary text-3xl leading-none">.</span></h1>
+            <span class="bg-primary text-xs font-bold px-2 py-1 rounded-full shadow-lg shadow-primary/50">GOD MODE</span>
+        </div>
+        
+        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-white transition-all font-medium">
+                <i class="fas fa-chart-pie w-5"></i> Dashboard
+            </button>
+            <button onclick="switchTab('bookings')" id="btn-bookings" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-all font-medium relative">
+                <i class="fas fa-calendar-check w-5"></i> Booking Tracker
+                <span id="nav-booking-count" class="absolute right-4 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden shadow-lg shadow-red-500/50">0</span>
+            </button>
+            
+            <div class="pt-4 pb-2 px-4 text-[10px] font-bold text-slate-500 tracking-widest uppercase">Page Managers</div>
+            <button onclick="switchTab('rentals')" id="btn-rentals" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-all font-medium">
+                <i class="fas fa-house-chimney w-5"></i> House Rentals
+            </button>
+            <button onclick="switchTab('pros')" id="btn-pros" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-all font-medium">
+                <i class="fas fa-users-cog w-5"></i> Service Pros
+            </button>
+            
+            <div class="pt-4 pb-2 px-4 text-[10px] font-bold text-slate-500 tracking-widest uppercase">Global Architecture</div>
+            <button onclick="switchTab('pages')" id="btn-pages" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-all font-medium">
+                <i class="fas fa-sitemap w-5"></i> Site Pages Engine
+            </button>
+            <button onclick="switchTab('promos')" id="btn-promos" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-all font-medium">
+                <i class="fas fa-bullhorn w-5"></i> Promo Banners
+            </button>
+            <button onclick="switchTab('categories')" id="btn-categories" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-all font-medium">
+                <i class="fas fa-th-list w-5"></i> Categories Grid
+            </button>
+        </nav>
+
+        <div class="p-6 border-t border-slate-700">
+            <a href="index.html" class="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
+                <i class="fas fa-external-link-alt"></i> View Live Site
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-slate-200 px-8 py-5 flex justify-between items-center z-10 shrink-0">
+            <h2 class="text-xl font-bold text-slate-800" id="header-title">System Dashboard</h2>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full text-sm font-medium text-slate-600">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div> Protocol Active
+                </div>
+                <div class="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold shadow-md shadow-primary/40"><i class="fas fa-shield-halved"></i></div>
+            </div>
+        </header>
+
+        <!-- Scrollable Area -->
+        <div class="flex-1 overflow-y-auto p-8 relative">
+            <div id="global-loader" class="absolute inset-0 bg-surface/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+                <i class="fas fa-shield-halved fa-beat text-primary text-5xl mb-4"></i>
+                <p class="font-bold text-slate-600 text-lg">Initializing God Mode...</p>
+                <p class="text-sm text-slate-400">Syncing securely with Firebase</p>
+            </div>
+
+            <!-- ================= TAB: DASHBOARD ================= -->
+            <div id="tab-dashboard" class="tab-content active space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Bookings</p><h3 class="text-3xl font-black text-slate-800" id="stat-bookings">0</h3></div>
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl"><i class="fas fa-calendar-check"></i></div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between border-b-4 border-b-purple-500">
+                        <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Rentals Listed</p><h3 class="text-3xl font-black text-slate-800" id="stat-rentals">0</h3></div>
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl"><i class="fas fa-house-chimney"></i></div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between border-b-4 border-b-primary">
+                        <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Active Pros</p><h3 class="text-3xl font-black text-slate-800" id="stat-pros">0</h3></div>
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl"><i class="fas fa-hard-hat"></i></div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tracked Pages</p><h3 class="text-3xl font-black text-slate-800" id="stat-pages">0</h3></div>
+                        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl"><i class="fas fa-sitemap"></i></div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div><p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Promos Live</p><h3 class="text-3xl font-black text-slate-800" id="stat-promos">0</h3></div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl"><i class="fas fa-bullhorn"></i></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mt-6">
+                    <h3 class="text-lg font-bold mb-4"><i class="fas fa-bolt text-amber-500"></i> Universal Creation Hub</h3>
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="switchTab('pages'); setTimeout(openPageModal, 100);" class="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/30 px-5 py-2.5 rounded-lg font-bold transition"><i class="fas fa-file-circle-plus mr-2"></i> Create New Page</button>
+                        <button onclick="switchTab('rentals'); setTimeout(openRentalModal, 100);" class="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 px-5 py-2.5 rounded-lg font-bold transition"><i class="fas fa-house-medical mr-2"></i> List Property</button>
+                        <button onclick="switchTab('pros'); setTimeout(openProModal, 100);" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-5 py-2.5 rounded-lg font-bold transition"><i class="fas fa-user-plus mr-2"></i> Add Service Pro</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= TAB: BOOKINGS ================= -->
+            <div id="tab-bookings" class="tab-content">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                        <div>
+                            <h3 class="font-bold text-lg">Central Booking Tracker</h3>
+                            <p class="text-xs text-slate-500">Monitors inquiries from ALL your pages simultaneously.</p>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-white text-slate-500 text-sm border-b border-slate-200">
+                                    <th class="p-4 font-semibold">Customer Details</th>
+                                    <th class="p-4 font-semibold">Source & Target</th>
+                                    <th class="p-4 font-semibold">Message / Request</th>
+                                    <th class="p-4 font-semibold">Live Status</th>
+                                    <th class="p-4 font-semibold text-right">Admin Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookings-table-body" class="text-sm divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= TAB: RENTALS ================= -->
+            <div id="tab-rentals" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="font-bold text-2xl text-purple-900">Rental Properties</h3>
+                        <p class="text-sm text-slate-500">Manage flats, PGs, and villas shown on houserent.html</p>
+                    </div>
+                    <button onclick="openRentalModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-purple-500/30 transition"><i class="fas fa-plus mr-2"></i> Add Property</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="rentals-grid"></div>
+            </div>
+
+            <!-- ================= TAB: PROS ================= -->
+            <div id="tab-pros" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="font-bold text-2xl text-blue-900">Service Professionals</h3>
+                        <p class="text-sm text-slate-500">Manage plumbers, electricians, etc. shown on index.html</p>
+                    </div>
+                    <button onclick="openProModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition"><i class="fas fa-plus mr-2"></i> Add New Pro</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="pros-grid"></div>
+            </div>
+
+            <!-- ================= TAB: PAGES (MASSIVELY UPGRADED) ================= -->
+            <div id="tab-pages" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="font-bold text-2xl text-indigo-900">Site Pages Engine</h3>
+                        <p class="text-sm text-slate-500">Manage global meta-data, descriptions, and hero posters for EVERY page you create.</p>
+                    </div>
+                    <button onclick="openPageModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-500/30 transition"><i class="fas fa-file-circle-plus mr-2"></i> Configure New Page</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="pages-grid"></div>
+            </div>
+
+            <!-- ================= TAB: PROMOS ================= -->
+            <div id="tab-promos" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="font-bold text-2xl text-amber-900">Promotions Engine</h3>
+                        <p class="text-sm text-slate-500">Manage the scrolling "Exclusive Protocols" banners.</p>
+                    </div>
+                    <button onclick="openPromoModal()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-amber-500/30 transition"><i class="fas fa-plus mr-2"></i> Add Promo Banner</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="promos-grid"></div>
+            </div>
+
+            <!-- ================= TAB: CATEGORIES ================= -->
+            <div id="tab-categories" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="font-bold text-2xl">Service Categories</h3>
+                        <p class="text-sm text-slate-500">Manage the categories grid routing map.</p>
+                    </div>
+                    <button onclick="openCategoryModal()" class="bg-secondary hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold shadow-lg transition"><i class="fas fa-plus mr-2"></i> Add Category</button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" id="categories-grid"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ====================================================================== -->
+    <!-- ========================== UNIVERSAL MODALS ========================== -->
+    <!-- ====================================================================== -->
+
+    <!-- 1. PAGES ENGINE MODAL (Upgraded with God Powers) -->
+    <div id="pageModal" class="modal fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col my-8 border-t-8 border-indigo-600">
+            <div class="px-6 py-5 border-b border-slate-200 flex justify-between items-center sticky top-0 bg-white z-10 shrink-0">
+                <h3 class="font-black text-2xl text-indigo-900" id="pageModalTitle">Configure Page Identity</h3>
+                <button onclick="closePageModal()" class="text-slate-400 hover:text-red-500 text-2xl transition"><i class="fas fa-times-circle"></i></button>
+            </div>
+            <div class="overflow-y-auto p-8 grow">
+                <form id="pageForm">
+                    <input type="hidden" id="pageId">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Display Title</label>
+                            <input type="text" id="pageTitle" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition font-medium text-slate-800" placeholder="e.g. Zenzy Cleaning Ops">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Actual File Name / URL</label>
+                            <input type="text" id="pageFileName" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition font-mono text-sm" placeholder="e.g. cleaning.html">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Icon (FontAwesome)</label>
+                            <input type="text" id="pageIcon" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition font-medium" placeholder="e.g. fas fa-broom">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Deployment Status</label>
+                            <select id="pageStatus" class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 font-bold text-slate-700 bg-white cursor-pointer">
+                                <option value="Live" class="text-emerald-600">🟢 Live to Public</option>
+                                <option value="Active" class="text-blue-600">🔵 Admin Only / Beta</option>
+                                <option value="Draft" class="text-amber-600">🟠 Drafting Stage</option>
+                            </select>
+                        </div>
+                        
+                        <!-- NEW GOD POWERS: Description & Poster -->
+                        <div class="space-y-1 md:col-span-2">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">SEO / Page Description</label>
+                            <textarea id="pageDescription" rows="3" class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition font-medium text-slate-700" placeholder="Describe what this page does. This can be pulled dynamically by the page itself..."></textarea>
+                        </div>
+                        
+                        <div class="space-y-1 md:col-span-2 bg-indigo-50/50 border border-indigo-100 p-5 rounded-2xl">
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="text-sm font-black text-indigo-900"><i class="fas fa-image text-indigo-500 mr-2"></i>Page Hero Poster / Image</label>
+                                <div class="upload-btn-wrapper">
+                                    <button type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-md transition flex items-center gap-2">
+                                        <i class="fas fa-desktop"></i> Upload from Computer
+                                    </button>
+                                    <input type="file" id="pageUploadBtn" accept="image/*">
+                                </div>
+                            </div>
+                            <p id="pageUploadStatus" class="text-xs text-emerald-600 font-bold mb-2"></p>
+                            <input type="text" id="pagePoster" class="w-full px-4 py-3 border border-indigo-200 rounded-xl outline-none focus:border-indigo-500 font-mono text-xs bg-white" placeholder="https://... OR upload directly">
+                            <p class="text-xs text-indigo-600 mt-2 font-medium"><i class="fas fa-info-circle"></i> This image can act as the main banner for your new page or as a visual representation here in the admin panel.</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="px-8 py-5 border-t border-slate-200 bg-slate-50 flex justify-end gap-4 rounded-b-2xl shrink-0">
+                <button type="button" onclick="closePageModal()" class="px-6 py-3 rounded-xl font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 transition">Cancel Configuration</button>
+                <button type="submit" form="pageForm" id="pageSubmitBtn" class="px-6 py-3 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 transition">Save Page Engine</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. RENTALS MODAL (With Computer Upload) -->
+    <div id="rentalModal" class="modal fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col my-8 border-t-8 border-purple-600">
+            <div class="px-6 py-5 border-b border-slate-200 flex justify-between items-center sticky top-0 bg-white z-10 shrink-0">
+                <h3 class="font-black text-2xl text-purple-900" id="rentalModalTitle">Property Configuration</h3>
+                <button onclick="closeRentalModal()" class="text-slate-400 hover:text-red-500 text-2xl transition"><i class="fas fa-times-circle"></i></button>
+            </div>
+            <div class="overflow-y-auto p-8 grow">
+                <form id="rentalForm">
+                    <input type="hidden" id="rentalId">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-1 md:col-span-2">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Property Title</label>
+                            <input type="text" id="rentalTitle" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-purple-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Monthly Rent (₹)</label>
+                            <input type="number" id="rentalPrice" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-purple-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Type (BHK/PG/etc)</label>
+                            <input type="text" id="rentalType" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-purple-500 font-medium">
+                        </div>
+                        <div class="space-y-1 md:col-span-2">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Location Details</label>
+                            <input type="text" id="rentalLocation" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-purple-500 font-medium">
+                        </div>
+                        <div class="space-y-1 md:col-span-2">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Detailed Description</label>
+                            <textarea id="rentalDescription" rows="4" class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-purple-500 font-medium"></textarea>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Bedrooms</label>
+                            <input type="number" id="rentalBeds" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-purple-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Bathrooms</label>
+                            <input type="number" id="rentalBaths" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-purple-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Square Feet</label>
+                            <input type="number" id="rentalSqft" class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-purple-500 font-medium">
+                        </div>
+                        
+                        <div class="space-y-1 md:col-span-2 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <label class="text-sm font-black text-slate-700 mb-3 block">Badges & Verification</label>
+                            <div class="flex flex-wrap gap-6">
+                                <label class="flex items-center gap-2 font-bold cursor-pointer"><input type="checkbox" id="rentalVerified" class="w-5 h-5 text-purple-600 rounded"> Verified Owner</label>
+                                <label class="flex items-center gap-2 font-bold text-amber-600 cursor-pointer"><input type="checkbox" id="rentalAssured" class="w-5 h-5 text-amber-500 rounded"> Zenzy Assured</label>
+                                <label class="flex items-center gap-2 font-bold text-emerald-600 cursor-pointer"><input type="checkbox" id="rentalBrokerage" class="w-5 h-5 text-emerald-600 rounded"> No Brokerage</label>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1 md:col-span-2">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Demographic Search Tags (comma separated)</label>
+                            <textarea id="rentalTags" rows="2" class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-purple-500 font-medium" placeholder="family, bachelors, premium..."></textarea>
+                        </div>
+
+                        <div class="space-y-1 md:col-span-2 bg-purple-50 border border-purple-200 p-5 rounded-2xl">
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="text-sm font-black text-purple-900"><i class="fas fa-images text-purple-500 mr-2"></i>Image Gallery</label>
+                                <div class="upload-btn-wrapper">
+                                    <button type="button" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-md transition flex items-center gap-2">
+                                        <i class="fas fa-desktop"></i> Upload from Computer
+                                    </button>
+                                    <input type="file" id="rentalUploadBtn" multiple accept="image/*">
+                                </div>
+                            </div>
+                            <p id="rentalUploadStatus" class="text-xs text-emerald-600 font-bold mb-2"></p>
+                            <textarea id="rentalImages" rows="3" required class="w-full px-4 py-3 border border-purple-300 rounded-xl outline-none focus:border-purple-500 font-mono text-xs bg-white" placeholder="URLs generated here automatically upon upload..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="px-8 py-5 border-t border-slate-200 bg-slate-50 flex justify-end gap-4 rounded-b-2xl shrink-0">
+                <button type="button" onclick="closeRentalModal()" class="px-6 py-3 rounded-xl font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 transition">Cancel</button>
+                <button type="submit" form="rentalForm" id="rentalSubmitBtn" class="px-6 py-3 rounded-xl font-bold text-white bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-500/30 transition">Save Property</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. PROS MODAL (With Computer Upload) -->
+    <div id="proModal" class="modal fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col my-8 border-t-8 border-blue-600">
+            <div class="px-6 py-5 border-b border-slate-200 flex justify-between items-center sticky top-0 bg-white z-10 shrink-0">
+                <h3 class="font-black text-2xl text-blue-900" id="proModalTitle">Service Pro Configuration</h3>
+                <button onclick="closeProModal()" class="text-slate-400 hover:text-red-500 text-2xl transition"><i class="fas fa-times-circle"></i></button>
+            </div>
+            <div class="overflow-y-auto p-8 grow">
+                <form id="proForm">
+                    <input type="hidden" id="proId">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Business Name</label>
+                            <input type="text" id="proName" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Internal Phone</label>
+                            <input type="text" id="proPhone" class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Current Status</label>
+                            <select id="proStatus" class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none font-bold cursor-pointer">
+                                <option value="Available" class="text-emerald-600">🟢 Available</option>
+                                <option value="Busy" class="text-red-600">🔴 Busy</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Pricing</label>
+                            <input type="text" id="proPrice" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Category Text</label>
+                            <input type="text" id="proBadgeText" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Icon (FA)</label>
+                            <input type="text" id="proBadgeIcon" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Distance</label>
+                            <input type="text" id="proDistance" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Stars</label>
+                            <input type="text" id="proStars" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Review Count</label>
+                            <input type="number" id="proReviews" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Verify Text</label>
+                            <input type="text" id="proVerifiedText" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 font-medium">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Image Count</label>
+                            <input type="number" id="proImagesCount" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-blue-500 font-medium">
+                        </div>
+                        
+                        <div class="space-y-1 md:col-span-3 bg-blue-50 border border-blue-200 p-5 rounded-2xl mt-4">
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="text-sm font-black text-blue-900"><i class="fas fa-image text-blue-500 mr-2"></i>Cover Image</label>
+                                <div class="upload-btn-wrapper">
+                                    <button type="button" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-md transition flex items-center gap-2">
+                                        <i class="fas fa-desktop"></i> Upload from Computer
+                                    </button>
+                                    <input type="file" id="proUploadBtn" accept="image/*">
+                                </div>
+                            </div>
+                            <p id="proUploadStatus" class="text-xs text-emerald-600 font-bold mb-2"></p>
+                            <input type="text" id="proBgImage" required class="w-full px-4 py-3 border border-blue-300 rounded-xl outline-none focus:border-blue-500 font-mono text-xs bg-white">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="px-8 py-5 border-t border-slate-200 bg-slate-50 flex justify-end gap-4 rounded-b-2xl shrink-0">
+                <button type="button" onclick="closeProModal()" class="px-6 py-3 rounded-xl font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 transition">Cancel</button>
+                <button type="submit" form="proForm" id="proSubmitBtn" class="px-6 py-3 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition">Save Professional</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. PROMOS MODAL (With Computer Upload) -->
+    <div id="promoModal" class="modal fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl w-full max-w-lg border-t-8 border-amber-500">
+            <div class="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-black text-2xl text-amber-900" id="promoModalTitle">Promo Banner Config</h3>
+                <button onclick="closePromoModal()" class="text-slate-400 hover:text-red-500 text-2xl transition"><i class="fas fa-times-circle"></i></button>
+            </div>
+            <form id="promoForm" class="p-6 space-y-5">
+                <input type="hidden" id="promoId">
+                <div><label class="text-xs font-bold text-slate-500 uppercase">Main Title</label><input type="text" id="promoTitle" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-amber-500 mt-1 font-medium"></div>
+                <div><label class="text-xs font-bold text-slate-500 uppercase">Subtitle</label><input type="text" id="promoSubtitle" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-amber-500 mt-1 font-medium"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-xs font-bold text-slate-500 uppercase">Badge Text</label><input type="text" id="promoBadge" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-amber-500 mt-1 font-medium"></div>
+                    <div><label class="text-xs font-bold text-slate-500 uppercase">Badge Style</label><input type="text" id="promoBadgeStyle" class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-amber-500 mt-1 text-xs font-mono"></div>
+                </div>
+                
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="text-xs font-bold text-amber-900 uppercase">Background Image</label>
+                        <div class="upload-btn-wrapper">
+                            <button type="button" class="bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-md transition flex items-center gap-2">
+                                <i class="fas fa-upload"></i> Upload
+                            </button>
+                            <input type="file" id="promoUploadBtn" accept="image/*">
+                        </div>
+                    </div>
+                    <p id="promoUploadStatus" class="text-[10px] text-emerald-600 font-bold mb-2"></p>
+                    <input type="text" id="promoBg" required class="w-full px-4 py-3 border border-amber-300 rounded-xl outline-none focus:border-amber-500 font-mono text-xs bg-white">
+                </div>
+
+                <div class="mt-8 flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closePromoModal()" class="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">Cancel</button>
+                    <button type="submit" id="promoSubmitBtn" class="px-5 py-2.5 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-500/30 transition">Save Promo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 5. CATEGORIES MODAL (Standard) -->
+    <div id="categoryModal" class="modal fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl w-full max-w-md border-t-8 border-secondary">
+            <div class="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-black text-2xl text-secondary" id="catModalTitle">Category Settings</h3>
+                <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-red-500 text-2xl transition"><i class="fas fa-times-circle"></i></button>
+            </div>
+            <form id="categoryForm" class="p-6 space-y-5">
+                <input type="hidden" id="catId">
+                <div><label class="text-xs font-bold text-slate-500 uppercase">Category Name</label><input type="text" id="catName" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-secondary mt-1 font-medium"></div>
+                <div><label class="text-xs font-bold text-slate-500 uppercase">Icon (FontAwesome)</label><input type="text" id="catIcon" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-secondary mt-1 font-medium"></div>
+                <div><label class="text-xs font-bold text-slate-500 uppercase">Count Subtitle</label><input type="text" id="catCount" required class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-secondary mt-1 font-medium"></div>
+                <div><label class="text-xs font-bold text-slate-500 uppercase">Link URL</label><input type="text" id="catLink" class="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:border-secondary mt-1 font-medium"></div>
+                <div class="mt-8 flex justify-end gap-3"><button type="button" onclick="closeCategoryModal()" class="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">Cancel</button><button type="submit" id="catSubmitBtn" class="px-5 py-2.5 rounded-xl font-bold text-white bg-secondary shadow-lg transition">Save Category</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Setup & Core Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, serverTimestamp, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAGmSHiSFvlOIk5woSsbBLI5rndASromyg",
+            authDomain: "dmin-dbe58.firebaseapp.com",
+            projectId: "dmin-dbe58",
+            storageBucket: "dmin-dbe58.firebasestorage.app",
+            messagingSenderId: "369190320724",
+            appId: "1:369190320724:web:29a949f473c557d63d4bc1",
+            measurementId: "G-ZE2EEQC2WM"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'zenzy_main_app';
+        const getCol = (name) => collection(db, 'artifacts', appId, 'public', 'data', name);
+        const getDocRef = (name, docId) => doc(db, 'artifacts', appId, 'public', 'data', name, docId);
+
+        let currentUser = null;
+        let globalPros = [], globalRentals = [], globalCats = [], globalPromos = [], globalPages = [];
+
+        const initApp = async () => { try { await signInAnonymously(auth); } catch (e) { alert("Auth failed."); } };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('global-loader').style.display = 'none';
+                setupRealtimeListeners();
+            }
+        });
+        initApp();
+
+        const setupRealtimeListeners = () => {
+            
+            // 1. SMART BOOKINGS LISTENER
+            onSnapshot(getCol('zenzy_booking_requests'), (snapshot) => {
+                const tbody = document.getElementById('bookings-table-body'); tbody.innerHTML = '';
+                document.getElementById('stat-bookings').innerText = snapshot.size;
+                
+                const pendingCount = snapshot.docs.filter(d => d.data().status === 'Pending').length;
+                const badge = document.getElementById('nav-booking-count');
+                if(pendingCount > 0) { badge.innerText = pendingCount; badge.classList.remove('hidden'); } 
+                else { badge.classList.add('hidden'); }
+
+                let bookings = [];
+                snapshot.forEach(d => bookings.push({id: d.id, ...d.data()}));
+                bookings.sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+
+                if(bookings.length === 0) tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-bold">No requests currently.</td></tr>`;
+
+                bookings.forEach(data => {
+                    const statusColors = { "Pending": "bg-amber-100 text-amber-700", "Accepted": "bg-blue-100 text-blue-700", "Completed": "bg-emerald-100 text-emerald-700", "Cancelled": "bg-red-100 text-red-700" };
+                    const sc = statusColors[data.status] || statusColors["Pending"];
+                    const timeStr = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : 'Just now';
+                    
+                    const sourceText = data.source || 'Main Page / Pro';
+                    const isRent = sourceText.toLowerCase().includes('rent');
+                    const sourceBadgeClass = isRent ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-50 text-blue-700 border-blue-200';
+                    const targetName = data.propertyName || data.proName || 'Unknown Request';
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                            <td class="p-4">
+                                <p class="font-black text-slate-800">${data.customerName}</p>
+                                <p class="text-xs font-bold text-slate-500">${data.customerPhone}</p>
+                            </td>
+                            <td class="p-4">
+                                <div class="font-black text-slate-800 mb-1">${targetName}</div>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-black border ${sourceBadgeClass} uppercase tracking-widest">
+                                    <i class="fas ${isRent ? 'fa-house' : 'fa-wrench'} mr-1"></i>${sourceText}
+                                </span>
+                                <div class="text-[10px] text-slate-400 mt-1 font-bold">${timeStr}</div>
+                            </td>
+                            <td class="p-4">
+                                <div class="text-slate-700 text-sm max-w-[250px] whitespace-normal bg-white p-3 rounded-lg font-medium border border-slate-200 shadow-sm">
+                                    "${data.customerAddress || 'No message provided'}"
+                                </div>
+                            </td>
+                            <td class="p-4"><span class="px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${sc}">${data.status}</span></td>
+                            <td class="p-4 text-right flex justify-end items-center gap-2">
+                                <select onchange="window.updateDocField('zenzy_booking_requests', '${data.id}', 'status', this.value)" class="text-xs border border-slate-300 rounded-lg p-2 outline-none font-bold text-slate-700 bg-slate-50 cursor-pointer hover:border-primary">
+                                    <option value="Pending" ${data.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="Completed" ${data.status === 'Completed' ? 'selected' : ''}>Mark Complete</option>
+                                    <option value="Cancelled" ${data.status === 'Cancelled' ? 'selected' : ''}>Cancel</option>
+                                </select>
+                                <button onclick="window.deleteDocItem('zenzy_booking_requests', '${data.id}')" class="bg-red-50 text-red-500 hover:text-white hover:bg-red-500 p-2 rounded-lg transition" title="Delete Inquiry"><i class="fas fa-trash-alt"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+
+            // 2. RENTALS LISTENER
+            onSnapshot(getCol('zenzy_rentals'), (snapshot) => {
+                const grid = document.getElementById('rentals-grid'); grid.innerHTML = '';
+                document.getElementById('stat-rentals').innerText = snapshot.size;
+                globalRentals = [];
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data(); data.id = docSnap.id; globalRentals.push(data);
+                    let bg = (data.images && data.images.length > 0) ? data.images[0] : '';
+                    
+                    grid.innerHTML += `
+                        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-purple-400 transition-all flex flex-col group">
+                            <div class="h-44 bg-cover bg-center relative" style="background-image: url('${bg}'); background-color: #e2e8f0;">
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+                                <div class="absolute top-3 left-3 flex gap-1">
+                                    ${data.assured ? `<span class="bg-secondary text-gold text-[10px] px-2.5 py-1 rounded-full font-black shadow-lg uppercase tracking-wider"><i class="fas fa-crown mr-1"></i> Assured</span>` : ''}
+                                </div>
+                                <div class="absolute bottom-3 right-3 bg-white/90 text-slate-800 text-[10px] px-2.5 py-1 rounded-full font-black shadow-lg"><i class="fas fa-camera mr-1"></i> ${(data.images || []).length}</div>
+                            </div>
+                            <div class="p-5 flex-1 flex flex-col">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-black text-slate-800 text-lg leading-tight truncate mr-2">${data.title}</h4>
+                                    <span class="bg-purple-100 text-purple-800 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded shrink-0 border border-purple-200">${data.type}</span>
+                                </div>
+                                <p class="text-sm font-black text-emerald-600 mb-3">₹${(data.price||0).toLocaleString()}/mo <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider ml-1">IN ${data.location.split(',')[0]}</span></p>
+                                
+                                <div class="flex gap-2 border-t border-slate-100 pt-4 mt-auto">
+                                    <button onclick="window.editRental('${data.id}')" class="flex-1 bg-slate-100 group-hover:bg-purple-600 group-hover:text-white text-slate-700 py-2.5 rounded-xl text-sm font-bold transition">Manage</button>
+                                    <button onclick="window.deleteDocItem('zenzy_rentals', '${data.id}')" class="w-12 bg-slate-100 group-hover:bg-red-500 group-hover:text-white text-slate-400 py-2.5 rounded-xl text-sm font-bold transition"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            });
+
+            // 3. PROS LISTENER
+            onSnapshot(getCol('zenzy_pros'), (snapshot) => {
+                const grid = document.getElementById('pros-grid'); grid.innerHTML = '';
+                document.getElementById('stat-pros').innerText = snapshot.size;
+                globalPros = [];
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data(); data.id = docSnap.id; globalPros.push(data);
+                    const isBusy = data.status === "Busy";
+                    
+                    grid.innerHTML += `
+                        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-blue-400 transition-all flex flex-col group">
+                            <div class="h-36 bg-cover bg-center relative" style="background-image: url('${data.bgImage}'); background-color: #e2e8f0;">
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent"></div>
+                                <span class="absolute bottom-3 left-3 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 bg-black/50 rounded-full backdrop-blur">
+                                    <i class="${data.badgeIcon} mr-1"></i> ${data.badgeText}
+                                </span>
+                                <div class="absolute top-3 right-3 flex items-center gap-1.5 bg-white/95 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider text-slate-800 shadow-lg">
+                                    <div class="w-2 h-2 rounded-full ${isBusy ? 'bg-red-500' : 'bg-emerald-500'} animate-pulse"></div> ${isBusy ? 'Busy' : 'Avail'}
+                                </div>
+                            </div>
+                            <div class="p-5 flex-1 flex flex-col">
+                                <h4 class="font-black text-lg mb-1 truncate text-slate-800">${data.name}</h4>
+                                <div class="flex justify-between text-xs text-slate-500 mb-3 font-bold">
+                                    <span class="text-amber-500"><i class="fas fa-star mr-1"></i> ${data.stars} <span class="text-slate-400">(${data.reviews})</span></span>
+                                </div>
+                                <div class="flex gap-2 border-t border-slate-100 pt-4 mt-auto">
+                                    <button onclick="window.editPro('${data.id}')" class="flex-1 bg-slate-100 group-hover:bg-blue-600 group-hover:text-white text-slate-700 py-2.5 rounded-xl text-sm font-bold transition">Manage</button>
+                                    <button onclick="window.deleteDocItem('zenzy_pros', '${data.id}')" class="w-12 bg-slate-100 group-hover:bg-red-500 group-hover:text-white text-slate-400 py-2.5 rounded-xl text-sm font-bold transition"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+            // 4. PAGES ARCHITECTURE LISTENER (Upgraded God Mode display)
+            onSnapshot(getCol('zenzy_pages'), (snapshot) => {
+                const grid = document.getElementById('pages-grid'); grid.innerHTML = '';
+                document.getElementById('stat-pages').innerText = snapshot.size;
+                globalPages = [];
+
+                // Inject baseline if completely empty
+                if(snapshot.empty) {
+                    addDoc(getCol('zenzy_pages'), { title: 'Main Homepage', fileName: 'index.html', icon: 'fas fa-home', status: 'Live', description: "The central hub for Zenzy protocol." });
+                    addDoc(getCol('zenzy_pages'), { title: 'House Rentals', fileName: 'houserent.html', icon: 'fas fa-building', status: 'Live', description: "Real estate protocol." });
+                }
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data(); data.id = docSnap.id; globalPages.push(data);
+                    
+                    let statusBadge = ''; let borderClass = 'border-slate-200'; let bgClass = 'bg-white';
+                    if(data.status === 'Live') { statusBadge = '<span class="bg-emerald-100 text-emerald-700 text-[10px] px-2.5 py-1 rounded-full font-black tracking-wider uppercase">LIVE</span>'; borderClass = 'hover:border-indigo-400'; } 
+                    else if(data.status === 'Active') { statusBadge = '<span class="bg-blue-100 text-blue-700 text-[10px] px-2.5 py-1 rounded-full font-black tracking-wider uppercase">ADMIN</span>'; borderClass = 'border-indigo-200'; bgClass = 'bg-indigo-50/30'; } 
+                    else { statusBadge = '<span class="bg-amber-100 text-amber-700 text-[10px] px-2.5 py-1 rounded-full font-black tracking-wider uppercase">DRAFT</span>'; borderClass = 'border-dashed border-slate-300 hover:border-slate-400'; }
+
+                    const posterStyle = data.pagePoster ? `background-image: url('${data.pagePoster}'); background-size: cover; background-position: center;` : 'background: #e2e8f0;';
+
+                    grid.innerHTML += `
+                        <div class="border ${borderClass} ${bgClass} rounded-2xl overflow-hidden group relative transition-all shadow-sm hover:shadow-xl flex flex-col">
+                            <div class="h-28 relative" style="${posterStyle}">
+                                <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"></div>
+                                <div class="absolute top-3 left-3 w-10 h-10 bg-white/90 text-indigo-600 shadow-lg rounded-xl flex items-center justify-center text-xl"><i class="${data.icon}"></i></div>
+                                <div class="absolute top-3 right-3">${statusBadge}</div>
+                            </div>
+                            <div class="p-5 flex-1 flex flex-col">
+                                <h4 class="font-black text-xl text-slate-800">${data.title}</h4>
+                                <p class="text-[11px] font-mono text-indigo-500 font-bold mb-3 mt-1 bg-indigo-50 inline-block px-2 py-1 rounded">${data.fileName}</p>
+                                <p class="text-sm text-slate-500 font-medium line-clamp-2 mb-4 leading-relaxed">${data.description || 'No meta description configured for this page yet.'}</p>
+                                
+                                <div class="flex gap-2 mt-auto">
+                                    <a href="${data.fileName}" target="_blank" class="flex-1 text-center bg-slate-100 group-hover:bg-slate-800 group-hover:text-white text-slate-700 py-2.5 rounded-xl text-sm font-bold transition">View</a>
+                                    <button onclick="window.editPage('${data.id}')" class="flex-1 bg-slate-100 group-hover:bg-indigo-600 group-hover:text-white text-slate-700 py-2.5 rounded-xl text-sm font-bold transition">Config</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+            // 5. PROMOS LISTENER (Abbreviated rendering)
+            onSnapshot(getCol('zenzy_promos'), (snapshot) => {
+                const grid = document.getElementById('promos-grid'); grid.innerHTML = '';
+                document.getElementById('stat-promos').innerText = snapshot.size;
+                globalPromos = [];
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data(); data.id = docSnap.id; globalPromos.push(data);
+                    grid.innerHTML += `
+                        <div class="h-40 rounded-2xl bg-cover bg-center relative border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl group" style="background-image: url('${data.bg}');">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-slate-900/10"></div>
+                            <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition flex gap-2 z-10">
+                                <button onclick="window.editPromo('${data.id}')" class="text-amber-600 bg-white shadow-lg rounded-lg p-2 text-sm hover:scale-110 transition"><i class="fas fa-edit"></i></button>
+                                <button onclick="window.deleteDocItem('zenzy_promos', '${data.id}')" class="text-red-600 bg-white shadow-lg rounded-lg p-2 text-sm hover:scale-110 transition"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <span class="absolute top-3 left-3 bg-white/95 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full shadow-lg" style="${data.badgeStyle || ''}">${data.badge}</span>
+                            <div class="absolute bottom-4 left-4 right-4 text-white">
+                                <h4 class="font-black text-xl leading-tight mb-1">${data.title}</h4>
+                                <p class="text-xs text-slate-300 font-medium">${data.subtitle}</p>
+                            </div>
+                        </div>`;
+                });
+            });
+
+            // 6. CATEGORIES LISTENER
+            onSnapshot(getCol('zenzy_categories'), (snapshot) => {
+                const grid = document.getElementById('categories-grid'); grid.innerHTML = '';
+                globalCats = [];
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data(); data.id = docSnap.id; globalCats.push(data);
+                    grid.innerHTML += `
+                        <div class="bg-white border border-slate-200 rounded-2xl p-5 text-center shadow-sm hover:shadow-xl hover:-translate-y-1 transition group relative">
+                            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex gap-1">
+                                <button onclick="window.editCategory('${data.id}')" class="text-blue-500 bg-slate-50 hover:bg-white shadow rounded-lg p-1.5 text-xs"><i class="fas fa-edit"></i></button>
+                            </div>
+                            <i class="${data.icon} text-3xl text-secondary mb-3"></i>
+                            <h4 class="font-black text-sm text-slate-800">${data.name}</h4>
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-1">${data.count}</p>
+                        </div>`;
+                });
+            });
+        };
+
+        // --- GLOBAL UTILS ---
+        window.deleteDocItem = async (colName, id) => {
+            if(confirm("Permanently delete this?")) { try { await deleteDoc(getDocRef(colName, id)); } catch(e) { alert("Failed."); } }
+        };
+        window.updateDocField = async (colName, id, field, val) => {
+            try { await updateDoc(getDocRef(colName, id), { [field]: val }); } catch(e) { alert("Update failed."); }
+        };
+
+        // =========================================================================================
+        // UNIVERSAL "UPLOAD FROM COMPUTER" ENGINE (Auto-Resize & Compress to Base64)
+        // =========================================================================================
+        const bindUploader = (fileInputId, textInputId, statusId) => {
+            const fileInput = document.getElementById(fileInputId);
+            if(!fileInput) return;
+            fileInput.addEventListener('change', function(e) {
+                const files = e.target.files;
+                if(!files.length) return;
+                const textarea = document.getElementById(textInputId);
+                const statusBox = document.getElementById(statusId);
+                statusBox.innerText = `Compressing ${files.length} image(s)...`;
+                
+                Array.from(files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 800; // Safe for Firestore limits
+                            let width = img.width, height = img.height;
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                            canvas.width = width; canvas.height = height;
+                            
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                            
+                            if(textarea.tagName.toLowerCase() === 'textarea') {
+                                textarea.value += (textarea.value ? ',\n' : '') + dataUrl;
+                            } else {
+                                textarea.value = dataUrl; // Single input override
+                            }
+                            
+                            statusBox.innerText = "✅ Image compressed & ready to save!";
+                            setTimeout(()=> statusBox.innerText = "", 4000);
+                        }
+                        img.src = event.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                });
+            });
+        };
+
+        // Bind the engine to all our upload buttons!
+        bindUploader('rentalUploadBtn', 'rentalImages', 'rentalUploadStatus');
+        bindUploader('proUploadBtn', 'proBgImage', 'proUploadStatus');
+        bindUploader('promoUploadBtn', 'promoBg', 'promoUploadStatus');
+        bindUploader('pageUploadBtn', 'pagePoster', 'pageUploadStatus');
+
+        // =========================================================================================
+        // CRUD LOGIC FOR ALL ENTITIES
+        // =========================================================================================
+
+        // --- RENTALS ---
+        window.editRental = (id) => {
+            const rent = globalRentals.find(r => r.id === id);
+            if(!rent) return;
+            document.getElementById('rentalId').value = rent.id; document.getElementById('rentalTitle').value = rent.title || '';
+            document.getElementById('rentalPrice').value = rent.price || ''; document.getElementById('rentalType').value = rent.type || '';
+            document.getElementById('rentalLocation').value = rent.location || ''; document.getElementById('rentalDescription').value = rent.description || '';
+            document.getElementById('rentalBeds').value = rent.beds || ''; document.getElementById('rentalBaths').value = rent.baths || '';
+            document.getElementById('rentalSqft').value = rent.sqft || ''; document.getElementById('rentalAssured').checked = !!rent.assured;
+            document.getElementById('rentalVerified').checked = !!rent.verified; document.getElementById('rentalBrokerage').checked = !!rent.brokerage;
+            document.getElementById('rentalTags').value = (rent.tags || []).join(', '); document.getElementById('rentalImages').value = (rent.images || []).join(',\n');
+            document.getElementById('rentalModalTitle').innerText = "Edit Property Details"; document.getElementById('rentalModal').classList.add('active');
+        };
+        document.getElementById('rentalForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); const btn = document.getElementById('rentalSubmitBtn'); btn.disabled = true; btn.innerText = "Saving...";
+            const id = document.getElementById('rentalId').value;
+            const data = {
+                title: document.getElementById('rentalTitle').value, price: parseInt(document.getElementById('rentalPrice').value) || 0,
+                type: document.getElementById('rentalType').value, location: document.getElementById('rentalLocation').value,
+                description: document.getElementById('rentalDescription').value, beds: parseInt(document.getElementById('rentalBeds').value) || 0,
+                baths: parseInt(document.getElementById('rentalBaths').value) || 0, sqft: parseInt(document.getElementById('rentalSqft').value) || null,
+                assured: document.getElementById('rentalAssured').checked, verified: document.getElementById('rentalVerified').checked,
+                brokerage: document.getElementById('rentalBrokerage').checked, tags: document.getElementById('rentalTags').value.split(',').map(t=>t.trim().toLowerCase()).filter(Boolean),
+                images: document.getElementById('rentalImages').value.split(',').map(t=>t.trim()).filter(Boolean),
+            };
+            try { if(id) await updateDoc(getDocRef('zenzy_rentals', id), data); else await addDoc(getCol('zenzy_rentals'), data); closeRentalModal();
+            } catch(e) { alert("Failed"); } finally { btn.disabled = false; btn.innerText = "Save Property"; }
+        });
+
+        // --- PROS ---
+        window.editPro = (id) => {
+            const pro = globalPros.find(p => p.id === id);
+            if(!pro) return;
+            document.getElementById('proId').value = pro.id; document.getElementById('proName').value = pro.name;
+            document.getElementById('proPhone').value = pro.phone || ''; document.getElementById('proStatus').value = pro.status || 'Available';
+            document.getElementById('proPrice').value = pro.price; document.getElementById('proBadgeText').value = pro.badgeText;
+            document.getElementById('proBadgeIcon').value = pro.badgeIcon; document.getElementById('proDistance').value = pro.distance;
+            document.getElementById('proStars').value = pro.stars; document.getElementById('proReviews').value = pro.reviews;
+            document.getElementById('proVerifiedText').value = pro.verifiedText || 'verified'; document.getElementById('proImagesCount').value = pro.imagesCount || 0;
+            document.getElementById('proBgImage').value = pro.bgImage;
+            document.getElementById('proModalTitle').innerText = "Edit Professional"; document.getElementById('proModal').classList.add('active');
+        };
+        document.getElementById('proForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); const btn = document.getElementById('proSubmitBtn'); btn.disabled = true; btn.innerText = "Saving...";
+            const id = document.getElementById('proId').value;
+            const data = {
+                name: document.getElementById('proName').value, phone: document.getElementById('proPhone').value, status: document.getElementById('proStatus').value,
+                price: document.getElementById('proPrice').value, badgeText: document.getElementById('proBadgeText').value, badgeIcon: document.getElementById('proBadgeIcon').value, 
+                distance: document.getElementById('proDistance').value, stars: document.getElementById('proStars').value, reviews: parseInt(document.getElementById('proReviews').value) || 0,
+                verifiedText: document.getElementById('proVerifiedText').value, imagesCount: parseInt(document.getElementById('proImagesCount').value) || 0, bgImage: document.getElementById('proBgImage').value,
+            };
+            try { if(id) await updateDoc(getDocRef('zenzy_pros', id), data); else await addDoc(getCol('zenzy_pros'), data); closeProModal();
+            } catch(e) { alert("Failed."); } finally { btn.disabled = false; btn.innerText = "Save Professional"; }
+        });
+
+        // --- PAGES (ARCHITECTURE ENGINE) ---
+        window.editPage = (id) => {
+            const page = globalPages.find(p => p.id === id);
+            if(!page) return;
+            document.getElementById('pageId').value = page.id; document.getElementById('pageTitle').value = page.title;
+            document.getElementById('pageFileName').value = page.fileName; document.getElementById('pageIcon').value = page.icon;
+            document.getElementById('pageStatus').value = page.status; document.getElementById('pageDescription').value = page.description || '';
+            document.getElementById('pagePoster').value = page.pagePoster || '';
+            document.getElementById('pageModalTitle').innerText = "Configure Page Identity"; document.getElementById('pageModal').classList.add('active');
+        };
+        document.getElementById('pageForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); const btn = document.getElementById('pageSubmitBtn'); btn.disabled = true; btn.innerText = "Saving...";
+            const id = document.getElementById('pageId').value;
+            const data = {
+                title: document.getElementById('pageTitle').value, fileName: document.getElementById('pageFileName').value,
+                icon: document.getElementById('pageIcon').value, status: document.getElementById('pageStatus').value,
+                description: document.getElementById('pageDescription').value, pagePoster: document.getElementById('pagePoster').value
+            };
+            try { if(id) await updateDoc(getDocRef('zenzy_pages', id), data); else await addDoc(getCol('zenzy_pages'), data); closePageModal();
+            } catch(e) { alert("Failed."); } finally { btn.disabled = false; btn.innerText = "Save Page Engine"; }
+        });
+
+        // --- PROMOS ---
+        window.editPromo = (id) => {
+            const promo = globalPromos.find(p => p.id === id);
+            if(!promo) return;
+            document.getElementById('promoId').value = promo.id; document.getElementById('promoTitle').value = promo.title; document.getElementById('promoSubtitle').value = promo.subtitle;
+            document.getElementById('promoBadge').value = promo.badge; document.getElementById('promoBadgeStyle').value = promo.badgeStyle || ''; document.getElementById('promoBg').value = promo.bg;
+            document.getElementById('promoModalTitle').innerText = "Edit Promo Banner"; document.getElementById('promoModal').classList.add('active');
+        };
+        document.getElementById('promoForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); const btn = document.getElementById('promoSubmitBtn'); btn.disabled = true; btn.innerText = "Saving...";
+            const id = document.getElementById('promoId').value;
+            const data = { title: document.getElementById('promoTitle').value, subtitle: document.getElementById('promoSubtitle').value, badge: document.getElementById('promoBadge').value, badgeStyle: document.getElementById('promoBadgeStyle').value, bg: document.getElementById('promoBg').value };
+            try { if(id) await updateDoc(getDocRef('zenzy_promos', id), data); else await addDoc(getCol('zenzy_promos'), data); closePromoModal();
+            } catch(e) { alert("Failed."); } finally { btn.disabled = false; btn.innerText = "Save Promo"; }
+        });
+
+        // --- CATEGORIES ---
+        window.editCategory = (id) => {
+            const cat = globalCats.find(c => c.id === id);
+            if(!cat) return;
+            document.getElementById('catId').value = cat.id; document.getElementById('catName').value = cat.name; document.getElementById('catIcon').value = cat.icon;
+            document.getElementById('catCount').value = cat.count; document.getElementById('catLink').value = cat.link || '#';
+            document.getElementById('catModalTitle').innerText = "Edit Category"; document.getElementById('categoryModal').classList.add('active');
+        };
+        document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); const btn = document.getElementById('catSubmitBtn'); btn.disabled = true; btn.innerText = "Saving...";
+            const id = document.getElementById('catId').value;
+            const data = { name: document.getElementById('catName').value, icon: document.getElementById('catIcon').value, count: document.getElementById('catCount').value, link: document.getElementById('catLink').value };
+            try { if(id) await updateDoc(getDocRef('zenzy_categories', id), data); else await addDoc(getCol('zenzy_categories'), data); closeCategoryModal();
+            } catch(e) { alert("Failed."); } finally { btn.disabled = false; btn.innerText = "Save Category"; }
+        });
+
+    </script>
+
+    <script>
+        // Tab UI & Modal Open/Close Toggles
+        const tabNames = { 'dashboard': 'System Dashboard', 'bookings': 'Booking Tracker', 'pros': 'Service Professionals', 'rentals': 'House Rentals', 'categories': 'Categories Grid', 'promos': 'Promo Banners', 'pages': 'Site Pages Engine' };
+
+        function switchTab(tabId) {
+            document.getElementById('header-title').innerText = tabNames[tabId];
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => { el.classList.remove('bg-primary', 'text-white'); el.classList.add('text-slate-300', 'hover:bg-slate-800'); });
+            document.getElementById('tab-' + tabId).classList.add('active');
+            const btn = document.getElementById('btn-' + tabId);
+            btn.classList.remove('text-slate-300', 'hover:bg-slate-800'); btn.classList.add('bg-primary', 'text-white');
+        }
+        
+        function openRentalModal() { document.getElementById('rentalForm').reset(); document.getElementById('rentalId').value = ""; document.getElementById('rentalModalTitle').innerText = "Add New Property"; document.getElementById('rentalModal').classList.add('active'); }
+        function closeRentalModal() { document.getElementById('rentalModal').classList.remove('active'); }
+        
+        function openProModal() { document.getElementById('proForm').reset(); document.getElementById('proId').value = ""; document.getElementById('proStatus').value = "Available"; document.getElementById('proModalTitle').innerText = "Add New Professional"; document.getElementById('proModal').classList.add('active'); }
+        function closeProModal() { document.getElementById('proModal').classList.remove('active'); }
+
+        function openCategoryModal() { document.getElementById('categoryForm').reset(); document.getElementById('catId').value = ""; document.getElementById('catModalTitle').innerText = "Add Category"; document.getElementById('categoryModal').classList.add('active'); }
+        function closeCategoryModal() { document.getElementById('categoryModal').classList.remove('active'); }
+
+        function openPromoModal() { document.getElementById('promoForm').reset(); document.getElementById('promoId').value = ""; document.getElementById('promoModalTitle').innerText = "Add Promo Banner"; document.getElementById('promoModal').classList.add('active'); }
+        function closePromoModal() { document.getElementById('promoModal').classList.remove('active'); }
+
+        function openPageModal() { document.getElementById('pageForm').reset(); document.getElementById('pageId').value = ""; document.getElementById('pageStatus').value = "Draft"; document.getElementById('pageModalTitle').innerText = "Configure New Page"; document.getElementById('pageModal').classList.add('active'); }
+        function closePageModal() { document.getElementById('pageModal').classList.remove('active'); }
+    </script>
+</body>
+</html>

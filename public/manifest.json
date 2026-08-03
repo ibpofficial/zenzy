@@ -1,0 +1,31 @@
+{
+  "name": "Zenzy Operating System",
+  "short_name": "Zenzy",
+  "version": "1.0.2",
+  "description": "The all-in-one operating system for service businesses. Manage leads, projects, workspaces, quotes, invoices and customers from one platform.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

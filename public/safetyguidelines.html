@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Safety Guidelines · Zenzy</title>
+  <meta name="description"
+    content="Safety guidelines for using Zenzy's platform — tips to stay safe while booking and receiving services." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f5f7fa;
+      --paper: #ffffff;
+      --ink: #0b1a2e;
+      --ink-soft: #1f3347;
+      --ink-faint: #5b6f82;
+      --navy: #0b1a2e;
+      --navy-light: #e3e9f2;
+      --gold: #c9a84c;
+      --gold-light: #f0e6c5;
+      --line: rgba(11, 26, 46, 0.08);
+      --shadow-card: 0 8px 24px -8px rgba(11, 26, 46, 0.06);
+      --shadow-hover: 0 16px 36px -12px rgba(11, 26, 46, 0.12);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ---- full page background canvas (snakes only, no food) ---- */
+    #bgCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      background: #f0f3f8;
+      display: block;
+    }
+
+    /* ---- content on top ---- */
+    .page-wrap {
+      position: relative;
+      z-index: 2;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+    }
+
+    /* progress bar */
+    .progress-rail {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: rgba(11, 26, 46, 0.08);
+      z-index: 1000;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--navy), var(--gold));
+      transition: width 0.12s linear;
+    }
+
+    /* ---- back button ---- */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--navy);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 32px;
+      padding: 10px 24px 10px 20px;
+      border-radius: 60px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 16px -8px rgba(11, 26, 46, 0.06);
+      transition: all 0.25s ease;
+      opacity: 0;
+      transform: translateX(-10px);
+      animation: slideRight 0.5s ease 0.15s forwards;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.92);
+      border-color: var(--gold);
+      transform: translateX(-2px) scale(1.01);
+      box-shadow: 0 8px 24px -10px rgba(11, 26, 46, 0.10);
+    }
+
+    .back-btn svg {
+      width: 18px;
+      height: 18px;
+      transition: transform 0.25s ease;
+    }
+
+    .back-btn:hover svg {
+      transform: translateX(-4px);
+    }
+
+    /* header */
+    .page-badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.8px;
+      color: var(--gold);
+      background: rgba(201, 168, 76, 0.10);
+      border: 1px solid rgba(201, 168, 76, 0.20);
+      padding: 4px 18px;
+      border-radius: 40px;
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.25s forwards;
+    }
+
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(30px, 5vw, 44px);
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.35s forwards;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--ink-faint);
+      margin-bottom: 40px;
+      font-weight: 400;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.45s forwards;
+      border-left: 2px solid rgba(201, 168, 76, 0.3);
+      padding-left: 18px;
+    }
+
+    /* section cards – white/glass */
+    .section {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 20px;
+      padding: 28px 32px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px -8px rgba(11, 26, 46, 0.04);
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      opacity: 0;
+      transform: translateY(20px);
+      will-change: transform, opacity, box-shadow;
+    }
+
+    .section:hover {
+      border-color: rgba(11, 26, 46, 0.15);
+      box-shadow: 0 12px 32px -14px rgba(11, 26, 46, 0.10);
+      transform: translateY(-2px);
+    }
+
+    .section h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .section h2 .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--navy-light);
+      color: var(--navy);
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .section p,
+    .section li {
+      font-size: 14.5px;
+      color: #1a2c3d;
+      line-height: 1.8;
+    }
+
+    .section p {
+      margin-bottom: 6px;
+    }
+
+    .section ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 10px;
+    }
+
+    .section li {
+      padding: 4px 0 4px 28px;
+      position: relative;
+    }
+
+    .section li::before {
+      content: '✦';
+      position: absolute;
+      left: 4px;
+      top: 5px;
+      font-size: 12px;
+      color: var(--gold);
+      opacity: 0.7;
+    }
+
+    /* tag chips */
+    .tip-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .tip-chip {
+      background: rgba(11, 26, 46, 0.04);
+      border: 1px solid rgba(11, 26, 46, 0.06);
+      border-radius: 40px;
+      padding: 6px 16px 6px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #1a2c3d;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .tip-chip:hover {
+      background: rgba(201, 168, 76, 0.08);
+      border-color: rgba(201, 168, 76, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .tip-chip .chip-emoji {
+      font-size: 16px;
+    }
+
+    /* emergency card */
+    .section-emergency {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      border-radius: 20px;
+      padding: 28px 32px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px -8px rgba(11, 26, 46, 0.04);
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      opacity: 0;
+      transform: translateY(20px);
+      will-change: transform, opacity, box-shadow;
+    }
+
+    .section-emergency:hover {
+      border-color: rgba(239, 68, 68, 0.25);
+      box-shadow: 0 12px 32px -14px rgba(239, 68, 68, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .section-emergency h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 19px;
+      font-weight: 600;
+      color: #b91c1c;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .section-emergency h2 .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.08);
+      color: #b91c1c;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .section-emergency p,
+    .section-emergency li {
+      font-size: 14.5px;
+      color: #1a2c3d;
+      line-height: 1.8;
+    }
+
+    .section-emergency ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 10px;
+    }
+
+    .section-emergency li {
+      padding: 4px 0 4px 28px;
+      position: relative;
+    }
+
+    .section-emergency li::before {
+      content: '⚡';
+      position: absolute;
+      left: 4px;
+      top: 5px;
+      font-size: 13px;
+      color: #b91c1c;
+      opacity: 0.7;
+    }
+
+    .emergency-numbers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .emergency-number {
+      background: rgba(239, 68, 68, 0.04);
+      border: 1px solid rgba(239, 68, 68, 0.08);
+      border-radius: 40px;
+      padding: 4px 16px 4px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #b91c1c;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .emergency-number .num {
+      color: #991b1b;
+      font-weight: 700;
+    }
+
+    /* visible animation */
+    .visible {
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideRight {
+      0% {
+        opacity: 0;
+        transform: translateX(-12px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* footer */
+    .footer-note {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--ink-faint);
+      margin-top: 36px;
+      padding-top: 22px;
+      border-top: 1px solid rgba(11, 26, 46, 0.06);
+      letter-spacing: 0.2px;
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(4px);
+      padding: 16px 20px;
+      border-radius: 40px;
+      display: inline-block;
+      width: 100%;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.8s forwards;
+    }
+
+    .footer-note span {
+      color: var(--navy);
+      font-weight: 600;
+    }
+
+    .footer-note .dev {
+      display: block;
+      margin-top: 4px;
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      letter-spacing: 0.5px;
+    }
+
+    /* back to top */
+    .back-to-top {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 999;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(16px) scale(0.92);
+      pointer-events: none;
+      box-shadow: 0 4px 16px -8px rgba(11, 26, 46, 0.06);
+    }
+
+    .back-to-top.visible-btn {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .back-to-top:hover {
+      background: rgba(255, 255, 255, 0.96);
+      border-color: var(--gold);
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 8px 24px -10px rgba(11, 26, 46, 0.10);
+    }
+
+    .back-to-top svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2.2;
+      transition: transform 0.3s ease;
+    }
+
+    .back-to-top:hover svg {
+      transform: translateY(-2px);
+    }
+
+    /* responsive */
+    @media (max-width: 640px) {
+      .page-wrap {
+        padding: 20px 14px 60px;
+      }
+
+      .section,
+      .section-emergency {
+        padding: 20px 18px;
+        border-radius: 18px;
+      }
+
+      .back-btn {
+        margin-bottom: 24px;
+        padding: 8px 18px 8px 14px;
+        font-size: 13px;
+      }
+
+      .subtitle {
+        margin-bottom: 28px;
+        padding-left: 14px;
+        font-size: 14px;
+      }
+
+      .section h2,
+      .section-emergency h2 {
+        font-size: 17px;
+        gap: 10px;
+      }
+
+      .section h2 .icon,
+      .section-emergency h2 .icon {
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
+      }
+
+      .section p,
+      .section li,
+      .section-emergency p,
+      .section-emergency li {
+        font-size: 13.5px;
+      }
+
+      .back-to-top {
+        bottom: 20px;
+        right: 20px;
+        width: 44px;
+        height: 44px;
+      }
+
+      .back-to-top svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    @media (max-width: 400px) {
+
+      .section li,
+      .section-emergency li {
+        padding-left: 22px;
+      }
+
+      .section li::before,
+      .section-emergency li::before {
+        left: 2px;
+        font-size: 10px;
+        top: 5px;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      background: #eef1f5;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c9cfe0;
+      border-radius: 12px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #b0b8cc;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- full page background canvas (snakes only, no food) -->
+  <canvas id="bgCanvas"></canvas>
+
+  <div class="progress-rail">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <div class="page-wrap">
+    <a href="/" class="back-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15.75 19.5L8.25 12l7.5-7.5" />
+      </svg>
+      Back to Zenzy
+    </a>
+
+    <span class="page-badge">Safety First</span>
+    <h1>Stay <span
+        style="background: linear-gradient(135deg, var(--navy), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Safe</span>
+      with Zenzy</h1>
+    <p class="subtitle">Your safety is our priority — here's how to protect yourself</p>
+
+    <!-- Before Booking -->
+    <div class="section" data-animate>
+      <h2><span class="icon">🛡️</span> Before Booking</h2>
+      <ul>
+        <li>Always book through the official Zenzy platform</li>
+        <li>Check provider ratings, reviews &amp; verification badges</li>
+        <li>Review service description, pricing &amp; included items</li>
+        <li>Ensure your address &amp; contact details are accurate</li>
+      </ul>
+    </div>
+
+    <!-- During Service -->
+    <div class="section" data-animate>
+      <h2><span class="icon">🏠</span> During Service</h2>
+      <ul>
+        <li>Verify provider identity with the OTP code</li>
+        <li>Never share financial information (bank details, PINs)</li>
+        <li>Keep a friend or family member informed</li>
+        <li>Use in-app chat for all communication</li>
+      </ul>
+    </div>
+
+    <!-- Payment Safety -->
+    <div class="section" data-animate>
+      <h2><span class="icon">💳</span> Payment Safety</h2>
+      <ul>
+        <li>Always pay through the Zenzy platform</li>
+        <li>Never transfer money to a personal account</li>
+        <li>Verify the final amount before confirming payment</li>
+        <li>Save payment receipts &amp; transaction IDs</li>
+      </ul>
+    </div>
+
+    <!-- Rental Safety -->
+    <div class="section" data-animate>
+      <h2><span class="icon">🏘️</span> Rental Safety</h2>
+      <ul>
+        <li>Visit the property in person before any payment</li>
+        <li>Verify landlord identity &amp; ownership documents</li>
+        <li>Never pay deposits outside the Zenzy platform</li>
+        <li>Document property condition with photos</li>
+      </ul>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="section" data-animate>
+      <h2><span class="icon">✅</span> Quick Safety Tips</h2>
+      <div class="tip-chips">
+        <span class="tip-chip"><span class="chip-emoji">📱</span> Book via app</span>
+        <span class="tip-chip"><span class="chip-emoji">🔐</span> Verify with OTP</span>
+        <span class="tip-chip"><span class="chip-emoji">💬</span> Use in-app chat</span>
+        <span class="tip-chip"><span class="chip-emoji">⭐</span> Rate every service</span>
+        <span class="tip-chip"><span class="chip-emoji">🚫</span> Never share OTPs</span>
+        <span class="tip-chip"><span class="chip-emoji">📞</span> Contact support</span>
+        <span class="tip-chip"><span class="chip-emoji">📸</span> Document everything</span>
+        <span class="tip-chip"><span class="chip-emoji">📍</span> Share location</span>
+      </div>
+    </div>
+
+    <!-- For Providers -->
+    <div class="section" data-animate>
+      <h2><span class="icon">👷</span> For Service Providers</h2>
+      <ul>
+        <li>Always carry your Zenzy ID &amp; verification documents</li>
+        <li>Confirm booking details &amp; OTP with the customer</li>
+        <li>Maintain professional conduct &amp; respect customer property</li>
+        <li>Report any unsafe situations through the app</li>
+        <li>Do not accept or request payments outside the platform</li>
+      </ul>
+    </div>
+
+    <!-- Additional Safety Practices -->
+    <div class="section" data-animate>
+      <h2><span class="icon">🔄</span> Additional Safety Practices</h2>
+      <div class="tip-chips">
+        <span class="tip-chip"><span class="chip-emoji">📸</span> Take before/after photos</span>
+        <span class="tip-chip"><span class="chip-emoji">📍</span> Share your live location</span>
+        <span class="tip-chip"><span class="chip-emoji">🔔</span> Enable notifications</span>
+        <span class="tip-chip"><span class="chip-emoji">🧾</span> Keep records of communication</span>
+        <span class="tip-chip"><span class="chip-emoji">🚪</span> Set clear work boundaries</span>
+        <span class="tip-chip"><span class="chip-emoji">📋</span> Review cancellation policy</span>
+      </div>
+    </div>
+
+    <!-- Emergency Card -->
+    <div class="section-emergency" data-animate>
+      <h2><span class="icon">🚨</span> Emergency &amp; Reporting</h2>
+      <p>If you encounter a safety issue or emergency:</p>
+      <ul>
+        <li><strong>In-App SOS:</strong> Use the emergency button for immediate assistance</li>
+        <li><strong>Zenzy Support:</strong> Contact our 24/7 support team through the Help Desk</li>
+      </ul>
+      <div class="emergency-numbers">
+        <span class="emergency-number">🚔 Police: <span class="num">112</span></span>
+        <span class="emergency-number">👩 Women's Helpline: <span class="num">1091</span></span>
+        <span class="emergency-number">🧒 Child Helpline: <span class="num">1098</span></span>
+      </div>
+      <p style="margin-top: 14px; font-size: 13px; opacity: 0.7;">All safety reports are treated with the highest
+        priority and confidentiality.</p>
+    </div>
+
+    <div class="footer-note">
+      © 2026 <span>Zenzy</span> Technologies Private Limited. All rights reserved.
+      <span class="dev">Developed By ISHANT UPADHYAY</span>
+    </div>
+  </div>
+
+  <!-- BACK TO TOP -->
+  <button class="back-to-top" id="backToTopBtn" aria-label="Back to top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round"
+      stroke-linejoin="round">
+      <path d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+    </svg>
+  </button>
+
+  <script>
+    // ---- SNAKE BACKGROUND (no food, just snakes) ----
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+
+    function resizeCanvas() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const snakeColors = ['#1f4b3f', '#b28b4a', '#2b5f7a', '#9b6b43', '#4a6b5a', '#8f6b4a', '#2f5f6f', '#a0704a', '#3d6b5a', '#b07a4a'];
+
+    class Snake {
+      constructor() {
+        this.body = [];
+        const startX = 40 + Math.random() * (W - 80);
+        const startY = 40 + Math.random() * (H - 80);
+        const len = 4 + Math.floor(Math.random() * 5);
+        for (let i = 0; i < len; i++) {
+          this.body.push({ x: startX - i * 8, y: startY });
+        }
+        this.dir = Math.floor(Math.random() * 4);
+        this.color = snakeColors[Math.floor(Math.random() * snakeColors.length)];
+        this.speed = 80 + Math.random() * 60;
+        this.time = 0;
+      }
+
+      update(delta) {
+        this.time += delta;
+        if (this.time < this.speed) return false;
+        this.time = 0;
+
+        const head = this.body[0];
+        let newX = head.x, newY = head.y;
+
+        if (Math.random() < 0.2) {
+          this.dir = Math.floor(Math.random() * 4);
+        }
+
+        switch (this.dir) {
+          case 0: newX += 8; break;
+          case 1: newY += 8; break;
+          case 2: newX -= 8; break;
+          case 3: newY -= 8; break;
+        }
+
+        if (newX < 0) newX = W;
+        if (newX > W) newX = 0;
+        if (newY < 0) newY = H;
+        if (newY > H) newY = 0;
+
+        this.body.unshift({ x: newX, y: newY });
+        this.body.pop(); // no food, just move
+        return true;
+      }
+
+      draw(ctx) {
+        for (let i = 0; i < this.body.length; i++) {
+          const p = this.body[i];
+          const radius = 6 - (i / this.body.length) * 1.8;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, Math.max(3, radius), 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.shadowColor = 'rgba(0,0,0,0.04)';
+          ctx.shadowBlur = 8;
+          ctx.fill();
+          if (i === 0) {
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(p.x - 4, p.y - 4, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(p.x + 4, p.y - 4, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#111';
+            ctx.beginPath();
+            ctx.arc(p.x - 4, p.y - 4, 1.4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(p.x + 4, p.y - 4, 1.4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    let snakes = [];
+    function initSnakes(count = 10) {
+      snakes = [];
+      for (let i = 0; i < count; i++) {
+        snakes.push(new Snake());
+      }
+    }
+    initSnakes(10);
+
+    let lastTime = 0;
+    function animate(time) {
+      const delta = lastTime ? time - lastTime : 16;
+      lastTime = time;
+
+      snakes.forEach(s => s.update(delta));
+
+      ctx.clearRect(0, 0, W, H);
+      snakes.forEach(s => s.draw(ctx));
+
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+
+    // ---- section observer ----
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, idx) => {
+        if (entry.isIntersecting) {
+          const delay = Math.min(idx * 0.06, 0.5);
+          entry.target.style.animationDelay = `${delay}s`;
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -30px 0px' });
+    document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
+
+    // ---- progress ----
+    const progressFill = document.getElementById('progressFill');
+    function updateProgress() {
+      const h = document.documentElement;
+      const scrolled = h.scrollTop;
+      const height = h.scrollHeight - h.clientHeight;
+      progressFill.style.width = (height > 0 ? (scrolled / height) * 100 : 0) + '%';
+    }
+    window.addEventListener('scroll', updateProgress);
+    updateProgress();
+
+    // ---- back to top ----
+    const backBtn = document.getElementById('backToTopBtn');
+    window.addEventListener('scroll', () => {
+      backBtn.classList.toggle('visible-btn', window.scrollY > 400);
+    });
+    backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    if (window.scrollY > 400) backBtn.classList.add('visible-btn');
+  </script>
+</body>
+
+</html>
