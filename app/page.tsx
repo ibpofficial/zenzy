@@ -1647,56 +1647,120 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* PREMIUM BOOKING TRUST BANNER */}
+          {/* ZENZY GUARANTEE — Minimal Editorial */}
           <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-8 animate-fade-up">
-            <div className="relative bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 rounded-2xl p-8 md:p-12 border border-slate-800/80 shadow-[0_24px_50px_rgba(0,0,0,0.2)] overflow-hidden">
-              {/* Glowing neon bg lines or orbs */}
-              <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary-600 rounded-full blur-[140px] opacity-25 pointer-events-none"></div>
-              <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-500 rounded-full blur-[140px] opacity-20 pointer-events-none"></div>
+            <div
+              className="relative rounded-2xl overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #0f172a 0%, #111827 50%, #0f172a 100%)" }}
+            >
+              {/* Background image (configurable from admin) */}
+              {siteConfig?.guaranteeBgImage && (
+                <>
+                  {/* Image anchored to the right, clear on right side */}
+                  <div
+                    className="absolute inset-0 bg-cover"
+                    style={{
+                      backgroundImage: `url(${siteConfig.guaranteeBgImage})`,
+                      backgroundPosition: "right center",
+                    }}
+                  />
+                  {/* Gradient: fully dark on left (text readable) → transparent on right (image clear) */}
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background: "linear-gradient(to right, #0f172a 0%, #0f172a 35%, rgba(15,23,42,0.75) 55%, rgba(15,23,42,0.1) 100%)",
+                    }}
+                  />
+                </>
+              )}
 
-              <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
-                <div className="max-w-2xl space-y-6">
-                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10.5px] font-black text-primary-400 bg-primary-950/60 border border-primary-850/60 uppercase tracking-widest">
-                    <ShieldCheck className="w-4 h-4 text-primary-400" /> Zenzy Guarantee
-                  </span>
-                  <h2 className="text-3xl md:text-4.5xl font-black text-white tracking-tight leading-[1.12]">
-                    Ready to experience India's <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-300">most trusted</span> local services?
+              {/* Subtle top border accent */}
+              <div className="absolute top-0 left-0 right-0 h-[1px]"
+                style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.4), transparent)" }} />
+
+              <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10 px-8 sm:px-12 py-10 sm:py-14">
+
+                {/* LEFT — text */}
+                <div className="max-w-2xl flex flex-col gap-7">
+
+                  {/* Eyebrow */}
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" strokeWidth={2} />
+                    <span
+                      className="text-emerald-400 uppercase tracking-[0.18em] font-semibold"
+                      style={{ fontSize: "11px", fontFamily: "inherit" }}
+                    >
+                      Zenzy Guarantee
+                    </span>
+                  </div>
+
+                  {/* Heading — large serif */}
+                  <h2
+                    className="text-white leading-[1.1]"
+                    style={{
+                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontWeight: 700,
+                      fontSize: "clamp(1.7rem, 3.2vw, 2.6rem)",
+                      letterSpacing: "-0.015em",
+                    }}
+                  >
+                    Ready to experience India&apos;s most trusted local services?
                   </h2>
-                  <p className="text-slate-400 font-semibold text-[14.5px] leading-relaxed max-w-xl">
+
+                  {/* Body */}
+                  <p
+                    className="text-slate-400 leading-relaxed max-w-xl"
+                    style={{ fontSize: "14.5px", fontWeight: 400 }}
+                  >
                     Compare verified labor profiles, review actual portfolio proof, negotiate directly with the contractor, and enjoy our platform booking security with 100% satisfaction guarantee.
                   </p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  {/* Bullet list — minimal left-border style */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
                       "100% Aadhaar & Trade Verified Partners",
                       "Secure & Direct Payments (Low platform commission)",
                       "Verified Work Portfolios & Reviews",
                       "Support Agent Dispute Resolution Protocol",
                     ].map((bullet, idx) => (
-                      <div key={idx} className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                          <CheckCircle className="w-3 h-3" />
-                        </div>
-                        <span className="text-xs font-bold text-slate-300">{bullet}</span>
+                      <div key={idx} className="flex items-start gap-3 pl-3 border-l border-slate-700">
+                        <Check className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" strokeWidth={2.5} />
+                        <span className="text-slate-300 text-[12.5px] leading-snug">{bullet}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="shrink-0 w-full lg:w-auto flex flex-col items-center lg:items-end gap-4">
+                {/* RIGHT — CTA */}
+                <div className="shrink-0 flex flex-col items-start lg:items-end gap-4 w-full lg:w-auto">
                   <Link
                     href="/services"
-                    className="btn-shimmer w-full lg:w-auto text-center bg-gradient-to-r from-primary-500 to-indigo-550 hover:from-primary-650 hover:to-indigo-650 text-white px-10 py-5 rounded-[20px] font-black text-[15px] shadow-[0_12px_30px_rgba(59,130,246,0.3)] transition-all active:scale-97 duration-150 block uppercase tracking-wider animate-pulse-slow"
+                    className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-white text-[14px] font-semibold transition-all duration-200 hover:bg-white/10 active:scale-[0.97]"
+                    style={{
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      background: "rgba(255,255,255,0.05)",
+                    }}
                   >
                     Connect with Professionals
+                    <ArrowRight className="w-4 h-4" />
                   </Link>
-                  <div className="flex items-center gap-4 text-slate-500 text-[11px] font-bold">
-                    <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-500" /> SSL Secured Booking</span>
+
+                  {/* Trust strip */}
+                  <div className="flex items-center gap-3 text-slate-500 text-[11px]">
+                    <span className="flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                      SSL Secured Booking
+                    </span>
                     <span>•</span>
                     <span>No Booking Fees</span>
                   </div>
                 </div>
+
               </div>
+
+              {/* Subtle bottom border */}
+              <div className="absolute bottom-0 left-0 right-0 h-[1px]"
+                style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.2), transparent)" }} />
             </div>
           </section>
 
@@ -1742,73 +1806,136 @@ export default function HomePage() {
           </section>
 
           {/* PLATFORM VALUE CTA */}
-          <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-8 animate-fade-up">
-            <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-8 sm:p-10 rounded-3xl border border-slate-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 text-white">
-              <div className="space-y-2 text-center sm:text-left">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-primary-500/20 text-primary-300 border border-primary-500/30">
-                  <Sparkles className="w-3.5 h-3.5" /> Platform Value
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                  Discover Zenzy Platform Values & Capabilities
-                </h2>
-                <p className="text-slate-300 text-xs sm:text-sm font-medium max-w-xl">
-                  Explore our 10 core feature pillars: Business Profiles, Project Workspaces, Milestone Tracking, Quotation Engine, Escrow Payments, and Document Vaults.
-                </p>
+          <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-4 animate-fade-up">
+            <div
+              className="relative rounded-2xl overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #0f172a 0%, #111827 50%, #0f172a 100%)" }}
+            >
+              {/* Hairline top accent */}
+              <div className="absolute top-0 left-0 right-0 h-[1px]"
+                style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.4), transparent)" }} />
+
+              <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 px-8 sm:px-12 py-7 sm:py-8">
+
+                {/* LEFT */}
+                <div className="flex flex-col gap-2.5 max-w-xl">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                    <span
+                      className="text-indigo-400 uppercase tracking-[0.18em] font-semibold"
+                      style={{ fontSize: "11px" }}
+                    >
+                      Platform Value
+                    </span>
+                  </div>
+                  <h2
+                    className="text-white leading-[1.15]"
+                    style={{
+                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontWeight: 700,
+                      fontSize: "clamp(1.2rem, 2.2vw, 1.65rem)",
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    Discover Zenzy Platform Values &amp; Capabilities
+                  </h2>
+                  <p className="text-slate-400 text-[13px] leading-relaxed">
+                    Explore our 10 core feature pillars: Business Profiles, Project Workspaces, Milestone Tracking, Quotation Engine, Escrow Payments, and Document Vaults.
+                  </p>
+                </div>
+
+                {/* RIGHT */}
+                <Link
+                  href="/platform-value"
+                  className="shrink-0 inline-flex items-center gap-2.5 px-6 py-3 rounded-xl text-white text-[13.5px] font-semibold transition-all duration-200 hover:bg-white/10 active:scale-[0.97] whitespace-nowrap"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    background: "rgba(255,255,255,0.05)",
+                  }}
+                >
+                  View Platform Values
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
 
-              <Link
-                href="/platform-value"
-                className="shrink-0 group inline-flex items-center gap-3 bg-white text-slate-900 hover:bg-slate-100 px-7 py-4 rounded-2xl font-black text-xs uppercase tracking-wider transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105"
-              >
-                <span>View Platform Values</span>
-                <ArrowRight className="w-4 h-4 text-primary-600 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              {/* Hairline bottom accent */}
+              <div className="absolute bottom-0 left-0 right-0 h-[1px]"
+                style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.2), transparent)" }} />
             </div>
           </section>
 
-          {/* ANIMATED STATS MARQUEE BAR */}
-          <section ref={statsRef} className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-4 animate-fade-up">
-            <div className="relative bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl overflow-hidden border border-slate-700/50 shadow-lg">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary-600/5 via-transparent to-indigo-600/5"></div>
+          {/* STATS BAR — Full Width Marquee */}
+          <section ref={statsRef} className="w-full py-4 animate-fade-up">
+            <div
+              className="relative overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #0f172a 0%, #111827 50%, #0f172a 100%)" }}
+            >
+              {/* Hairline top accent */}
+              <div className="absolute top-0 left-0 right-0 h-[1px]"
+                style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.4) 50%, transparent)" }} />
 
-              <div className="relative z-10 flex items-center justify-between gap-4 px-4 sm:px-6 py-3 sm:py-4">
-                <div className="flex-1 overflow-hidden">
-                  <div className="flex items-center gap-8 sm:gap-12 animate-marquee whitespace-nowrap">
-                    {[
-                      { label: "Vetted Partners", value: statsVisible ? `${(partnersCount / 1000).toFixed(1)}k+` : "0", icon: <Users className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-primary-400" },
-                      { label: "Blocks Covered", value: statsVisible ? `${blocksCount}+` : "0", icon: <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-emerald-400" },
-                      { label: "Jobs Completed", value: statsVisible ? `${Math.floor(jobsCount / 1000)}k+` : "0", icon: <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-amber-400" },
-                      { label: "Avg. Rating", value: statsVisible ? `${(ratingVal / 10).toFixed(1)}` : "0", icon: <Star className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-rose-400" },
-                      { label: "Vetted Partners", value: statsVisible ? `${(partnersCount / 1000).toFixed(1)}k+` : "0", icon: <Users className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-primary-400" },
-                      { label: "Blocks Covered", value: statsVisible ? `${blocksCount}+` : "0", icon: <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-emerald-400" },
-                      { label: "Jobs Completed", value: statsVisible ? `${Math.floor(jobsCount / 1000)}k+` : "0", icon: <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-amber-400" },
-                      { label: "Avg. Rating", value: statsVisible ? `${(ratingVal / 10).toFixed(1)}` : "0", icon: <Star className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-rose-400" },
-                    ].map((stat, i) => (
-                      <div key={i} className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                        <div className={`${stat.color}`}>{stat.icon}</div>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className={`text-sm sm:text-base font-black ${stat.color}`}>{stat.value}</span>
-                          <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">{stat.label}</span>
-                        </div>
-                        {i < 7 && (
-                          <div className="w-px h-5 sm:h-6 bg-slate-700/50 mx-1 sm:mx-2"></div>
-                        )}
+              {/* Left fade */}
+              <div className="absolute left-0 top-0 bottom-0 w-16 z-10 pointer-events-none"
+                style={{ background: "linear-gradient(90deg, #0f172a 30%, transparent)" }} />
+              {/* Right fade — wider to cover button */}
+              <div className="absolute right-0 top-0 bottom-0 w-48 z-10 pointer-events-none"
+                style={{ background: "linear-gradient(270deg, #0f172a 40%, transparent)" }} />
+
+              {/* Scrolling marquee */}
+              <div className="relative flex items-center overflow-hidden py-3.5">
+                <div className="flex items-center gap-0 animate-marquee whitespace-nowrap">
+                  {[
+                    { label: "Jobs Completed", value: statsVisible ? `${Math.floor(jobsCount / 1000)}k+` : "40k+", color: "#f59e0b" },
+                    { label: "Avg. Rating",     value: statsVisible ? `${(ratingVal / 10).toFixed(1)}` : "4.8",   color: "#f43f5e" },
+                    { label: "Vetted Partners", value: statsVisible ? `${(partnersCount / 1000).toFixed(1)}k+` : "1.3k+", color: "#6366f1" },
+                    { label: "Blocks Covered",  value: statsVisible ? `${blocksCount}+` : "47+",   color: "#10b981" },
+                    { label: "Jobs Completed", value: statsVisible ? `${Math.floor(jobsCount / 1000)}k+` : "40k+", color: "#f59e0b" },
+                    { label: "Avg. Rating",     value: statsVisible ? `${(ratingVal / 10).toFixed(1)}` : "4.8",   color: "#f43f5e" },
+                    { label: "Vetted Partners", value: statsVisible ? `${(partnersCount / 1000).toFixed(1)}k+` : "1.3k+", color: "#6366f1" },
+                    { label: "Blocks Covered",  value: statsVisible ? `${blocksCount}+` : "47+",   color: "#10b981" },
+                  ].map((stat, i) => (
+                    <div key={i} className="flex items-center gap-0 flex-shrink-0">
+                      <div className="flex items-baseline gap-2 px-10">
+                        <span
+                          className="font-bold"
+                          style={{
+                            fontFamily: "'Georgia', 'Times New Roman', serif",
+                            fontSize: "1.05rem",
+                            color: stat.color,
+                            letterSpacing: "-0.01em",
+                          }}
+                        >
+                          {stat.value}
+                        </span>
+                        <span className="text-slate-400 text-[11px] font-medium tracking-wide">
+                          {stat.label}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex-shrink-0">
-                  <Link
-                    href="/about"
-                    className="group relative inline-flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-primary-500 to-indigo-500 text-white px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 transition-all active:scale-95 duration-200 overflow-hidden whitespace-nowrap"
-                  >
-                    <span className="relative z-10">Learn More</span>
-                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform duration-200" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </Link>
+                      <span className="text-slate-700 text-[10px] select-none">•</span>
+                    </div>
+                  ))}
                 </div>
               </div>
+
+              {/* Learn More button — pinned right, above the fade */}
+              <div className="absolute right-5 sm:right-8 top-1/2 -translate-y-1/2 z-20">
+                <Link
+                  href="/about"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-[12px] font-semibold transition-all duration-200 hover:bg-white/10 active:scale-[0.97] whitespace-nowrap"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    background: "rgba(15,23,42,0.85)",
+                    backdropFilter: "blur(8px)",
+                  }}
+                >
+                  Learn More
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              {/* Hairline bottom accent */}
+              <div className="absolute bottom-0 left-0 right-0 h-[1px]"
+                style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.2) 50%, transparent)" }} />
             </div>
           </section>
 

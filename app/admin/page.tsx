@@ -1713,6 +1713,7 @@ export default function AdminPage() {
     { url: "", title: "", subtitle: "" },
     { url: "", title: "", subtitle: "" }
   ]);
+  const [guaranteeBgImage, setGuaranteeBgImage] = useState("");
 
   const [viewingBookingDetails, setViewingBookingDetails] = useState<any | null>(null);
   const [bookingSearch, setBookingSearch] = useState("");
@@ -2156,6 +2157,7 @@ export default function AdminPage() {
           setSiteName(d.siteName || "zenzy");
           setSiteTagline(d.siteTagline || "India's Premium Local Service Marketplace");
           setHeroBannerImage(d.heroBannerImage || "");
+          setGuaranteeBgImage(d.guaranteeBgImage || "");
 
           // Customizable operational constants
           setCommissionRate(d.commissionRate ?? 10);
@@ -3462,6 +3464,18 @@ export default function AdminPage() {
     }
   };
 
+  const handleGuaranteeBgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const b64 = await compressImageToBase64(file, 1000, 0.72);
+      setGuaranteeBgImage(b64);
+      showToast("Guarantee background image uploaded!");
+    } catch {
+      showToast("Guarantee background image compression failed.", "error");
+    }
+  };
+
   const handleSaveSettings = async () => {
     if (!verifyPermission(["Super Admin"], "Change Site Settings")) return;
     setSettingsSaving(true);
@@ -3477,6 +3491,7 @@ export default function AdminPage() {
         siteTagline,
         heroBannerImage,
         slideshowImages,
+        guaranteeBgImage,
 
         // Customizable operational parameters
         commissionRate,
@@ -9754,6 +9769,15 @@ export default function AdminPage() {
                         <div className="flex gap-3 items-center">
                           <input type="text" placeholder="Banner Image URL" value={heroBannerImage} onChange={(e) => setHeroBannerImage(e.target.value)} className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[6px] text-xs font-bold outline-none focus:border-[#0f2744] focus:bg-white" />
                           <input type="file" onChange={handleHeroBannerUpload} className="text-[10px] font-bold cursor-pointer max-w-[170px]" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 border-t border-slate-200 pt-4">
+                        <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Zenzy Guarantee Background Image</label>
+                        {guaranteeBgImage && <img src={guaranteeBgImage} className="w-full h-32 object-cover rounded-[6px] border border-slate-200 bg-white p-1" alt="Guarantee Background Preview" />}
+                        <div className="flex gap-3 items-center">
+                          <input type="text" placeholder="Guarantee Background Image URL" value={guaranteeBgImage} onChange={(e) => setGuaranteeBgImage(e.target.value)} className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[6px] text-xs font-bold outline-none focus:border-[#0f2744] focus:bg-white" />
+                          <input type="file" onChange={handleGuaranteeBgUpload} className="text-[10px] font-bold cursor-pointer max-w-[170px]" />
                         </div>
                       </div>
 
