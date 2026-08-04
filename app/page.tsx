@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, MapPin, Award, CheckCircle, ChevronDown, RefreshCw, ShieldCheck, Sparkles, Building, Hammer, ArrowRight, Star, Zap, Users, Home, Clock, ChevronLeft, ChevronRight, LifeBuoy, X, Heart, Bookmark, MessageSquare, Check, CheckCheck, Crown, Layers, Navigation, Compass } from "lucide-react";
+import { Search, MapPin, Award, CheckCircle, ChevronDown, RefreshCw, ShieldCheck, Sparkles, Building, Hammer, ArrowRight, Star, Zap, Users, Home, Clock, ChevronLeft, ChevronRight, LifeBuoy, X, Heart, Bookmark, MessageSquare, Check, CheckCheck, Crown, Layers, Navigation, Compass, TrendingUp } from "lucide-react";
 import { collection, getDocs, addDoc, onSnapshot, setDoc, doc, query, where, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Navbar from "@/components/Navbar";
@@ -178,6 +178,7 @@ export default function HomePage() {
   const [userLocation, setUserLocation] = useState("Delhi NCR");
   const [workers, setWorkers] = useState<any[]>([]);
   const [rawWorkers, setRawWorkers] = useState<WorkerDocument[]>([]);
+  const [guaranteeText, setGuaranteeText] = useState("");
 
   useEffect(() => {
     if (rawWorkers.length === 0) return;
@@ -197,6 +198,44 @@ export default function HomePage() {
     const finalTrending = [...manualFeaturedTagged, ...algorithmic].slice(0, 3);
     setWorkers(finalTrending);
   }, [rawWorkers, siteConfig]);
+
+  // Looping typewriter effect for guarantee heading
+  useEffect(() => {
+    const phrases = [
+      "Ready to experience India\u2019s most trusted local services?",
+      "Zenzy",
+    ];
+    let phraseIdx = 0;
+    let charIdx = 0;
+    let deleting = false;
+    let timer: ReturnType<typeof setTimeout>;
+
+    const tick = () => {
+      const current = phrases[phraseIdx];
+      if (!deleting) {
+        charIdx++;
+        setGuaranteeText(current.slice(0, charIdx));
+        if (charIdx === current.length) {
+          // pause at end before deleting
+          timer = setTimeout(() => { deleting = true; tick(); }, phraseIdx === 0 ? 2200 : 1200);
+          return;
+        }
+        timer = setTimeout(tick, phraseIdx === 0 ? 38 : 90);
+      } else {
+        charIdx--;
+        setGuaranteeText(current.slice(0, charIdx));
+        if (charIdx === 0) {
+          deleting = false;
+          phraseIdx = (phraseIdx + 1) % phrases.length;
+          timer = setTimeout(tick, 400);
+          return;
+        }
+        timer = setTimeout(tick, phraseIdx === 0 ? 18 : 55);
+      }
+    };
+    timer = setTimeout(tick, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Build combined searchable index (Static Categories + Live Firestore Workers)
   const searchIndex = React.useMemo<SearchIndexItem[]>(() => {
@@ -1483,38 +1522,48 @@ export default function HomePage() {
 
           {/* TRENDING PROS */}
           <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-8 animate-fade-up">
+            <style>{`
+              @keyframes trendFloat {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-3px); }
+              }
+              .trend-icon-float {
+                animation: trendFloat 2.5s ease-in-out infinite;
+              }
+            `}</style>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-white rounded-2xl text-primary-500 shadow-subtle border">
-                  <i className="fas fa-arrow-trend-up text-lg"></i>
+                <div className="trend-icon-float">
+                  <TrendingUp className="w-7 h-7 text-blue-600" strokeWidth={2.5} />
                 </div>
                 <div>
-                  <h2 className="text-2.5xl font-black text-slate-900 tracking-tight">Trending Service Pros</h2>
+                  <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Trending Professionals</h2>
+                  <p className="text-[11px] text-slate-400 font-medium mt-0.5">Top-rated and most active this week</p>
                 </div>
               </div>
-              <Link href="/services" className="text-primary-650 font-black text-[13px] hover:underline flex items-center gap-1.5 bg-white px-5 py-2.5 rounded-xl border border-slate-200 shadow-subtle hover:shadow-card transition-all active:scale-95 duration-150">
-                See All <ArrowRight className="w-4 h-4" />
+              <Link href="/services" className="text-slate-600 font-semibold text-[12px] hover:text-slate-900 flex items-center gap-1.5 bg-white px-4 py-2 rounded-xl border border-slate-200/80 hover:border-slate-300 transition-all duration-200 active:scale-95" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+                See All <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {workers.length === 0 ? (
                 [1, 2, 3].map((n) => (
-                  <div key={n} className="bg-white rounded-xl border border-slate-200/60 overflow-hidden flex flex-col p-5 space-y-4">
-                    <div className="w-full h-48 rounded-lg bg-slate-100 animate-pulse" />
+                  <div key={n} className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden flex flex-col p-5 space-y-4">
+                    <div className="w-full h-48 rounded-xl bg-slate-100 animate-pulse" />
                     <div className="space-y-2.5">
                       <div className="w-3/4 h-5 rounded-md bg-slate-100 animate-pulse" />
                       <div className="w-1/2 h-4 rounded-md bg-slate-100 animate-pulse" />
                       <div className="w-full h-3 rounded-md bg-slate-100 animate-pulse" />
                     </div>
-                    <div className="w-full h-10 rounded-lg bg-slate-100 animate-pulse mt-auto" />
+                    <div className="w-full h-10 rounded-xl bg-slate-100 animate-pulse mt-auto" />
                   </div>
                 ))
               ) : (
                 workers.filter(w => (w.documentStatus || "approved") === "approved").slice(0, 3).map((pro, index) => (
                   <article
                     key={pro.id}
-                    className="group bg-white rounded-xl border border-slate-200/60 overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-300 shadow-sm hover:shadow-lg hover:border-blue-200/60"
+                    className="group bg-white rounded-2xl border border-slate-200/60 overflow-hidden flex flex-col hover:-translate-y-1.5 transition-all duration-300 shadow-sm hover:shadow-xl hover:border-slate-300/80"
                     style={{ animationDelay: `${index * 0.04}s` }}
                   >
                     <div className="relative h-48 bg-slate-100 overflow-hidden">
@@ -1523,37 +1572,43 @@ export default function HomePage() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         alt={pro.name}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/40 via-transparent to-transparent"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
 
+                      {/* Top-left badge */}
                       {pro.isManualTrending ? (
-                        <span className="absolute top-3 left-3 bg-[#0f172a]/85 backdrop-blur-md text-amber-400 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border border-amber-400/25 shadow-2xs">
-                          Featured Choice
+                        <span className="absolute top-3 left-3 bg-black/50 backdrop-blur-xl text-amber-300 px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide flex items-center gap-1.5 border border-amber-400/20">
+                          <Star className="w-3 h-3 text-amber-400" fill="currentColor" />
+                          Featured
                         </span>
                       ) : userLocation && pro.serviceArea && (
                         pro.serviceArea.toLowerCase().includes(userLocation.toLowerCase().split(',')[0]) ||
                         userLocation.toLowerCase().includes(pro.serviceArea.toLowerCase().split(',')[0])
                       ) ? (
-                        <span className="absolute top-3 left-3 bg-blue-600/90 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-[9px] font-semibold uppercase tracking-wider flex items-center gap-1 shadow-sm">
-                          <MapPin className="w-2.5 h-2.5" /> Near {userLocation.split(',')[0]}
+                        <span className="absolute top-3 left-3 bg-black/50 backdrop-blur-xl text-blue-300 px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide flex items-center gap-1.5 border border-blue-400/20">
+                          <MapPin className="w-3 h-3" />
+                          Near {userLocation.split(',')[0]}
                         </span>
                       ) : (
-                        <span className="absolute top-3 left-3 bg-[#0f172a]/70 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-[9px] font-semibold uppercase tracking-wider border border-white/10">
+                        <span className="absolute top-3 left-3 bg-black/50 backdrop-blur-xl text-white/90 px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide border border-white/10">
                           {pro.category}
                         </span>
                       )}
 
+                      {/* Top-right status */}
                       {pro.status === "Available" ? (
-                        <span className="absolute top-3 right-3 bg-emerald-500/90 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-[9px] font-semibold uppercase tracking-wider">
+                        <span className="absolute top-3 right-3 bg-black/50 backdrop-blur-xl text-emerald-300 px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide flex items-center gap-1.5 border border-emerald-400/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
                           Available
                         </span>
                       ) : (
-                        <span className="absolute top-3 right-3 bg-rose-500/90 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-[9px] font-semibold uppercase tracking-wider">
+                        <span className="absolute top-3 right-3 bg-black/50 backdrop-blur-xl text-rose-300 px-3 py-1 rounded-lg text-[10px] font-semibold tracking-wide flex items-center gap-1.5 border border-rose-400/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
                           Busy
                         </span>
                       )}
 
-                      {/* Avatar Container: Completely Round & Borderless */}
-                      <div className="absolute bottom-3 left-3 w-12 h-12 rounded-full overflow-hidden shadow-lg bg-slate-100">
+                      {/* Avatar */}
+                      <div className="absolute bottom-3 left-3 w-12 h-12 rounded-xl overflow-hidden shadow-lg ring-2 ring-white/20 bg-slate-100">
                         <img
                           src={pro.avatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=100&h=100&q=80"}
                           className="w-full h-full object-cover"
@@ -1579,7 +1634,7 @@ export default function HomePage() {
                     <div className="p-5 flex-1 flex flex-col justify-between">
                       <div>
                         <div className="flex items-start justify-between mb-1">
-                          <h3 className="font-bold text-[#0f172a] text-base group-hover:text-blue-600 transition-colors truncate flex items-center gap-1.5">
+                          <h3 className="font-bold text-slate-900 text-[15px] group-hover:text-blue-600 transition-colors truncate flex items-center gap-1.5 tracking-tight">
                             <span>{pro.name}</span>
                             {pro.verified && (
                               <span title="Verified Professional" className="inline-flex items-center shrink-0">
@@ -1598,47 +1653,48 @@ export default function HomePage() {
                           </h3>
                         </div>
 
-                        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2.5 flex-wrap">
-                          <span className="flex items-center gap-0.5 text-amber-500">• {pro.stars || "5.0"}</span>
-                          <span>({pro.reviewsCount || 0})</span>
+                        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400 mb-3 flex-wrap">
+                          <span className="text-amber-500 font-bold flex items-center gap-0.5">★ {pro.stars || "5.0"}</span>
+                          <span className="text-slate-300">·</span>
+                          <span>{pro.reviewsCount || 0} reviews</span>
                           {pro.trustScore && (
                             <>
-                              <span>•</span>
+                              <span className="text-slate-300">·</span>
                               <TrustScoreCard trustScore={pro.trustScore} compact={true} />
                             </>
                           )}
-                          <span>•</span>
+                          <span className="text-slate-300">·</span>
                           <span>{pro.experience || "2 years"}</span>
-                          <span>•</span>
+                          <span className="text-slate-300">·</span>
                           <span className={`flex items-center gap-1 truncate max-w-[120px] ${userLocation && pro.serviceArea && (
                             pro.serviceArea.toLowerCase().includes(userLocation.toLowerCase().split(',')[0]) ||
                             userLocation.toLowerCase().includes(pro.serviceArea.toLowerCase().split(',')[0])
-                          ) ? "text-blue-600 font-extrabold" : "text-slate-400"
+                          ) ? "text-blue-600 font-semibold" : "text-slate-400"
                             }`}>
                             <MapPin className="w-3 h-3 text-blue-500 shrink-0" />
                             {pro.serviceArea?.split(',')[0] || "Jaipur"}
                           </span>
                         </div>
 
-                        <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 mb-3">
+                        <p className="text-[13px] text-slate-500 leading-relaxed line-clamp-2 mb-3">
                           {pro.bio || "Professional services with proven expertise."}
                         </p>
 
-                        <div className="flex items-center gap-3 pt-3 border-t border-slate-100 text-[10px] font-medium text-slate-400">
+                        <div className="flex items-center gap-3 pt-3 border-t border-slate-100/80 text-[10px] font-medium text-slate-400">
                           <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Verified</span>
-                          <span>•</span>
+                          <span className="text-slate-200">·</span>
                           <span className="flex items-center gap-1"><Award className="w-3.5 h-3.5 text-indigo-500" /> Top Rated</span>
                         </div>
                       </div>
 
                       <Link
                         href={`/${pro.slug || pro.id}`}
-                        className="mt-4 w-full bg-[#0f172a] hover:bg-[#1e293b] text-white py-3 rounded-lg text-sm font-semibold text-center transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-md active:scale-[0.98] group"
+                        className="mt-4 w-full bg-gradient-to-r from-[#0f172a] to-[#1e293b] hover:from-[#1e293b] hover:to-[#334155] text-white py-3 rounded-xl text-[13px] font-semibold text-center transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-md active:scale-[0.98] group/btn"
                         title="Visit public profile"
                       >
                         <span>View Profile</span>
                         <ArrowRight
-                          className="w-3.5 h-3.5 text-blue-400 group-hover:translate-x-1 transition-transform"
+                          className="w-3.5 h-3.5 text-blue-400 group-hover/btn:translate-x-1 transition-transform"
                         />
                       </Link>
                     </div>
@@ -1647,120 +1703,102 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* ZENZY GUARANTEE — Minimal Editorial */}
+          {/* ZENZY GUARANTEE — Premium CTA */}
           <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-8 animate-fade-up">
+            <style>{`
+              @keyframes blinkCaret {
+                0%, 50% { opacity: 1; }
+                51%, 100% { opacity: 0; }
+              }
+              .guarantee-caret {
+                display: inline-block;
+                width: 2px;
+                height: 1em;
+                background: #34d399;
+                margin-left: 3px;
+                vertical-align: text-bottom;
+                animation: blinkCaret 0.75s step-end infinite;
+              }
+              @keyframes navyShimmer {
+                0% { background-position: -200% center; }
+                100% { background-position: 200% center; }
+              }
+              .btn-guarantee-navy {
+                background: linear-gradient(120deg, #0f2744, #1e3a8a, #1e40af, #1e3a8a, #0f2744);
+                background-size: 300% 100%;
+                animation: navyShimmer 4s linear infinite;
+              }
+              .btn-guarantee-navy:hover {
+                animation: navyShimmer 2s linear infinite;
+              }
+            `}</style>
             <div
               className="relative rounded-2xl overflow-hidden"
-              style={{ background: "linear-gradient(135deg, #0f172a 0%, #111827 50%, #0f172a 100%)" }}
+              style={{ background: "linear-gradient(135deg, #0a1628 0%, #0f172a 50%, #0a1628 100%)" }}
             >
-              {/* Background image (configurable from admin) */}
+              {/* Background image */}
               {siteConfig?.guaranteeBgImage && (
                 <>
-                  {/* Image anchored to the right, clear on right side */}
                   <div
                     className="absolute inset-0 bg-cover"
-                    style={{
-                      backgroundImage: `url(${siteConfig.guaranteeBgImage})`,
-                      backgroundPosition: "right center",
-                    }}
+                    style={{ backgroundImage: `url(${siteConfig.guaranteeBgImage})`, backgroundPosition: "right center" }}
                   />
-                  {/* Gradient: fully dark on left (text readable) → transparent on right (image clear) */}
                   <div
                     className="absolute inset-0"
-                    style={{
-                      background: "linear-gradient(to right, #0f172a 0%, #0f172a 35%, rgba(15,23,42,0.75) 55%, rgba(15,23,42,0.1) 100%)",
-                    }}
+                    style={{ background: "linear-gradient(to right, #0f172a 0%, #0f172a 40%, rgba(15,23,42,0.85) 65%, rgba(15,23,42,0.15) 100%)" }}
                   />
                 </>
               )}
 
-              {/* Subtle top border accent */}
-              <div className="absolute top-0 left-0 right-0 h-[1px]"
-                style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.4), transparent)" }} />
+              {/* Ambient glows */}
+              <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/[0.05] rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-72 h-72 bg-indigo-500/[0.04] rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute top-0 left-0 right-0 h-[1px]" style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.4), transparent)" }} />
 
-              <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10 px-8 sm:px-12 py-10 sm:py-14">
+              <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10 px-8 sm:px-14 py-12 sm:py-16">
 
-                {/* LEFT — text */}
-                <div className="max-w-2xl flex flex-col gap-7">
-
-                  {/* Eyebrow */}
+                {/* LEFT */}
+                <div className="flex flex-col gap-5 max-w-2xl">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-emerald-400" strokeWidth={2} />
-                    <span
-                      className="text-emerald-400 uppercase tracking-[0.18em] font-semibold"
-                      style={{ fontSize: "11px", fontFamily: "inherit" }}
-                    >
-                      Zenzy Guarantee
-                    </span>
+                    <span className="text-emerald-400 uppercase tracking-[0.18em] font-semibold text-[11px]">Zenzy Guarantee</span>
                   </div>
 
-                  {/* Heading — large serif */}
-                  <h2
-                    className="text-white leading-[1.1]"
-                    style={{
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
-                      fontWeight: 700,
-                      fontSize: "clamp(1.7rem, 3.2vw, 2.6rem)",
-                      letterSpacing: "-0.015em",
-                    }}
-                  >
-                    Ready to experience India&apos;s most trusted local services?
+                  {/* Heading — looping typewriter */}
+                  <h2 className="text-white leading-[1.15]" style={{ fontWeight: 700, fontSize: "clamp(1.6rem, 3vw, 2.5rem)", letterSpacing: "-0.015em", minHeight: "1.2em" }}>
+                    {guaranteeText}
+                    <span className="guarantee-caret" aria-hidden="true" />
                   </h2>
 
-                  {/* Body */}
-                  <p
-                    className="text-slate-400 leading-relaxed max-w-xl"
-                    style={{ fontSize: "14.5px", fontWeight: 400 }}
-                  >
-                    Compare verified labor profiles, review actual portfolio proof, negotiate directly with the contractor, and enjoy our platform booking security with 100% satisfaction guarantee.
+                  <p className="text-slate-400 leading-relaxed max-w-xl text-[14px]">
+                    Compare verified professionals, review real portfolio proof, negotiate directly with contractors, and book with our 100% satisfaction guarantee.
                   </p>
-
-                  {/* Bullet list — minimal left-border style */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      "100% Aadhaar & Trade Verified Partners",
-                      "Secure & Direct Payments (Low platform commission)",
-                      "Verified Work Portfolios & Reviews",
-                      "Support Agent Dispute Resolution Protocol",
-                    ].map((bullet, idx) => (
-                      <div key={idx} className="flex items-start gap-3 pl-3 border-l border-slate-700">
-                        <Check className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" strokeWidth={2.5} />
-                        <span className="text-slate-300 text-[12.5px] leading-snug">{bullet}</span>
-                      </div>
-                    ))}
-                  </div>
                 </div>
 
-                {/* RIGHT — CTA */}
-                <div className="shrink-0 flex flex-col items-start lg:items-end gap-4 w-full lg:w-auto">
-                  <Link
-                    href="/services"
-                    className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-white text-[14px] font-semibold transition-all duration-200 hover:bg-white/10 active:scale-[0.97]"
-                    style={{
-                      border: "1px solid rgba(255,255,255,0.2)",
-                      background: "rgba(255,255,255,0.05)",
-                    }}
-                  >
-                    Connect with Professionals
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                {/* RIGHT — Premium navy CTA */}
+                <div className="shrink-0 flex flex-col items-center lg:items-end gap-4">
+                  <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-[#1e3a8a] via-blue-500 to-[#1e3a8a] rounded-2xl opacity-0 group-hover:opacity-50 blur-lg transition-all duration-700 z-0" />
+                    <Link
+                      href="/services"
+                      className="btn-guarantee-navy relative z-10 inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-white text-[15px] font-bold shadow-lg hover:shadow-blue-900/40 hover:shadow-2xl active:scale-[0.97] transition-all duration-300 group/btn"
+                    >
+                      <span>Connect with Professionals</span>
+                      <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1.5 transition-transform duration-300" />
+                    </Link>
+                  </div>
 
-                  {/* Trust strip */}
-                  <div className="flex items-center gap-3 text-slate-500 text-[11px]">
-                    <span className="flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                      SSL Secured Booking
-                    </span>
-                    <span>•</span>
+                  <div className="flex items-center gap-3 text-slate-500 text-[11px] font-medium">
+                    <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />SSL Secured</span>
+                    <span className="text-slate-700">·</span>
                     <span>No Booking Fees</span>
+                    <span className="text-slate-700">·</span>
+                    <span>100% Verified Pros</span>
                   </div>
                 </div>
-
               </div>
 
-              {/* Subtle bottom border */}
-              <div className="absolute bottom-0 left-0 right-0 h-[1px]"
-                style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.2), transparent)" }} />
+              <div className="absolute bottom-0 left-0 right-0 h-[1px]" style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.2), transparent)" }} />
             </div>
           </section>
 
@@ -1806,61 +1844,32 @@ export default function HomePage() {
           </section>
 
           {/* PLATFORM VALUE CTA */}
-          <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-4 animate-fade-up">
+          <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-3 animate-fade-up">
             <div
-              className="relative rounded-2xl overflow-hidden"
-              style={{ background: "linear-gradient(135deg, #0f172a 0%, #111827 50%, #0f172a 100%)" }}
+              className="relative flex flex-col sm:flex-row items-center justify-between gap-5 px-7 py-5 rounded-2xl border border-slate-200/60 bg-white overflow-hidden"
+              style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04)' }}
             >
-              {/* Hairline top accent */}
-              <div className="absolute top-0 left-0 right-0 h-[1px]"
-                style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.4), transparent)" }} />
+              {/* Left accent bar */}
+              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-[#0f2744] via-[#1e3a8a] to-[#0f2744] rounded-l-2xl" />
 
-              <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 px-8 sm:px-12 py-7 sm:py-8">
-
-                {/* LEFT */}
-                <div className="flex flex-col gap-2.5 max-w-xl">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                    <span
-                      className="text-indigo-400 uppercase tracking-[0.18em] font-semibold"
-                      style={{ fontSize: "11px" }}
-                    >
-                      Platform Value
-                    </span>
-                  </div>
-                  <h2
-                    className="text-white leading-[1.15]"
-                    style={{
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
-                      fontWeight: 700,
-                      fontSize: "clamp(1.2rem, 2.2vw, 1.65rem)",
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    Discover Zenzy Platform Values &amp; Capabilities
-                  </h2>
-                  <p className="text-slate-400 text-[13px] leading-relaxed">
-                    Explore our 10 core feature pillars: Business Profiles, Project Workspaces, Milestone Tracking, Quotation Engine, Escrow Payments, and Document Vaults.
-                  </p>
+              <div className="flex items-center gap-4 min-w-0 pl-2">
+                {/* Clean icon: stacked lines = platform/layers */}
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0f2744] to-[#1e3a8a] flex items-center justify-center shrink-0">
+                  <Layers className="w-5 h-5 text-white/90" />
                 </div>
-
-                {/* RIGHT */}
-                <Link
-                  href="/platform-value"
-                  className="shrink-0 inline-flex items-center gap-2.5 px-6 py-3 rounded-xl text-white text-[13.5px] font-semibold transition-all duration-200 hover:bg-white/10 active:scale-[0.97] whitespace-nowrap"
-                  style={{
-                    border: "1px solid rgba(255,255,255,0.2)",
-                    background: "rgba(255,255,255,0.05)",
-                  }}
-                >
-                  View Platform Values
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-bold text-slate-800 tracking-tight">Discover Zenzy Platform Values &amp; Capabilities</p>
+                  <p className="text-[11px] text-slate-400 font-medium mt-0.5">Workspaces &middot; Quotation Engine &middot; Milestones &middot; Escrow Payments</p>
+                </div>
               </div>
 
-              {/* Hairline bottom accent */}
-              <div className="absolute bottom-0 left-0 right-0 h-[1px]"
-                style={{ background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.2), transparent)" }} />
+              <Link
+                href="/platform-value"
+                className="shrink-0 inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0f2744] to-[#1e3a8a] text-white text-[12px] font-semibold transition-all duration-300 hover:from-[#1e3a8a] hover:to-[#1e40af] hover:shadow-lg hover:shadow-blue-900/20 active:scale-[0.97] whitespace-nowrap group/lm"
+              >
+                Learn More
+                <ArrowRight className="w-3.5 h-3.5 group-hover/lm:translate-x-1 transition-transform duration-300" />
+              </Link>
             </div>
           </section>
 

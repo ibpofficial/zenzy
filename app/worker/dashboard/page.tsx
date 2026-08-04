@@ -92,7 +92,8 @@ import {
   RefreshCw,
   CheckCircle2,
   Lock,
-  Grid
+  Grid,
+  Menu
 } from "lucide-react";
 import AllAppsModal from "@/components/AllAppsModal";
 import { getSmartLocation, clearLocationCache } from "@/lib/locationUtils";
@@ -174,6 +175,7 @@ export default function ProviderDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [allAppsOpen, setAllAppsOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // Lists states
   const [jobs, setJobs] = useState<any[]>([]);
@@ -1957,110 +1959,108 @@ export default function ProviderDashboardPage() {
           </div>
         )}
 
-        {/* Hero Welcome Banner */}
-        <div className="relative overflow-hidden mb-6 rounded-[8px] bg-[#0f2744] p-6 sm:p-8 border border-slate-800 shadow-subtle text-left">
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="flex items-center gap-4">
+        {/* Hero Welcome Banner — Premium Professional Design */}
+        <div className="relative overflow-hidden mb-6 rounded-2xl bg-gradient-to-br from-[#0a1e38] via-[#0f2744] to-[#162f50] p-6 sm:p-8 border border-white/[0.06] text-left" style={{ boxShadow: '0 4px 24px rgba(15, 39, 68, 0.45), 0 1px 3px rgba(0,0,0,0.12)' }}>
+          {/* Subtle ambient background glow */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-emerald-500/[0.06] via-transparent to-transparent rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-500/[0.05] via-transparent to-transparent rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-7">
+            {/* Left: Avatar + Identity + Actions */}
+            <div className="flex items-start gap-5 flex-1 min-w-0">
+              {/* Profile Avatar */}
               <div className="relative group shrink-0">
-                <div className="w-16 h-16 rounded-[8px] overflow-hidden border border-white/20 shadow-subtle">
+                <div className="w-[72px] h-[72px] rounded-2xl overflow-hidden ring-2 ring-white/10 shadow-lg">
                   <img
                     src={pAvatar || "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=150&h=150&q=80"}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     alt="Provider Profile"
                   />
                 </div>
                 <label
                   htmlFor="avatarUploadWorkerHeader"
-                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 rounded-[8px] flex flex-col items-center justify-center cursor-pointer transition-all duration-200"
+                  className="absolute inset-0 bg-black/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200"
                   title="Upload profile photo"
                 >
-                  <Camera className="w-4 h-4 text-white" />
+                  <Camera className="w-4 h-4 text-white/90" />
+                  <span className="text-[8px] text-white/70 font-semibold mt-0.5">Change</span>
                 </label>
                 <input id="avatarUploadWorkerHeader" type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                <span className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-[4px] bg-white border-2 border-emerald-500 shadow flex items-center justify-center">
-                  <span className="w-2.5 h-2.5 rounded-[2px] bg-emerald-500 animate-pulse" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-[2.5px] border-[#0f2744] shadow-sm flex items-center justify-center">
+                  <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
                 </span>
               </div>
-              <div>
-                <p className="text-slate-300 text-[9px] font-extrabold uppercase tracking-widest mb-0.5 flex items-center gap-1.5">
-                  Partner Admin Panel
-                </p>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{userData?.name || "Zenzy Pro"}</h1>
-                <p className="text-slate-300 text-xs font-medium mt-1 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Verified Professional Account
-                </p>
-                <div className="flex items-center gap-2.5 mt-3 flex-wrap">
-                  {/* Notifications Center Button */}
-                  <Link
-                    href="/notifications"
-                    className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/40 px-3.5 py-2 rounded-[6px] text-xs font-extrabold transition flex items-center gap-2 cursor-pointer shadow-subtle group"
-                    title="View Real-Time Notifications & Alerts"
-                  >
-                    <BellRing className="w-3.5 h-3.5 text-amber-400 shrink-0 group-hover:scale-110 transition" />
-                    <span>Notifications</span>
-                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                  </Link>
 
-                  {/* Platform AI Guide Button */}
+              {/* Name & Role Info */}
+              <div className="min-w-0 flex-1">
+                <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-[0.15em] mb-1">
+                  Professional Dashboard
+                </p>
+                <h1 className="text-xl sm:text-[22px] font-bold text-white tracking-[-0.01em] leading-tight truncate">{userData?.name || "Zenzy Pro"}</h1>
+                <p className="text-slate-400 text-[11px] font-medium mt-1.5 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400/80 shrink-0" />
+                  <span>Verified Professional</span>
+                </p>
+
+                {/* Action Buttons Row — Uniform, clean, consistent */}
+                <div className="flex items-center gap-2 mt-4 flex-wrap">
+                  {/* Platform AI Guide */}
                   <button
                     type="button"
                     onClick={() => window.dispatchEvent(new CustomEvent("open-zen-ai"))}
-                    className="bg-indigo-950/80 hover:bg-indigo-900 text-indigo-200 border border-indigo-500/40 px-3.5 py-2 rounded-[6px] text-xs font-extrabold transition flex items-center gap-2 cursor-pointer shadow-subtle"
+                    className="h-8 bg-white/[0.07] hover:bg-white/[0.12] text-slate-200 border border-white/[0.1] hover:border-white/[0.18] px-3 rounded-lg text-[11px] font-semibold transition-all duration-200 flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
                     title="Ask Zen AI Platform Guide"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                    <span>Platform AI Guide</span>
-                    <span className="bg-indigo-500/30 text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-[4px] text-indigo-300 border border-indigo-400/30">
-                      AI Pro
-                    </span>
+                    <Sparkles className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                    <span>AI Guide</span>
                   </button>
 
-                  {/* All Apps Button */}
+                  {/* All Apps */}
                   <Link
                     href="/apps"
-                    className="bg-blue-600 hover:bg-blue-500 text-white border border-blue-500 px-3.5 py-2 rounded-[6px] text-xs font-extrabold uppercase tracking-wider transition flex items-center gap-2 cursor-pointer shadow-subtle"
+                    className="h-8 bg-white/[0.07] hover:bg-white/[0.12] text-slate-200 border border-white/[0.1] hover:border-white/[0.18] px-3 rounded-lg text-[11px] font-semibold transition-all duration-200 flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
                   >
-                    <Grid className="w-3.5 h-3.5 text-white shrink-0" />
+                    <Grid className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                     <span>All Apps</span>
                   </Link>
 
-                  {/* Quote Generator Button */}
+                  {/* Quote Generator */}
                   <Link
                     href="/worker/quote-generator"
-                    className="bg-[#059669] hover:bg-[#047857] text-white border border-emerald-500/40 px-3.5 py-2 rounded-[6px] text-xs font-extrabold uppercase tracking-wider transition flex items-center gap-2 cursor-pointer shadow-subtle"
+                    className="h-8 bg-white/[0.07] hover:bg-white/[0.12] text-slate-200 border border-white/[0.1] hover:border-white/[0.18] px-3 rounded-lg text-[11px] font-semibold transition-all duration-200 flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
                   >
-                    <Zap className="w-3.5 h-3.5 text-white shrink-0" />
-                    <span>Quote Generator</span>
+                    <FileText className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>Quotations</span>
                   </Link>
 
-                  {/* View Profile Button */}
+                  {/* View Profile */}
                   <Link
                     href={`/${userData?.slug || user?.uid}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 px-3.5 py-2 rounded-[6px] text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-subtle group"
+                    className="h-8 bg-white/[0.07] hover:bg-white/[0.12] text-slate-200 border border-white/[0.1] hover:border-white/[0.18] px-3 rounded-lg text-[11px] font-semibold transition-all duration-200 flex items-center gap-1.5 cursor-pointer backdrop-blur-sm group"
                     title="Visit live public profile page"
                   >
-                    <User className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                    <ExternalLink className="w-3.5 h-3.5 text-sky-400 shrink-0" />
                     <span>View Profile</span>
-                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-transform" />
                   </Link>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 w-full md:w-auto">
-              <div className="flex-1 md:flex-none px-5 py-3 bg-white/[0.05] border border-white/10 rounded-[6px] text-center min-w-[100px]">
-                <span className="block text-lg font-bold text-white tracking-tight">₹{totalEarnings.toLocaleString()}</span>
-                <span className="text-[9px] uppercase text-slate-300 tracking-wider font-extrabold">Earnings</span>
+            {/* Right: Key Metrics — Premium stat cards */}
+            <div className="flex items-center gap-3 w-full lg:w-auto">
+              <div className="flex-1 lg:flex-none px-5 py-3.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-center min-w-[105px] hover:bg-white/[0.06] transition-colors duration-200" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)' }}>
+                <span className="block text-lg font-bold text-white tracking-tight leading-tight">₹{totalEarnings.toLocaleString()}</span>
+                <span className="text-[9px] uppercase text-slate-400 tracking-[0.12em] font-semibold mt-0.5 block">Earnings</span>
               </div>
-              <div className="flex-1 md:flex-none px-5 py-3 bg-white/[0.05] border border-white/10 rounded-[6px] text-center min-w-[100px]">
-                <span className="block text-lg font-bold text-white tracking-tight">{completedJobs.length}</span>
-                <span className="text-[9px] uppercase text-slate-300 tracking-wider font-extrabold">Completed</span>
+              <div className="flex-1 lg:flex-none px-5 py-3.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-center min-w-[105px] hover:bg-white/[0.06] transition-colors duration-200" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)' }}>
+                <span className="block text-lg font-bold text-white tracking-tight leading-tight">{completedJobs.length}</span>
+                <span className="text-[9px] uppercase text-slate-400 tracking-[0.12em] font-semibold mt-0.5 block">Completed</span>
               </div>
-              <div className="flex-1 md:flex-none px-5 py-3 bg-white/[0.05] border border-white/10 rounded-[6px] text-center min-w-[100px]">
-                <span className="block text-lg font-bold text-amber-400 tracking-tight">★ {avgRating}</span>
-                <span className="text-[9px] uppercase text-slate-300 tracking-wider font-extrabold">Rating</span>
+              <div className="flex-1 lg:flex-none px-5 py-3.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-center min-w-[105px] hover:bg-white/[0.06] transition-colors duration-200" style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)' }}>
+                <span className="block text-lg font-bold text-amber-400 tracking-tight leading-tight">★ {avgRating}</span>
+                <span className="text-[9px] uppercase text-slate-400 tracking-[0.12em] font-semibold mt-0.5 block">Rating</span>
               </div>
             </div>
           </div>
@@ -2094,46 +2094,204 @@ export default function ProviderDashboardPage() {
         {/* Sidebar + Main Layout Workspace */}
         <div className="flex flex-col lg:flex-row gap-4 items-start w-full">
 
-          <aside className={`transition-all duration-300 ${sidebarCollapsed ? "w-full lg:w-16" : "w-full lg:w-64"} shrink-0 space-y-3 text-left lg:sticky lg:top-24 self-start`}>
-            <div className="bg-white rounded-[8px] shadow-subtle border border-slate-200 overflow-hidden p-3">
-              <div className="px-2 pt-1 pb-2 border-b border-slate-100 flex items-center justify-between">
+          {/* ── Mobile Navigation Trigger Bar ── */}
+          <div className="lg:hidden w-full">
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen(true)}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-white rounded-2xl border border-slate-200/80 cursor-pointer group" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)' }}
+            >
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0f2744] to-[#1a3555] flex items-center justify-center shrink-0 shadow-sm">
+                <Menu className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-[12px] font-bold text-slate-800 tracking-tight">Workspace Menu</p>
+                <p className="text-[10px] text-slate-400 font-medium capitalize">{activeTab.replace(/_/g, " ")}</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors shrink-0" />
+            </button>
+          </div>
+
+          {/* ── Mobile Slide-Over Drawer Overlay ── */}
+          {mobileNavOpen && (
+            <div className="fixed inset-0 z-50 lg:hidden">
+              {/* Backdrop */}
+              <div
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                onClick={() => setMobileNavOpen(false)}
+              />
+              {/* Drawer Panel */}
+              <div className="absolute left-0 top-0 bottom-0 w-[280px] bg-white shadow-2xl flex flex-col animate-slide-in-left">
+                {/* Drawer Header */}
+                <div className="px-5 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-800">Workspace</p>
+                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">Control Center</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMobileNavOpen(false)}
+                    className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/60 text-slate-400 hover:text-slate-600 transition-all duration-200 cursor-pointer flex items-center justify-center"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Drawer Nav Items */}
+                <div className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+                  {[
+                    { id: "all_apps", label: "All Apps", icon: Grid, href: "/apps" },
+                    { id: "notifications", label: "Notifications", icon: Bell, isNotif: true },
+                    { id: "analytics", label: "Analytics", icon: BarChart3 },
+                    { id: "enquiries", label: "Inquiries", icon: Users, badge: enquiries.length, href: "/worker/dashboard/inquiries" },
+                    { id: "requests", label: "Requests", icon: Clock, badge: jobs.filter(j => j.status === "Pending").length },
+                    { id: "jobs", label: "Active Projects", icon: Briefcase, badge: jobs.filter(j => ["Accepted", "OnTheWay", "Started", "Job Done"].includes(j.status)).length },
+                    { id: "quotations", label: "Quotations", icon: FileText, badge: quotations.filter(q => q.status === "Accepted" || q.status === "accepted").length },
+                    { id: "shop_orders", label: "Shop Orders", icon: Package, badge: shopOrders.filter(o => o.status === "Pending" || o.status === "Processing").length },
+                    { id: "availability", label: "Availability", icon: CalendarDays },
+                    { id: "services", label: "Services", icon: Wrench, badge: servicesList.length },
+                    { id: "profile", label: "Profile", icon: Settings },
+                    { id: "portfolio", label: "Portfolio", icon: Star },
+                    { id: "support", label: "Support", icon: HelpCircle }
+                  ].map((tab: any) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+
+                    if (tab.isNotif) {
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => { router.push("/notifications"); setMobileNavOpen(false); }}
+                          className="w-full h-10 flex items-center gap-3 px-3 rounded-xl text-[12px] font-semibold transition-all duration-200 text-slate-600 hover:bg-amber-50 hover:text-amber-700 cursor-pointer group"
+                        >
+                          <Icon className="w-[18px] h-[18px] shrink-0 text-slate-400 group-hover:text-amber-500 transition-colors" />
+                          <span className="flex-1 text-left">{tab.label}</span>
+                          <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                        </button>
+                      );
+                    }
+
+                    if (tab.href) {
+                      return (
+                        <Link
+                          key={tab.id}
+                          href={tab.href}
+                          onClick={() => setMobileNavOpen(false)}
+                          className="w-full h-10 flex items-center gap-3 px-3 rounded-xl text-[12px] font-semibold transition-all duration-200 text-slate-600 hover:bg-blue-50 hover:text-blue-700 cursor-pointer group"
+                        >
+                          <Icon className="w-[18px] h-[18px] shrink-0 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                          <span className="flex-1 text-left">{tab.label}</span>
+                          {tab.badge && tab.badge > 0 ? (
+                            <span className="text-[10px] px-2 py-0.5 rounded-lg font-bold shrink-0 bg-slate-100 text-slate-700 border border-slate-200/60">
+                              {tab.badge}
+                            </span>
+                          ) : null}
+                        </Link>
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => { setActiveTab(tab.id as Tab); setIsPreviewMode(false); setMobileNavOpen(false); }}
+                        className={`w-full h-10 flex items-center gap-3 px-3 rounded-xl text-[12px] font-semibold transition-all duration-200 cursor-pointer ${isActive
+                          ? "bg-gradient-to-r from-[#0f2744] to-[#1a3555] text-white shadow-sm"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                          }`}
+                      >
+                        <Icon className={`w-[18px] h-[18px] shrink-0 transition-colors ${isActive ? "text-emerald-400" : "text-slate-400"}`} />
+                        <span className="flex-1 text-left">{tab.label}</span>
+                        {tab.badge && tab.badge > 0 ? (
+                          <span className={`text-[10px] px-2 py-0.5 rounded-lg font-bold shrink-0 ${isActive ? "bg-white/15 text-white/90" : "bg-slate-100 text-slate-700 border border-slate-200/60"
+                            }`}>
+                            {tab.badge}
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Drawer Bottom Actions */}
+                <div className="px-3 pb-4 pt-2 border-t border-slate-100 space-y-1.5 shrink-0">
+                  <Link
+                    href="/business/dashboard/projects"
+                    onClick={() => setMobileNavOpen(false)}
+                    className="w-full h-10 flex items-center justify-center gap-2 rounded-xl text-[12px] font-bold transition-all duration-200 cursor-pointer text-white bg-gradient-to-r from-[#0f2744] to-[#1a3555]" style={{ boxShadow: '0 1px 3px rgba(15, 39, 68, 0.25)' }}
+                  >
+                    <Zap className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Active Workspaces</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => { logout(); setMobileNavOpen(false); }}
+                    className="w-full h-10 flex items-center justify-center gap-2 rounded-xl text-[12px] font-semibold transition-all duration-200 cursor-pointer text-slate-400 hover:text-rose-600 bg-white hover:bg-rose-50/50 border border-slate-200/80"
+                  >
+                    <LogOut className="w-4 h-4 shrink-0" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Slide-in animation keyframes (injected inline) */}
+              <style>{`
+                @keyframes slideInLeft {
+                  from { transform: translateX(-100%); }
+                  to { transform: translateX(0); }
+                }
+                .animate-slide-in-left {
+                  animation: slideInLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+              `}</style>
+            </div>
+          )}
+
+          {/* ── Desktop Sidebar (hidden on mobile) ── */}
+          <aside className={`hidden lg:block transition-all duration-300 ${sidebarCollapsed ? "lg:w-16" : "lg:w-64"} shrink-0 space-y-2.5 text-left lg:sticky lg:top-24 self-start`}>
+            <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden p-3" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)' }}>
+              {/* Sidebar Header */}
+              <div className="px-2 pt-1.5 pb-2.5 border-b border-slate-100/80 flex items-center justify-between">
                 {!sidebarCollapsed && (
                   <div>
-                    <p className="text-[9px] font-extrabold uppercase tracking-widest text-[#0f2744] mb-0.5">Navigation</p>
-                    <p className="text-[10px] text-slate-400 font-semibold">Admin Control Panel</p>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-800 mb-0.5">Workspace</p>
+                    <p className="text-[10px] text-slate-400 font-medium tracking-wide">Control Center</p>
                   </div>
                 )}
                 <button
                   type="button"
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer ml-auto"
+                  className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200/60 text-slate-400 hover:text-slate-600 transition-all duration-200 cursor-pointer ml-auto flex items-center justify-center"
                   title={sidebarCollapsed ? "Expand sidebar menu" : "Collapse sidebar menu"}
                 >
                   {sidebarCollapsed ? (
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-3.5 h-3.5" />
                   ) : (
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-3.5 h-3.5" />
                   )}
                 </button>
               </div>
-              <div className="pt-2 flex flex-col gap-1">
+
+              {/* Navigation Items */}
+              <div className="pt-2 flex flex-col gap-0.5">
                 {[
-                  { id: "all_apps", label: "📱 ALL APPS Page", icon: Grid, href: "/apps" },
-                  { id: "notifications", label: "Notifications & Alerts", icon: BellRing, isNotif: true },
-                  { id: "analytics", label: "Analytics & Charts", icon: BarChart3 },
-                  { id: "enquiries", label: "Project Inquiries", icon: Users, badge: enquiries.length, href: "/worker/dashboard/inquiries" },
-                  { id: "requests", label: "Project Requests", icon: Clock, badge: jobs.filter(j => j.status === "Pending").length },
-                  { id: "jobs", label: "Active Projects & Quotes", icon: Briefcase, badge: jobs.filter(j => ["Accepted", "OnTheWay", "Started", "Job Done"].includes(j.status)).length },
-                  { id: "quotations", label: "Quotations & Meetings", icon: FileText, badge: quotations.filter(q => q.status === "Accepted" || q.status === "accepted").length },
-                  { id: "shop_orders", label: "Shop Bookings", icon: Package, badge: shopOrders.filter(o => o.status === "Pending" || o.status === "Processing").length },
-                  { id: "availability", label: "Availability Manager", icon: CalendarDays },
-                  { id: "services", label: "Services Manager", icon: Wrench, badge: servicesList.length },
-                  { id: "profile", label: "Profile Editor", icon: Settings },
-                  { id: "portfolio", label: "Portfolio Showcase", icon: Star },
-                  { id: "support", label: "Helpdesk Support", icon: HelpCircle }
+                  { id: "all_apps", label: "All Apps", icon: Grid, href: "/apps" },
+                  { id: "notifications", label: "Notifications", icon: Bell, isNotif: true },
+                  { id: "analytics", label: "Analytics", icon: BarChart3 },
+                  { id: "enquiries", label: "Inquiries", icon: Users, badge: enquiries.length, href: "/worker/dashboard/inquiries" },
+                  { id: "requests", label: "Requests", icon: Clock, badge: jobs.filter(j => j.status === "Pending").length },
+                  { id: "jobs", label: "Active Projects", icon: Briefcase, badge: jobs.filter(j => ["Accepted", "OnTheWay", "Started", "Job Done"].includes(j.status)).length },
+                  { id: "quotations", label: "Quotations", icon: FileText, badge: quotations.filter(q => q.status === "Accepted" || q.status === "accepted").length },
+                  { id: "shop_orders", label: "Shop Orders", icon: Package, badge: shopOrders.filter(o => o.status === "Pending" || o.status === "Processing").length },
+                  { id: "availability", label: "Availability", icon: CalendarDays },
+                  { id: "services", label: "Services", icon: Wrench, badge: servicesList.length },
+                  { id: "profile", label: "Profile", icon: Settings },
+                  { id: "portfolio", label: "Portfolio", icon: Star },
+                  { id: "support", label: "Support", icon: HelpCircle }
                 ].map((tab: any) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.id;
+
                   if (tab.isNotif) {
                     return (
                       <button
@@ -2141,41 +2299,48 @@ export default function ProviderDashboardPage() {
                         type="button"
                         onClick={() => router.push("/notifications")}
                         title={sidebarCollapsed ? tab.label : undefined}
-                        className={`w-full flex items-center ${sidebarCollapsed ? "justify-center px-1" : "gap-3 px-3"} py-2 rounded-[6px] font-bold text-xs transition-all duration-200 text-amber-900 bg-amber-50 hover:bg-amber-100 cursor-pointer border-l-2 border-amber-500 shadow-xs my-0.5`}
+                        className={`w-full h-9 flex items-center ${sidebarCollapsed ? "justify-center px-1" : "gap-2.5 px-3"} rounded-lg text-[12px] font-semibold transition-all duration-200 text-slate-600 hover:bg-amber-50 hover:text-amber-700 cursor-pointer group`}
                       >
-                        <Icon className="w-4 h-4 shrink-0 text-amber-600" />
-                        {!sidebarCollapsed && <span className="flex-1 text-left font-black">{tab.label}</span>}
-                        <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping shrink-0" />
+                        <Icon className="w-[17px] h-[17px] shrink-0 text-slate-400 group-hover:text-amber-500 transition-colors" />
+                        {!sidebarCollapsed && <span className="flex-1 text-left">{tab.label}</span>}
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
                       </button>
                     );
                   }
+
                   if (tab.href) {
                     return (
                       <Link
                         key={tab.id}
                         href={tab.href}
                         title={sidebarCollapsed ? tab.label : undefined}
-                        className={`w-full flex items-center ${sidebarCollapsed ? "justify-center px-1" : "gap-3 px-3"} py-2 rounded-[6px] font-bold text-xs transition-all duration-200 text-[#0f2744] bg-blue-50/80 hover:bg-blue-100 cursor-pointer border-l-2 border-blue-500 shadow-xs mb-1`}
+                        className={`w-full h-9 flex items-center ${sidebarCollapsed ? "justify-center px-1" : "gap-2.5 px-3"} rounded-lg text-[12px] font-semibold transition-all duration-200 text-slate-600 hover:bg-blue-50 hover:text-blue-700 cursor-pointer group`}
                       >
-                        <Icon className="w-4 h-4 shrink-0 text-blue-600" />
-                        {!sidebarCollapsed && <span className="flex-1 text-left font-black">{tab.label}</span>}
+                        <Icon className="w-[17px] h-[17px] shrink-0 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                        {!sidebarCollapsed && <span className="flex-1 text-left">{tab.label}</span>}
+                        {!sidebarCollapsed && tab.badge && tab.badge > 0 ? (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold shrink-0 bg-slate-100 text-slate-700 border border-slate-200/60">
+                            {tab.badge}
+                          </span>
+                        ) : null}
                       </Link>
                     );
                   }
+
                   return (
                     <button
                       key={tab.id}
                       onClick={() => { setActiveTab(tab.id as Tab); setIsPreviewMode(false); }}
                       title={sidebarCollapsed ? tab.label : undefined}
-                      className={`w-full flex items-center ${sidebarCollapsed ? "justify-center px-1" : "gap-3 px-3"} py-2 rounded-[6px] font-bold text-xs transition-all duration-200 cursor-pointer ${isActive
-                        ? "bg-[#0f2744] text-white shadow-subtle border-l-4 border-emerald-400 pl-2.5"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-2 border-transparent hover:border-slate-200"
+                      className={`w-full h-9 flex items-center ${sidebarCollapsed ? "justify-center px-1" : "gap-2.5 px-3"} rounded-lg text-[12px] font-semibold transition-all duration-200 cursor-pointer ${isActive
+                        ? "bg-gradient-to-r from-[#0f2744] to-[#1a3555] text-white shadow-sm"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         }`}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-emerald-400" : "text-slate-400"}`} />
+                      <Icon className={`w-[17px] h-[17px] shrink-0 transition-colors ${isActive ? "text-emerald-400" : "text-slate-400"}`} />
                       {!sidebarCollapsed && <span className="flex-1 text-left truncate">{tab.label}</span>}
                       {!sidebarCollapsed && tab.badge && tab.badge > 0 ? (
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-[4px] font-bold shrink-0 ${isActive ? "bg-emerald-500 text-white" : "bg-[#0f2744] text-white"
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold shrink-0 ${isActive ? "bg-white/15 text-white/90" : "bg-slate-100 text-slate-700 border border-slate-200/60"
                           }`}>
                           {tab.badge}
                         </span>
@@ -2186,27 +2351,32 @@ export default function ProviderDashboardPage() {
               </div>
             </div>
 
-            <Link
-              href="/business/dashboard/projects"
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[6px] font-extrabold text-xs transition cursor-pointer text-white bg-[#0f2744] hover:bg-[#1e3a8a] shadow-subtle mb-2"
-            >
-              <span>⚡ Active Workspaces Hub</span>
-              <ArrowUpRight className="w-4 h-4 text-amber-400" />
-            </Link>
-            <Link
-              href="/worker/verification"
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[6px] font-extrabold text-xs transition cursor-pointer text-slate-700 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 border border-slate-200 shadow-subtle mb-2"
-            >
-              <ShieldCheck className="w-4 h-4 text-emerald-600" /> Verification Center Page
-            </Link>
-            <button
-              type="button"
-              onClick={logout}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[6px] font-extrabold text-xs transition cursor-pointer text-slate-500 hover:text-rose-600 bg-white hover:bg-rose-50 border border-slate-200 shadow-subtle"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout Session
-            </button>
+            {/* Bottom Action Links */}
+            <div className="space-y-1.5">
+              <Link
+                href="/business/dashboard/projects"
+                className="w-full h-9 flex items-center justify-center gap-2 rounded-xl text-[12px] font-bold transition-all duration-200 cursor-pointer text-white bg-gradient-to-r from-[#0f2744] to-[#1a3555] hover:from-[#162f50] hover:to-[#1e3a5a]" style={{ boxShadow: '0 1px 3px rgba(15, 39, 68, 0.25)' }}
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Active Workspaces</span>
+                <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              </Link>
+              <Link
+                href="/worker/verification"
+                className="w-full h-9 flex items-center justify-center gap-2 rounded-xl text-[12px] font-semibold transition-all duration-200 cursor-pointer text-slate-600 bg-white hover:bg-slate-50 hover:text-slate-800 border border-slate-200/80" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span>Verification Center</span>
+              </Link>
+              <button
+                type="button"
+                onClick={logout}
+                className="w-full h-9 flex items-center justify-center gap-2 rounded-xl text-[12px] font-semibold transition-all duration-200 cursor-pointer text-slate-400 hover:text-rose-600 bg-white hover:bg-rose-50/50 border border-slate-200/80" style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
+              >
+                <LogOut className="w-3.5 h-3.5 shrink-0" />
+                <span>Sign Out</span>
+              </button>
+            </div>
           </aside>
 
           {/* Main Screens Panels - Expanded Work Area */}
