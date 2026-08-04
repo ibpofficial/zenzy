@@ -569,7 +569,7 @@ export default function HomePage() {
       badge: "Business Operating System",
       title: "Win Projects. Manage Work. Grow Your Business.",
       desc: "The all-in-one platform for construction, interior, and professional service businesses to manage inquiries, quotes, workspaces, and clients.",
-      bg: "https://images.unsplash.com/photo-1581244276823-86f7a47ef6c0?auto=format&fit=crop&w=1600&q=80",
+      bg: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=95",
       icon: "fa-laptop-code",
       accent: "#2563eb",
       highlights: ["Project Workspaces", "Structured Quotations", "Client CRM & Payments"]
@@ -578,7 +578,7 @@ export default function HomePage() {
       badge: "Construction & Interior OS",
       title: "From Inquiry to Handover — All in One Workspace.",
       desc: "Manage leads, send professional bids, track milestones, organize client files, and collect payments inside collaborative project workspaces.",
-      bg: "https://images.unsplash.com/photo-1589939705384-5185138a04b9?auto=format&fit=crop&w=1600&q=80",
+      bg: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=2000&q=95",
       icon: "fa-layer-group",
       accent: "#7c3aed",
       highlights: ["Digital Portfolios", "Milestone Approvals", "Centralized Client Hub"]
@@ -587,7 +587,7 @@ export default function HomePage() {
       badge: "Service Business CRM",
       title: "Zero Scattered Chats. Total Project Control.",
       desc: "Unify your team, files, quotes, invoices, and client communication into dedicated workspaces instead of chaotic chat apps.",
-      bg: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1600&q=80",
+      bg: "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=2000&q=95",
       icon: "fa-briefcase",
       accent: "#059669",
       highlights: ["Quotation Builder", "Secure Invoicing", "Real-Time Collaboration"]
@@ -1002,71 +1002,67 @@ export default function HomePage() {
 
         {/* HERO SLIDESHOW */}
         <section className="max-w-7xl mx-auto w-full px-4 sm:px-8 pt-24 sm:pt-28 pb-0">
-          <div className="relative h-[450px] sm:h-[470px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.12)]">
+          <div className="relative h-[450px] sm:h-[480px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.12)] bg-slate-950 flex items-center p-6 sm:p-12 md:p-16">
+            {/* Background image cross-fade loop */}
             {heroSlides.map((slide: any, idx: number) => (
               <div
                 key={idx}
-                className={`absolute inset-0 transition-all duration-[1000ms] ease-out flex items-center p-6 sm:p-10 md:p-14 ${idx === activeSlide ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${idx === activeSlide ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
                   }`}
               >
-                {/* Background image with subtle zoom */}
+                {/* 100% Crisp, Clear Background Image with Ultra-Smooth Slow Zoom (NO black bar, NO dark overlay) */}
                 <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] ease-out"
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-[12000ms] ease-[cubic-bezier(0.25,1,0.5,1)]"
                   style={{
                     backgroundImage: `url('${slide.bg}')`,
-                    transform: idx === activeSlide ? "scale(1.06)" : "scale(1)"
+                    transform: idx === activeSlide ? "scale(1.08)" : "scale(1.0)"
                   }}
                 />
+              </div>
+            ))}
 
-                {/* 5% dark filter overlay for clear images */}
-                <div className="absolute inset-0 bg-black/5" />
-
-                {/* Content */}
-                <div className="max-w-2xl text-white space-y-4 sm:space-y-6 relative z-20">
+            {/* Permanent Content Overlay Container (z-20) */}
+            <div className="max-w-2xl text-white relative z-20 pointer-events-auto">
+              {/* Dynamic Slide Content (Titles & Descriptions) */}
+              {heroSlides.map((slide: any, idx: number) => (
+                <div
+                  key={idx}
+                  className={`transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${idx === activeSlide ? "block opacity-100 translate-y-0" : "hidden opacity-0 translate-y-2 pointer-events-none"
+                    }`}
+                >
                   {/* Badge */}
                   {slide.badge ? (
-                    <div className={`transition-all duration-700 delay-100 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
-                      }`}>
-                      <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] bg-white/15 backdrop-blur-md border border-white/20 shadow-md text-amber-300">
+                    <div className="mb-3 sm:mb-4">
+                      <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] bg-slate-950/40 backdrop-blur-sm border border-white/20 shadow-md text-amber-300">
                         <i className={`fas ${slide.icon} text-amber-400`}></i>
                         {slide.badge}
                       </span>
                     </div>
                   ) : null}
 
-                  {/* Heading */}
-                  <h2 className={`text-2xl sm:text-4xl md:text-[3.25rem] font-extrabold tracking-tight leading-[1.1] drop-shadow-xl transition-all duration-700 delay-200 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-                    }`}>
+                  {/* Heading with Crisp Drop Shadow */}
+                  <h2 className="text-2xl sm:text-4xl md:text-[3.25rem] font-extrabold tracking-tight leading-[1.1] text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] mb-3 sm:mb-4">
                     {slide.title}
                   </h2>
 
-                  {/* Description */}
-                  <p className={`text-slate-100 font-normal text-[13.5px] sm:text-[15.5px] leading-relaxed max-w-md drop-shadow-md transition-all duration-700 delay-300 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-                    }`}>
+                  {/* Description with Crisp Drop Shadow */}
+                  <p className="text-slate-100 font-normal text-[13.5px] sm:text-[15.5px] leading-relaxed max-w-md drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] mb-2 sm:mb-4">
                     {slide.desc}
                   </p>
-
-                  {/* Premium Row Buttons */}
-                  <div className={`flex flex-row items-center gap-2.5 pt-1.5 sm:pt-2 transition-all duration-700 delay-400 ${idx === activeSlide ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-                    }`}>
-                    <Link
-                      href="/services"
-                      className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2.5 px-4 py-2.5 sm:px-6 sm:py-3.5 bg-white text-slate-900 rounded-xl font-bold text-[12px] sm:text-[14px] transition-all duration-200 hover:bg-slate-100 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/20 w-auto"
-                    >
-                      <span>Find <span className="hidden sm:inline">Professionals</span><span className="inline sm:hidden">Pros</span></span>
-                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 group-hover:translate-x-1" />
-                    </Link>
-                    <Link
-                      href="/rent"
-                      className="group inline-flex items-center justify-center gap-1.5 sm:gap-2.5 px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-xl font-bold text-[12px] sm:text-[14px] text-white transition-all duration-200 bg-white/15 hover:bg-white/25 active:scale-[0.98] border border-white/40 hover:border-white/70 backdrop-blur-md shadow-md w-auto"
-                    >
-                      <span>Browse <span className="hidden sm:inline">Rentals</span><span className="inline sm:hidden">Rent</span></span>
-                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 group-hover:translate-x-1" />
-                    </Link>
-                  </div>
                 </div>
+              ))}
+
+              {/* PERMANENT FIXED CTA BUTTON — Stays stationary & visible across all slide transitions */}
+              <div className="pt-3 sm:pt-4">
+                <Link
+                  href="/services"
+                  className="group relative inline-flex items-center justify-center gap-2.5 px-6 py-3.5 sm:px-7 sm:py-4 bg-white hover:bg-slate-50 text-slate-900 rounded-xl font-extrabold text-[13px] sm:text-[15px] transition-all duration-300 hover:shadow-[0_12px_28px_rgba(255,255,255,0.25)] hover:scale-[1.03] active:scale-[0.97] shadow-xl shadow-black/30 border border-white/80 cursor-pointer"
+                >
+                  <span>Find Professionals</span>
+                  <ArrowRight className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-slate-900 transition-transform duration-300 group-hover:translate-x-1.5" />
+                </Link>
               </div>
-            ))}
+            </div>
 
             {/* Navigation arrows (Square rounded-xl) */}
             <button
