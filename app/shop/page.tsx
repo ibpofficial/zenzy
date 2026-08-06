@@ -746,12 +746,14 @@ AI Assistant Rules:
       }
       const cDoc = snap.docs[0];
       const coupon = { id: cDoc.id, ...cDoc.data() } as any;
-      if (!coupon.active) {
+      const isActive = coupon.active !== false && coupon.status !== "inactive" && coupon.status !== "expired";
+      if (!isActive) {
         setCouponError("This coupon is no longer active.");
         setAppliedCoupon(null);
         return;
       }
-      if (coupon.expiresAt && new Date(coupon.expiresAt).getTime() < Date.now()) {
+      const expiry = coupon.expiryDate || coupon.expiresAt || coupon.validUntil;
+      if (expiry && new Date(expiry).getTime() < Date.now()) {
         setCouponError("This coupon has expired.");
         setAppliedCoupon(null);
         return;
@@ -762,7 +764,7 @@ AI Assistant Rules:
         return;
       }
       setAppliedCoupon(coupon);
-      showToast(`Coupon "${coupon.code}" applied!`);
+      showToast(`✓ Coupon "${coupon.code}" applied!`);
     } catch (err) {
       console.error("Apply coupon error:", err);
       setCouponError("Failed to apply coupon.");
@@ -1031,10 +1033,12 @@ AI Assistant Rules:
 
     let discount = 0;
     if (appliedCoupon && items === checkoutItems) {
-      if (appliedCoupon.type === "percent") {
-        discount = Math.round(sub * (appliedCoupon.value / 100));
-      } else if (appliedCoupon.type === "flat") {
-        discount = appliedCoupon.value;
+      const cType = (appliedCoupon.type || "").toLowerCase();
+      const val = Number(appliedCoupon.value || appliedCoupon.discountValue || 0);
+      if (cType === "percent" || cType === "percentage") {
+        discount = Math.round(sub * (val / 100));
+      } else if (cType === "flat" || cType === "fixed") {
+        discount = val;
       }
     }
 

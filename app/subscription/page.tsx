@@ -145,8 +145,64 @@ export default function SubscriptionPage() {
   const comparison = tab === "customer" ? customerComparison : professionalComparison;
   const labels = tab === "customer" ? ["Free", "Pro", "Elite"] : ["Starter", "Business", "Enterprise"];
 
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
+  const [couponError, setCouponError] = useState("");
+
+  const handleApplyCoupon = async () => {
+    setCouponError("");
+    if (!couponCode.trim()) return;
+    try {
+      const { collection, query, where, getDocs } = await import("firebase/firestore");
+      const { db } = await import("@/lib/firebase");
+
+      const q = query(
+        collection(db, "coupons"),
+        where("code", "==", couponCode.toUpperCase().trim())
+      );
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        setCouponError("Invalid coupon code.");
+        setAppliedCoupon(null);
+        return;
+      }
+      const cDoc = snap.docs[0];
+      const coupon = { id: cDoc.id, ...cDoc.data() } as any;
+      const isActive = coupon.active !== false && coupon.status !== "inactive" && coupon.status !== "expired";
+      if (!isActive) {
+        setCouponError("This coupon is no longer active.");
+        setAppliedCoupon(null);
+        return;
+      }
+      const expiry = coupon.expiryDate || coupon.expiresAt || coupon.validUntil;
+      if (expiry && new Date(expiry).getTime() < Date.now()) {
+        setCouponError("This coupon has expired.");
+        setAppliedCoupon(null);
+        return;
+      }
+      setAppliedCoupon(coupon);
+      alert(`✓ Coupon "${coupon.code}" applied successfully!`);
+    } catch (err) {
+      console.error("Apply coupon error:", err);
+      setCouponError("Failed to apply coupon.");
+    }
+  };
+
   const price = (p: any) => p.price === 0 ? 0 : billing === "yearly" ? p.yearly : p.price;
   const savings = (p: any) => p.price === 0 ? 0 : (p.price * 12) - p.yearly;
+
+  const getDiscountedPrice = (plan: any) => {
+    const raw = price(plan);
+    if (!appliedCoupon || raw === 0) return raw;
+    const cType = (appliedCoupon.type || "").toLowerCase();
+    const val = Number(appliedCoupon.value || appliedCoupon.discountValue || 0);
+    if (cType === "percent" || cType === "percentage") {
+      return Math.max(0, Math.round(raw - (raw * (val / 100))));
+    } else if (cType === "flat" || cType === "fixed") {
+      return Math.max(0, raw - val);
+    }
+    return raw;
+  };
 
   const handleRazorpaySubscription = async (plan: any) => {
     if (!user) {
@@ -154,8 +210,8 @@ export default function SubscriptionPage() {
       return;
     }
 
-    const planAmount = price(plan);
-    if (planAmount === 0) {
+    const planAmount = getDiscountedPrice(plan);
+    if (planAmount === 0 && price(plan) === 0) {
       alert("You are on the Free Plan.");
       return;
     }
@@ -345,6 +401,36 @@ export default function SubscriptionPage() {
                 Save 30%
               </span>
             )}
+          </div>
+
+          {/* Promo Coupon Code Bar */}
+          <div className="max-w-md mx-auto mt-6 bg-slate-50 border border-slate-200/80 p-3 rounded-xl space-y-2">
+            <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block text-center">
+              Have a Promo / Coupon Code?
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="e.g. SAVE500"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-black uppercase text-slate-900 outline-none focus:border-amber-500"
+              />
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-4 py-1.5 rounded-lg text-xs uppercase tracking-wider transition cursor-pointer border-none shadow-xs"
+              >
+                Apply Code
+              </button>
+            </div>
+            {appliedCoupon ? (
+              <p className="text-[10px] text-emerald-600 font-bold text-center">
+                ✓ Coupon "{appliedCoupon.code}" active!
+              </p>
+            ) : couponError ? (
+              <p className="text-[10px] text-rose-600 font-bold text-center">{couponError}</p>
+            ) : null}
           </div>
         </section>
 
