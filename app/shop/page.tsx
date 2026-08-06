@@ -86,6 +86,17 @@ import {
   RotateCcw,
   Sparkle
 } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const MapPinPicker = dynamic(() => import("@/components/MapPinPicker"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-64 bg-slate-100 animate-pulse rounded-xl flex flex-col items-center justify-center text-xs text-slate-400 font-bold gap-2">
+      <Loader2 className="w-5 h-5 animate-spin text-slate-500" />
+      <span>Loading Interactive Map...</span>
+    </div>
+  ),
+});
 
 interface Product {
   id: string;
@@ -566,12 +577,133 @@ AI Assistant Rules:
 
   const [orderName, setOrderName] = useState("");
   const [orderPhone, setOrderPhone] = useState("");
+  const [orderEmail, setOrderEmail] = useState("");
+  const [orderCity, setOrderCity] = useState("");
+  const [orderPincode, setOrderPincode] = useState("");
+  const [orderLandmark, setOrderLandmark] = useState("");
+  const [orderNotes, setOrderNotes] = useState("");
   const [orderAddress, setOrderAddress] = useState("");
-  const [orderPayment, setOrderPayment] = useState("COD");
+  const [isLocating, setIsLocating] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [tempLat, setTempLat] = useState(19.0760);
+  const [tempLng, setTempLng] = useState(72.8777);
+  const [tempAddress, setTempAddress] = useState("");
+  const [isGeocoding, setIsGeocoding] = useState(false);
+
+  const handleOpenMapPicker = () => {
+    if (orderCoordinates) {
+      setTempLat(orderCoordinates.lat);
+      setTempLng(orderCoordinates.lng);
+    } else if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setTempLat(pos.coords.latitude);
+          setTempLng(pos.coords.longitude);
+        },
+        () => {},
+        { timeout: 5000 }
+      );
+    }
+    setShowMapModal(true);
+  };
+
+  const handleMapPinChange = async (lat: number, lng: number) => {
+    setTempLat(lat);
+    setTempLng(lng);
+    setIsGeocoding(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const addr = data.address || {};
+        const street = addr.road || addr.suburb || addr.neighbourhood || "";
+        const city = addr.city || addr.town || addr.village || addr.state_district || "";
+        const postcode = addr.postcode || "";
+        const fullStr = data.display_name || `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
+
+        setTempAddress(fullStr);
+        if (city) setOrderCity(city);
+        if (postcode) setOrderPincode(postcode);
+      } else {
+        setTempAddress(`GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+      }
+    } catch {
+      setTempAddress(`GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
+
+  const handleConfirmMapPin = () => {
+    setOrderCoordinates({ lat: tempLat, lng: tempLng });
+    if (tempAddress) {
+      setOrderAddress(tempAddress);
+    } else {
+      setOrderAddress(`Pinned Location: ${tempLat.toFixed(5)}, ${tempLng.toFixed(5)}`);
+    }
+    setShowMapModal(false);
+    showToast("✓ Accurate map position saved!");
+  };
+
+  const [orderCoordinates, setOrderCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [orderPayment, setOrderPayment] = useState("RAZORPAY");
   const [transactionId, setTransactionId] = useState("");
   const [submittingOrder, setSubmittingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const handleAutoDetectLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setOrderCoordinates({ lat: latitude, lng: longitude });
+
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          if (res.ok) {
+            const data = await res.json();
+            const addr = data.address || {};
+            const street = addr.road || addr.suburb || addr.neighbourhood || "";
+            const city = addr.city || addr.town || addr.village || addr.state_district || "";
+            const postcode = addr.postcode || "";
+            const fullStr = data.display_name || `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`;
+
+            if (street || city) {
+              setOrderAddress(street ? `${street}, ${city}` : fullStr);
+            } else {
+              setOrderAddress(fullStr);
+            }
+            if (city) setOrderCity(city);
+            if (postcode) setOrderPincode(postcode);
+            showToast("📍 Location detected successfully!");
+          } else {
+            setOrderAddress(`GPS Location: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+            showToast("📍 Coordinates captured!");
+          }
+        } catch (err) {
+          setOrderAddress(`GPS Location: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+          showToast("📍 Coordinates captured!");
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        console.warn("Geolocation error:", error);
+        alert("Unable to retrieve location. Please grant location permissions or enter your address manually.");
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState("");
@@ -1186,7 +1318,13 @@ AI Assistant Rules:
       const orderPayload = {
         customerName: orderName.trim(),
         customerPhone: orderPhone.trim(),
+        customerEmail: orderEmail.trim() || user?.email || "",
         customerAddress: orderAddress.trim(),
+        city: orderCity.trim(),
+        pincode: orderPincode.trim(),
+        landmark: orderLandmark.trim(),
+        deliveryNotes: orderNotes.trim(),
+        deliveryCoordinates: orderCoordinates || null,
         paymentMethod: orderPayment,
         transactionId: orderPayment === "UPI QR" ? transactionId.trim() : "",
         paymentStatus: orderPayment === "COD" ? "Pending Approval (COD)" : orderPayment === "RAZORPAY" ? "Paid (Razorpay Test Mode)" : "Pending Verification (QR)",
@@ -2768,45 +2906,129 @@ AI Assistant Rules:
             ) : (
               <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x border-slate-200 max-h-[85vh] overflow-y-auto">
                 <form onSubmit={handlePlaceOrder} className="flex-1 p-6 space-y-4 text-xs font-medium text-left">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-[#0f2744]" /> Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={orderName}
+                        onChange={(e) => setOrderName(e.target.value)}
+                        placeholder="e.g. Jane Doe"
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200/90 rounded-[8px] outline-none focus:border-[#0f2744] focus:bg-white text-slate-900 transition-all font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-[#0f2744]" /> 10-Digit Mobile Number *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={orderPhone}
+                        onChange={(e) => setOrderPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                        placeholder="9999011222"
+                        pattern="[0-9]{10}"
+                        maxLength={10}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200/90 rounded-[8px] outline-none focus:border-[#0f2744] focus:bg-white text-slate-900 transition-all font-semibold tracking-wide"
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-[#0f2744]" /> Full Name
+                      <Mail className="w-3.5 h-3.5 text-[#0f2744]" /> Email Address (for Receipt)
                     </label>
                     <input
-                      type="text"
-                      required
-                      value={orderName}
-                      onChange={(e) => setOrderName(e.target.value)}
-                      placeholder="e.g. Jane Doe"
+                      type="email"
+                      value={orderEmail}
+                      onChange={(e) => setOrderEmail(e.target.value)}
+                      placeholder="name@example.com"
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200/90 rounded-[8px] outline-none focus:border-[#0f2744] focus:bg-white text-slate-900 transition-all font-semibold"
                     />
                   </div>
+
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-[#0f2744]" /> 10-Digit Mobile Number
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={orderPhone}
-                      onChange={(e) => setOrderPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                      placeholder="9999011222"
-                      pattern="[0-9]{10}"
-                      maxLength={10}
-                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200/90 rounded-[8px] outline-none focus:border-[#0f2744] focus:bg-white text-slate-900 transition-all font-semibold tracking-wide"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-[#0f2744]" /> Shipping Address
-                    </label>
+                    <div className="flex flex-wrap items-center justify-between gap-1.5">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-[#0f2744]" /> Shipping Address *
+                      </label>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={handleOpenMapPicker}
+                          className="text-[9.5px] font-black text-indigo-700 hover:text-indigo-800 bg-indigo-50 border border-indigo-200/80 px-2 py-0.5 rounded-[6px] transition flex items-center gap-1 cursor-pointer shadow-xs"
+                        >
+                          <Compass className="w-3 h-3 text-indigo-600" /> 🗺️ Mark on Map
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleAutoDetectLocation}
+                          disabled={isLocating}
+                          className="text-[9.5px] font-black text-emerald-700 hover:text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-[6px] transition flex items-center gap-1 cursor-pointer shadow-xs"
+                        >
+                          {isLocating ? (
+                            <>
+                              <Loader2 className="w-3 h-3 animate-spin text-emerald-600" /> Detecting...
+                            </>
+                          ) : (
+                            <>
+                              <Compass className="w-3 h-3 text-emerald-600" /> 📍 Auto GPS
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                     <textarea
                       required
-                      rows={3}
+                      rows={2}
                       value={orderAddress}
                       onChange={(e) => setOrderAddress(e.target.value)}
-                      placeholder="Flat/House No., Street, City, PIN Code..."
+                      placeholder="Flat/House No., Street, Area..."
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200/90 rounded-[8px] outline-none focus:border-[#0f2744] focus:bg-white text-slate-900 resize-none transition-all leading-relaxed font-semibold"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
+                        City / District
+                      </label>
+                      <input
+                        type="text"
+                        value={orderCity}
+                        onChange={(e) => setOrderCity(e.target.value)}
+                        placeholder="e.g. Mumbai"
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200/90 rounded-[8px] outline-none focus:border-[#0f2744] focus:bg-white text-slate-900 font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
+                        PIN Code
+                      </label>
+                      <input
+                        type="text"
+                        value={orderPincode}
+                        onChange={(e) => setOrderPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        placeholder="400001"
+                        maxLength={6}
+                        className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200/90 rounded-[8px] outline-none focus:border-[#0f2744] focus:bg-white text-slate-900 font-semibold tracking-wider"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">
+                      Landmark / Delivery Instructions (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={orderLandmark}
+                      onChange={(e) => setOrderLandmark(e.target.value)}
+                      placeholder="Near Apollo Hospital / Ring gate bell"
+                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200/90 rounded-[8px] outline-none focus:border-[#0f2744] focus:bg-white text-slate-900 font-semibold"
                     />
                   </div>
 
@@ -3123,6 +3345,80 @@ AI Assistant Rules:
           >
             Clear
           </button>
+        </div>
+      )}
+
+      {/* ─── INTERACTIVE MAP LOCATION PINPICKER MODAL ─── */}
+      {showMapModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white max-w-lg w-full rounded-2xl overflow-hidden shadow-2xl border border-slate-200 space-y-4 p-5 text-left">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-indigo-600" /> Pinpoint Accurate Delivery Location
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Drag the map marker pin to your exact building, house, or gate entry point.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMapModal(false)}
+                className="text-slate-400 hover:text-slate-600 text-xs font-bold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Interactive OpenStreetMap Pinpoint Map */}
+            <div className="relative rounded-xl overflow-hidden border border-slate-200">
+              <MapPinPicker
+                latitude={tempLat}
+                longitude={tempLng}
+                onLocationChange={handleMapPinChange}
+                height="280px"
+              />
+              {isGeocoding && (
+                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-md text-[10px] font-bold text-slate-700 shadow-sm flex items-center gap-1.5 border border-slate-200 z-[1000]">
+                  <Loader2 className="w-3 h-3 animate-spin text-indigo-600" /> Resolving address...
+                </div>
+              )}
+            </div>
+
+            {tempAddress && (
+              <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-[11px] font-semibold text-slate-800 leading-snug">
+                <span className="text-[9.5px] uppercase font-extrabold text-slate-400 block mb-0.5">Selected Address Preview:</span>
+                {tempAddress}
+              </div>
+            )}
+
+            <div className="flex justify-between items-center pt-2">
+              <button
+                type="button"
+                onClick={handleAutoDetectLocation}
+                className="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer"
+              >
+                <Compass className="w-4 h-4 text-emerald-600" /> Center My GPS
+              </button>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMapModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmMapPin}
+                  className="px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer shadow-subtle"
+                >
+                  Confirm Location Pin
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
