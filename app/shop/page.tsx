@@ -42,6 +42,7 @@ import {
   Check,
   QrCode,
   Wallet,
+  CreditCard,
   ArrowRight,
   ArrowLeft,
   Truck,
@@ -1052,9 +1053,106 @@ AI Assistant Rules:
     if (cart.length === 0) return;
     setCheckoutItems(cart);
     setIsDirectBuy(false);
-    setOrderPayment("COD");
+    setOrderPayment("RAZORPAY");
     setTransactionId("");
     setCheckoutOpen(true);
+  };
+
+  const handleRazorpayShopCheckout = async (orderPayload: any) => {
+    try {
+      if (!(window as any).Razorpay) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          script.onload = resolve;
+          script.onerror = () => reject(new Error("Failed to load Razorpay script"));
+          document.body.appendChild(script);
+        });
+      }
+
+      const orderRes = await fetch("/api/razorpay/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: activeInvoice.grandTotal,
+          currency: "INR",
+          receipt: `shop_${Date.now().toString().slice(-6)}`,
+        }),
+      });
+
+      if (!orderRes.ok) {
+        alert("Failed to initiate Razorpay payment order.");
+        setSubmittingOrder(false);
+        return;
+      }
+
+      const order = await orderRes.json();
+
+      const options = {
+        key: order.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TMWjMDIprOz1xj",
+        amount: order.amount,
+        currency: order.currency || "INR",
+        name: "Zenzy Shop Supply Order",
+        description: `Razorpay Test Mode Payment for ${checkoutItems.length} items`,
+        order_id: order.id,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await fetch("/api/razorpay/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                amount: activeInvoice.grandTotal,
+                clientId: user?.uid || "guest",
+                clientName: orderName.trim(),
+                clientPhone: orderPhone.trim(),
+                description: `Shop Supply Order (${checkoutItems.length} items)`,
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              const finalPayload = {
+                ...orderPayload,
+                paymentMethod: "Razorpay Test Mode",
+                paymentStatus: "Paid (Razorpay Test Mode)",
+                transactionId: response.razorpay_payment_id,
+                status: "Confirmed",
+              };
+              await addDoc(collection(db, "shopOrders"), finalPayload);
+              if (!isDirectBuy) {
+                saveCartToStorage([]);
+              }
+              setOrderSuccess(true);
+              showToast("✓ Razorpay Test Payment Successful & Order Confirmed!");
+            } else {
+              alert("Razorpay payment verification failed.");
+            }
+          } catch (err) {
+            console.error("Verification error:", err);
+          } finally {
+            setSubmittingOrder(false);
+          }
+        },
+        prefill: {
+          name: orderName.trim(),
+          contact: orderPhone.trim(),
+          email: user?.email || "",
+        },
+        theme: {
+          color: "#0f2744",
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      console.error("Razorpay shop payment error:", err);
+      alert("Razorpay checkout error: " + (err.message || err));
+      setSubmittingOrder(false);
+    }
   };
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
@@ -1087,7 +1185,7 @@ AI Assistant Rules:
         customerAddress: orderAddress.trim(),
         paymentMethod: orderPayment,
         transactionId: orderPayment === "UPI QR" ? transactionId.trim() : "",
-        paymentStatus: orderPayment === "COD" ? "Pending Approval (COD)" : "Pending Verification (QR)",
+        paymentStatus: orderPayment === "COD" ? "Pending Approval (COD)" : orderPayment === "RAZORPAY" ? "Paid (Razorpay Test Mode)" : "Pending Verification (QR)",
         customerId: user?.uid || "guest",
         items: checkoutItems.map((item) => ({
           productId: item.product.id,
@@ -1103,13 +1201,18 @@ AI Assistant Rules:
         discountAmount: activeInvoice.discount,
         couponCode: appliedCoupon ? appliedCoupon.code : "",
         totalAmount: activeInvoice.grandTotal,
-        status: "Pending",
+        status: orderPayment === "RAZORPAY" ? "Confirmed" : "Pending",
         estimatedDeliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
         statusHistory: [
-          { status: "Pending", timestamp: new Date().toISOString() }
+          { status: orderPayment === "RAZORPAY" ? "Confirmed" : "Pending", timestamp: new Date().toISOString() }
         ],
         createdAt: new Date().toISOString()
       };
+
+      if (orderPayment === "RAZORPAY") {
+        await handleRazorpayShopCheckout(orderPayload);
+        return;
+      }
 
       await addDoc(orderRef, orderPayload);
 
@@ -2736,8 +2839,8 @@ AI Assistant Rules:
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Select Payment Method</label>
                     <div className="grid grid-cols-2 gap-2.5">
                       {[
-                        { id: "COD", label: "Cash on Delivery", icon: Wallet },
-                        { id: "UPI QR", label: "UPI Scan & Pay", icon: QrCode }
+                        { id: "RAZORPAY", label: "UPI / GPay / Cards / Netbanking", icon: CreditCard },
+                        { id: "COD", label: "Cash on Delivery", icon: Wallet }
                       ].map((method) => {
                         const Icon = method.icon;
                         const isSelected = orderPayment === method.id;

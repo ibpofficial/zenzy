@@ -54,6 +54,7 @@ import {
   Play,
   Sparkles,
   Zap,
+  Crown,
   Lock,
   ArrowRight,
   ShoppingBag,
@@ -4235,6 +4236,14 @@ export default function AdminPage() {
             </button>
 
             <Link
+              href="/admin/premium"
+              className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-3.5 py-1.5 rounded-[6px] text-xs font-extrabold uppercase tracking-wider transition-all shadow-subtle cursor-pointer border border-amber-400"
+            >
+              <Crown className="w-3.5 h-3.5 text-white fill-white/20 shrink-0" />
+              <span>👑 Premium Subscriptions</span>
+            </Link>
+
+            <Link
               href="/admin/crm"
               className="hidden lg:flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-1.5 rounded-[6px] text-xs font-bold transition border border-slate-200"
             >
@@ -4777,26 +4786,21 @@ export default function AdminPage() {
                       <td className="p-4 font-extrabold text-slate-900">₹{o.totalAmount.toLocaleString()}</td>
                       <td className="p-4">
                         <div className="space-y-1">
-                          <span className="font-bold block text-slate-800">{o.paymentMethod || "COD"}</span>
-                          {o.paymentMethod === "UPI QR" && (
-                            <div className="space-y-0.5 text-[10px]">
-                              <span className="font-mono text-slate-500 block">TxID: {o.transactionId || "N/A"}</span>
-                              <span className={`inline-block px-1.5 py-0.5 rounded-[4px] font-black uppercase text-[8px] ${o.paymentStatus?.includes("Verified") || o.paymentStatus?.includes("Paid")
-                                  ? "bg-emerald-500/10 text-emerald-600"
-                                  : "bg-rose-500/10 text-rose-500"
-                                }`}>
-                                {o.paymentStatus || "Pending"}
-                              </span>
-                              {(o.paymentStatus?.includes("Pending") || o.paymentStatus?.includes("Verification")) && (
-                                <button
-                                  onClick={() => handleVerifyShopPayment(o.id)}
-                                  className="mt-1 block w-full bg-emerald-600 hover:bg-emerald-700 text-white text-[8.5px] font-black uppercase py-1 px-2 rounded-lg text-center cursor-pointer transition shadow-xs"
-                                >
-                                  Verify Payment
-                                </button>
-                              )}
-                            </div>
+                          <span className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded text-[10px] uppercase border ${
+                            o.paymentMethod === "Razorpay Test Mode" || (o.paymentStatus || "").includes("Paid")
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : "bg-slate-100 text-slate-700 border-slate-200"
+                          }`}>
+                            {o.paymentMethod || "COD"}
+                          </span>
+                          {o.transactionId && (
+                            <span className="font-mono text-slate-500 text-[10px] block truncate" title={o.transactionId}>
+                              Pay ID: {o.transactionId}
+                            </span>
                           )}
+                          <span className="text-[9.5px] font-bold text-slate-400 block">
+                            {o.paymentStatus || "Pending"}
+                          </span>
                         </div>
                       </td>
                       <td className="p-4">

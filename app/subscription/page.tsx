@@ -28,14 +28,14 @@ const customerPlans = [
     cta: "Get Started", popular: false,
   },
   {
-    id: "c-pro", name: "Pro", tag: "Most popular", price: 299, yearly: 2499,
+    id: "c-pro", name: "Pro", tag: "Most popular", price: 999, yearly: 8999,
     highlights: ["Unlimited bookings", "AI search & smart matching", "Compare pros side-by-side", "Live chat & job tracking", "AI cost estimation", "10% off all bookings", "Priority support (4h)"],
-    cta: "Upgrade to Pro", popular: true,
+    cta: "Upgrade to Pro (₹999)", popular: true,
   },
   {
-    id: "c-elite", name: "Elite", tag: "Full experience", price: 799, yearly: 6799,
+    id: "c-elite", name: "Elite", tag: "Full experience", price: 1499, yearly: 4999,
     highlights: ["Everything in Pro", "Video consultations", "Emergency priority booking", "Warranty management", "AI Project Planner", "25% off all bookings", "Dedicated manager", "Instant support (30 min)"],
-    cta: "Go Elite", popular: false,
+    cta: "Go Elite (₹4,999)", popular: false,
   },
 ];
 
@@ -48,12 +48,12 @@ const professionalPlans = [
   {
     id: "p-business", name: "Business", tag: "Grow & scale", price: 999, yearly: 8499,
     highlights: ["Personal website (zenzy.shop/you)", "Unlimited portfolio", "CRM & customer database", "Smart calendar & scheduling", "Quote & invoice generator", "AI proposal generator", "Business analytics", "WhatsApp integration", "Priority support (4h)"],
-    cta: "Upgrade to Business", popular: true,
+    cta: "Upgrade to Business (₹999)", popular: true,
   },
   {
-    id: "p-enterprise", name: "Enterprise", tag: "Full business suite", price: 2499, yearly: 21499,
+    id: "p-enterprise", name: "Enterprise", tag: "Full business suite", price: 2499, yearly: 9999,
     highlights: ["Everything in Business", "Team management (25 members)", "AI Business Coach", "AI Content Creator", "Full website customization", "Marketing tools suite", "Branded invoices & contracts", "25% lower commission", "API access", "Dedicated manager"],
-    cta: "Go Enterprise", popular: false,
+    cta: "Go Enterprise (₹9,999)", popular: false,
   },
 ];
 
@@ -134,11 +134,12 @@ const faqs = [
 /* ═══════════════════ COMPONENT ═══════════════════ */
 
 export default function SubscriptionPage() {
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const [tab, setTab] = useState<"customer" | "professional">("customer");
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
   const [tableExpanded, setTableExpanded] = useState(false);
+  const [processingPlanId, setProcessingPlanId] = useState<string | null>(null);
 
   const plans = tab === "customer" ? customerPlans : professionalPlans;
   const comparison = tab === "customer" ? customerComparison : professionalComparison;
@@ -146,6 +147,138 @@ export default function SubscriptionPage() {
 
   const price = (p: any) => p.price === 0 ? 0 : billing === "yearly" ? p.yearly : p.price;
   const savings = (p: any) => p.price === 0 ? 0 : (p.price * 12) - p.yearly;
+
+  const handleRazorpaySubscription = async (plan: any) => {
+    if (!user) {
+      window.location.href = "/auth";
+      return;
+    }
+
+    const planAmount = price(plan);
+    if (planAmount === 0) {
+      alert("You are on the Free Plan.");
+      return;
+    }
+
+    try {
+      setProcessingPlanId(plan.id);
+      if (!(window as any).Razorpay) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          script.onload = resolve;
+          script.onerror = () => reject(new Error("Failed to load Razorpay script"));
+          document.body.appendChild(script);
+        });
+      }
+
+      const orderRes = await fetch("/api/razorpay/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: planAmount,
+          currency: "INR",
+          receipt: `sub_${plan.id}_${Date.now().toString().slice(-6)}`,
+        }),
+      });
+
+      if (!orderRes.ok) {
+        alert("Failed to initiate Razorpay subscription order.");
+        setProcessingPlanId(null);
+        return;
+      }
+
+      const order = await orderRes.json();
+
+      const options = {
+        key: order.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TMWjMDIprOz1xj",
+        amount: order.amount,
+        currency: order.currency || "INR",
+        name: "Zenzy Premium Subscription",
+        description: `Upgrade to ${plan.name} Plan (${billing})`,
+        order_id: order.id,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await fetch("/api/razorpay/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                amount: planAmount,
+                clientId: user.uid,
+                clientName: userData?.name || user.displayName || user.email || "Subscriber",
+                clientEmail: user.email || "",
+                clientPhone: userData?.phone || "",
+                planName: plan.name,
+                billingCycle: billing,
+                userType: tab === "customer" ? "Customer" : "Professional",
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              const { addDoc, collection, updateDoc, doc } = await import("firebase/firestore");
+              const { db } = await import("@/lib/firebase");
+
+              await addDoc(collection(db, "premiumPayments"), {
+                userId: user.uid,
+                userName: userData?.name || user.displayName || user.email || "Subscriber",
+                userEmail: user.email || "",
+                userPhone: userData?.phone || "",
+                userType: tab === "customer" ? "Customer" : "Professional",
+                planName: plan.name,
+                planId: plan.id,
+                amount: planAmount,
+                billingCycle: billing,
+                paymentId: response.razorpay_payment_id,
+                orderId: response.razorpay_order_id,
+                status: "Active",
+                createdAt: new Date().toISOString(),
+                expiresAt: new Date(Date.now() + (billing === "yearly" ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString(),
+              });
+
+              const collName = tab === "professional" ? "workers" : "users";
+              try {
+                await updateDoc(doc(db, collName, user.uid), {
+                  subscription: plan.name,
+                  role: "pro_active",
+                  isPremium: true,
+                  premiumUntil: new Date(Date.now() + (billing === "yearly" ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString(),
+                });
+              } catch (uErr) {
+                console.warn("User doc update warning:", uErr);
+              }
+
+              alert(`🎉 Congratulations! You are now subscribed to Zenzy ${plan.name} (${billing}). Payment ID: ${response.razorpay_payment_id}`);
+            } else {
+              alert("Payment verification failed.");
+            }
+          } catch (err) {
+            console.error("Verification error:", err);
+          } finally {
+            setProcessingPlanId(null);
+          }
+        },
+        prefill: {
+          name: userData?.name || user.displayName || "Subscriber",
+          email: user.email || "",
+          contact: userData?.phone || "",
+        },
+        theme: {
+          color: "#0f2744",
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      console.error("Razorpay subscription error:", err);
+      alert("Razorpay error: " + (err.message || err));
+      setProcessingPlanId(null);
+    }
+  };
 
   const cell = (v: any) => {
     if (v === true) return <Check className="w-4 h-4 text-slate-800 mx-auto" strokeWidth={2.5} />;
@@ -272,16 +405,18 @@ export default function SubscriptionPage() {
 
                 {/* CTA */}
                 <button
-                  onClick={() => {
-                    if (!user) window.location.href = "/auth";
-                    else alert(`You selected ${plan.name}! Payment integration coming soon.`);
-                  }}
-                  className={`w-full py-3 rounded-xl text-[12px] font-semibold transition-all duration-200 cursor-pointer hover:opacity-90 active:scale-[0.98] mb-6 ${plan.popular
+                  disabled={processingPlanId === plan.id}
+                  onClick={() => handleRazorpaySubscription(plan)}
+                  className={`w-full py-3 rounded-xl text-[12px] font-bold transition-all duration-200 cursor-pointer hover:opacity-90 active:scale-[0.98] mb-6 flex items-center justify-center gap-2 ${plan.popular
                       ? "bg-slate-900 text-white hover:bg-slate-800"
                       : "bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 hover:border-slate-300"
                     }`}
                 >
-                  {plan.cta}
+                  {processingPlanId === plan.id ? (
+                    <span>Processing Payment...</span>
+                  ) : (
+                    <span>{plan.cta}</span>
+                  )}
                 </button>
 
                 {/* Features */}

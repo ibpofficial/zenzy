@@ -160,6 +160,101 @@ export default function AcceptQuotePage() {
   // Workflow Stages preview
   const activeStages = quotation.workflowStages || STARTER_WORKFLOW_TEMPLATES[0].stages;
 
+  const handleRazorpayCheckout = async () => {
+    if (!agreeTerms || !signatureName.trim()) {
+      alert("Please sign your name and agree to contract terms before paying.");
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      if (!(window as any).Razorpay) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = "https://checkout.razorpay.com/v1/checkout.js";
+          script.onload = resolve;
+          script.onerror = () => reject(new Error("Failed to load Razorpay script"));
+          document.body.appendChild(script);
+        });
+      }
+
+      const orderRes = await fetch("/api/razorpay/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: grandTotal,
+          currency: "INR",
+          receipt: `rcpt_${quoteId.slice(0, 8)}`,
+        }),
+      });
+
+      if (!orderRes.ok) {
+        alert("Failed to initiate Razorpay payment order.");
+        setIsProcessing(false);
+        return;
+      }
+
+      const order = await orderRes.json();
+
+      const options = {
+        key: order.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TMWjMDIprOz1xj",
+        amount: order.amount,
+        currency: order.currency || "INR",
+        name: "Zenzy Quotation Payment",
+        description: `Test Mode Payment for Quotation #${quotation?.quoteNumber || quoteId.slice(0, 8)}`,
+        order_id: order.id,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await fetch("/api/razorpay/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                quoteId: quoteId,
+                inquiryId: quotation?.inquiryId || quotation?.enquiryId,
+                amount: grandTotal,
+                clientId: user?.uid || quotation?.customerId,
+                clientName: signatureName.trim() || quotation?.customerName || "Customer",
+                clientEmail: quotation?.customerEmail || user?.email || "",
+                workerId: quotation?.businessId || quotation?.workerId || "",
+                workerName: quotation?.businessName || quotation?.workerName || "",
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              alert(`✓ Razorpay Test Mode Payment Successful! Payment ID: ${response.razorpay_payment_id}`);
+              await handleFinalizeAcceptance();
+            } else {
+              alert("Payment verification failed.");
+              setIsProcessing(false);
+            }
+          } catch (err) {
+            console.error("Verification error:", err);
+            await handleFinalizeAcceptance();
+          }
+        },
+        prefill: {
+          name: signatureName.trim() || quotation?.customerName || "Customer",
+          email: quotation?.customerEmail || user?.email || "",
+          contact: quotation?.customerPhone || "",
+        },
+        theme: {
+          color: "#0f2744",
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      console.error("Razorpay test payment error:", err);
+      alert("Razorpay payment error: " + (err.message || err));
+      setIsProcessing(false);
+    }
+  };
+
   const handleFinalizeAcceptance = async () => {
     if (!agreeTerms || !signatureName.trim()) {
       alert("Please sign your name and agree to contract terms before proceeding.");
@@ -572,20 +667,32 @@ export default function AcceptQuotePage() {
               </label>
             </div>
 
-            <div className="flex justify-between items-center pt-2">
+            <div className="flex flex-wrap justify-between items-center gap-3 pt-2">
               <button
                 onClick={() => setCurrentStep(2)}
                 className="text-slate-600 hover:text-slate-900 text-xs font-bold flex items-center gap-1 cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" /> Back to Terms
               </button>
-              <button
-                disabled={!agreeTerms || !signatureName.trim()}
-                onClick={() => setCurrentStep(4)}
-                className="bg-[#0f2744] hover:bg-[#1e3a8a] disabled:opacity-50 text-white font-extrabold px-6 py-2.5 rounded-[6px] text-xs uppercase tracking-wider flex items-center gap-2 shadow-subtle transition cursor-pointer"
-              >
-                Continue to Finalize <ChevronRight className="w-4 h-4" />
-              </button>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={!agreeTerms || !signatureName.trim() || isProcessing}
+                  onClick={handleRazorpayCheckout}
+                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold px-5 py-2.5 rounded-pro-sm text-xs uppercase tracking-wider flex items-center gap-2 shadow-subtle transition cursor-pointer"
+                >
+                  <span>⚡ Pay Online (UPI / GPay / Cards)</span>
+                </button>
+
+                <button
+                  disabled={!agreeTerms || !signatureName.trim() || isProcessing}
+                  onClick={handleFinalizeAcceptance}
+                  className="bg-[#0f2744] hover:bg-[#1e3a8a] disabled:opacity-50 text-white font-extrabold px-6 py-2.5 rounded-pro-sm text-xs uppercase tracking-wider flex items-center gap-2 shadow-subtle transition cursor-pointer"
+                >
+                  <span>Sign & Accept Contract</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
