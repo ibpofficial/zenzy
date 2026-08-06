@@ -20,7 +20,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
 import InquiryTracker from "@/components/InquiryTracker";
-import QuoteDocument from "@/components/QuoteDocument";
 import { triggerNotification } from "@/lib/notifications";
 import { 
   ChevronLeft, 
@@ -45,7 +44,11 @@ import {
   Send,
   ChevronDown,
   ChevronUp,
-  Clock
+  Clock,
+  Briefcase,
+  ShieldCheck,
+  CheckCircle2,
+  Tag
 } from "lucide-react";
 import { Inquiry, Quotation, Project } from "@/lib/schema";
 
@@ -129,7 +132,7 @@ export default function WorkerInquiryDetailPage() {
             console.error("Error checking spawned project:", err);
           }
 
-          // Fetch associated quotations (by inquiryId, enquiryId, or quotationIds)
+          // Fetch associated quotations
           const qList: Quotation[] = [];
           
           try {
@@ -233,12 +236,6 @@ export default function WorkerInquiryDetailPage() {
         "system"
       );
 
-      if (nextStage === "accepted") {
-        await handleAutoCalendarBlock(user.uid, inquiry.clientName, inquiry.title, inquiry.timelineEstimate, inquiry.id);
-      } else if (nextStage === "completed" || nextStage === "closed") {
-        await handleReleaseCalendarBlock(user.uid, inquiry.id);
-      }
-
       alert(`Inquiry stage advanced to: ${stageLabel}`);
     } catch (err) {
       console.error("Failed to update inquiry stage:", err);
@@ -260,7 +257,6 @@ export default function WorkerInquiryDetailPage() {
       const now = new Date().toISOString();
 
       const bothStarted = newClientStarted && newProStarted;
-
       let newStage: Inquiry["stage"] = inquiry.stage;
 
       if (bothStarted) {
@@ -367,174 +363,6 @@ export default function WorkerInquiryDetailPage() {
     }
   };
 
-  const handleAutoCalendarBlock = async (workerId: string, clientName: string, title: string, timelineEstimate: string, id: string) => {
-    try {
-      let days = 14;
-      const timelineStr = (timelineEstimate || "").toLowerCase();
-      if (timelineStr.includes("day")) {
-        const matches = timelineStr.match(/\d+/);
-        if (matches) days = parseInt(matches[0]);
-      } else if (timelineStr.includes("week")) {
-        const matches = timelineStr.match(/\d+/);
-        if (matches) days = parseInt(matches[0]) * 7;
-      } else if (timelineStr.includes("month")) {
-        const matches = timelineStr.match(/\d+/);
-        if (matches) days = parseInt(matches[0]) * 30;
-      }
-
-      const startDate = new Date();
-      const endDate = new Date();
-      endDate.setDate(startDate.getDate() + days);
-
-      const startDateStr = startDate.toISOString().split("T")[0];
-      const endDateStr = endDate.toISOString().split("T")[0];
-
-      const blockPayload = {
-        workerId,
-        startDate: startDateStr,
-        endDate: endDateStr,
-        type: "project",
-        note: `Auto-block for Project: ${title} (${clientName})`,
-        linkedInquiryId: id,
-        createdAt: new Date().toISOString()
-      };
-
-      await addDoc(collection(db, "workers", workerId, "availabilityBlocks"), blockPayload);
-
-      const workerRef = doc(db, "workers", workerId);
-      const workerSnap = await getDoc(workerRef);
-      if (workerSnap.exists()) {
-        const wData = workerSnap.data();
-        const currentBlocked = wData.blockedDates || [];
-        
-        const dateList = [];
-        let curr = new Date(startDate);
-        while (curr <= endDate) {
-          dateList.push(curr.toISOString().split("T")[0]);
-          curr.setDate(curr.getDate() + 1);
-        }
-        
-        const newBlocked = Array.from(new Set([...currentBlocked, ...dateList]));
-        await updateDoc(workerRef, { 
-          blockedDates: newBlocked,
-          availabilityStatus: "limited"
-        });
-      }
-    } catch (err) {
-      console.error("Auto block generation failed:", err);
-    }
-  };
-
-  const handleReleaseCalendarBlock = async (workerId: string, id: string) => {
-    try {
-      const q = query(
-        collection(db, "workers", workerId, "availabilityBlocks"),
-        where("linkedInquiryId", "==", id)
-      );
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        for (const docSnap of snap.docs) {
-          const blockData = docSnap.data();
-          const startDate = new Date(blockData.startDate);
-          const endDate = new Date(blockData.endDate);
-          
-          await deleteDoc(doc(db, "workers", workerId, "availabilityBlocks", docSnap.id));
-          
-          const dateList: string[] = [];
-          let curr = new Date(startDate);
-          while (curr <= endDate) {
-            dateList.push(curr.toISOString().split("T")[0]);
-            curr.setDate(curr.getDate() + 1);
-          }
-          
-          const workerRef = doc(db, "workers", workerId);
-          const workerSnap = await getDoc(workerRef);
-          if (workerSnap.exists()) {
-            const wData = workerSnap.data();
-            const currentBlocked: string[] = wData.blockedDates || [];
-            const newBlocked = currentBlocked.filter(d => !dateList.includes(d));
-            await updateDoc(workerRef, { 
-              blockedDates: newBlocked,
-              availabilityStatus: newBlocked.length === 0 ? "available" : "limited"
-            });
-          }
-        }
-      }
-    } catch (err) {
-      console.error("Release block failed:", err);
-    }
-  };
-
-  const handleCreateQuotation = async () => {
-    if (!inquiry || !user || creatingQuote) return;
-    setCreatingQuote(true);
-
-    try {
-      const quotePayload = {
-        inquiryId: inquiry.id,
-        businessId: user.uid,
-        businessName: userData?.name || "Zenzy Partner",
-        workerId: user.uid,
-        workerName: userData?.name || "Zenzy Partner",
-        customerName: inquiry.clientName,
-        customerEmail: "", 
-        status: "draft",
-        items: [
-          { description: `Project Proposal Estimate: ${inquiry.title}`, qty: 1, unitPrice: 25000, total: 25000 }
-        ],
-        materialsCost: 0,
-        laborCost: 0,
-        total: 25000,
-        createdAt: new Date().toISOString()
-      };
-
-      let projectId = "";
-      const projQuery = query(collection(db, "projects"), where("inquiryId", "==", inquiry.id), where("clientId", "==", inquiry.clientId));
-      const projSnap = await getDocs(projQuery);
-      
-      if (!projSnap.empty) {
-        projectId = projSnap.docs[0].id;
-      } else {
-        const newProj = {
-          clientId: inquiry.clientId,
-          clientName: inquiry.clientName,
-          businessId: user.uid,
-          businessName: userData?.name || "Zenzy Partner",
-          title: inquiry.title,
-          description: inquiry.requirements,
-          category: userData?.category || "General Contractor",
-          status: "brief",
-          budgetRange: inquiry.budgetRange,
-          timelineEstimate: inquiry.timelineEstimate,
-          createdAt: new Date().toISOString(),
-          inquiryId: inquiry.id
-        };
-        const pDoc = await addDoc(collection(db, "projects"), newProj);
-        projectId = pDoc.id;
-      }
-
-      const qDoc = await addDoc(collection(db, "quotations"), {
-        ...quotePayload,
-        projectId
-      });
-
-      const updatedQuotes = [...(inquiry.quotationIds || []), qDoc.id];
-      await updateDoc(doc(db, "inquiries", inquiry.id), {
-        quotationIds: updatedQuotes
-      });
-
-      setInquiry(prev => prev ? { ...prev, quotationIds: updatedQuotes } : null);
-
-      alert("Draft quotation created! Redirecting to proposal manager...");
-      router.push("/business/dashboard/quotes");
-    } catch (err) {
-      console.error("Failed to create quotation:", err);
-      alert("Failed to draft proposal quote.");
-    } finally {
-      setCreatingQuote(false);
-    }
-  };
-
   if (authLoading || loading) {
     return <LoadingScreen />;
   }
@@ -544,7 +372,7 @@ export default function WorkerInquiryDetailPage() {
       <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
         <Navbar />
         <main className="max-w-md mx-auto px-6 py-32 text-center space-y-6">
-          <div className="w-20 h-20 rounded-2xl bg-rose-50 border border-rose-250 flex items-center justify-center mx-auto shadow-xl">
+          <div className="w-20 h-20 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center mx-auto shadow-subtle">
             <ChevronLeft className="w-10 h-10 text-rose-500" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Inquiry Not Found</h1>
@@ -555,230 +383,284 @@ export default function WorkerInquiryDetailPage() {
     );
   }
 
-  const getStageLabel = (stage: Inquiry['stage']) => {
-    return stage.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
-  };
-
   const acceptedQuote = quotations.find((q) => q.status.toLowerCase() === "accepted" || q.status.toLowerCase() === "submitted");
   const quotedAmount = acceptedQuote?.grandTotal || acceptedQuote?.total || inquiry.quotedAmount;
   const isStarted = inquiry.stage === "project_started" || inquiry.stage === "completed" || (inquiry.clientStarted && inquiry.proStarted);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50/70 text-slate-900 flex flex-col font-sans selection:bg-primary-500 selection:text-white">
       <Navbar />
 
-      <main className="flex-grow max-w-7xl mx-auto w-full px-5 pt-28 pb-20">
+      <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 pt-24 pb-20 space-y-6">
         
-        {/* Back Link & Centered Direct Workspace Action Button */}
-        <div className="mb-6 space-y-4">
-          <div className="flex justify-between items-center">
-            <Link href="/worker/dashboard/inquiries" className="text-xs font-bold text-slate-500 hover:text-slate-900 flex items-center gap-1.5 transition">
-              <ChevronLeft className="w-4 h-4" /> Back to Inquiry List
-            </Link>
-          </div>
+        {/* Top Header Banner - Executive Dark Glassmorphism Design */}
+        <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-indigo-950 text-white rounded-pro-md p-6 sm:p-8 shadow-card relative overflow-hidden border border-slate-800">
+          <div className="absolute -top-24 -right-24 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <Link 
+                  href="/worker/dashboard/inquiries" 
+                  className="text-indigo-300 hover:text-white font-bold flex items-center gap-1 bg-white/10 px-2.5 py-1 rounded-pro-sm transition"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Inquiry Lead Vault
+                </Link>
+                <span className="text-slate-500">•</span>
+                <span className="font-mono text-slate-300 font-bold bg-slate-800/80 px-2 py-0.5 rounded">
+                  #{inquiry.id.slice(0, 8).toUpperCase()}
+                </span>
+                <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-pro-sm font-extrabold uppercase text-[10px]">
+                  {inquiry.stage.replace('_', ' ')}
+                </span>
+              </div>
 
-          {spawnedProjectId ? (
-            <div className="flex justify-center w-full my-2">
-              <Link
-                href={`/projects/${spawnedProjectId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#0f2744] hover:bg-[#1e3a8a] border border-[#1e3e66] text-white px-8 py-3 rounded-[6px] text-xs font-extrabold uppercase tracking-widest transition-all duration-200 cursor-pointer shadow-subtle hover:shadow-md flex items-center justify-center gap-2.5"
-              >
-                <Play className="w-4 h-4 fill-white text-white" />
-                <span>View Project Workspace & Progress ↗</span>
-              </Link>
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+                {inquiry.title}
+              </h1>
+              <p className="text-xs text-slate-300 font-medium flex items-center gap-2">
+                <User className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Client: <strong>{inquiry.clientName}</strong></span>
+                {inquiry.createdAt && (
+                  <>
+                    <span className="text-slate-500">•</span>
+                    <span>Received: {new Date(inquiry.createdAt).toLocaleDateString("en-IN")}</span>
+                  </>
+                )}
+              </p>
             </div>
-          ) : (
-            <div className="flex justify-end">
+
+            {/* Quick Primary Actions */}
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
               <Link
-                href="/business/dashboard/projects"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-[6px] text-xs font-bold uppercase tracking-wider shadow-xs transition flex items-center gap-1.5"
+                href={`/worker/quote-generator?inquiryId=${inquiry.id}`}
+                className="bg-primary-600 hover:bg-primary-500 text-white font-black px-5 py-2.5 rounded-pro-sm text-xs uppercase tracking-wider transition-all duration-200 shadow-float hover:scale-105 flex items-center gap-2 cursor-pointer"
               >
-                <span>View Projects Command Center ↗</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <Zap className="w-4 h-4 text-amber-300" />
+                <span>Open Quote Studio</span>
               </Link>
+
+              {spawnedProjectId && (
+                <Link
+                  href={`/projects/${spawnedProjectId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-4 py-2.5 rounded-pro-sm text-xs uppercase tracking-wider transition-all duration-200 shadow-subtle flex items-center gap-2 cursor-pointer"
+                >
+                  <Play className="w-3.5 h-3.5 fill-white" />
+                  <span>View Project Workspace ↗</span>
+                </Link>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Layout grid */}
+        {/* Hero Metric Quick Stats Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="pro-card bg-white border border-slate-200/80 p-4 rounded-pro-sm shadow-subtle hover:border-slate-300 transition-all">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Client Budget</span>
+            <span className="text-base font-black text-slate-900 font-mono tabular-nums mt-1 block">
+              {inquiry.budgetRange || "Flexible"}
+            </span>
+          </div>
+
+          <div className="pro-card bg-white border border-slate-200/80 p-4 rounded-pro-sm shadow-subtle hover:border-slate-300 transition-all">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Quotation Proposal Total</span>
+            <span className="text-base font-black text-primary-600 font-mono tabular-nums mt-1 block">
+              {quotedAmount ? `₹${quotedAmount.toLocaleString("en-IN")}` : "Awaiting Quote"}
+            </span>
+          </div>
+
+          <div className="pro-card bg-white border border-slate-200/80 p-4 rounded-pro-sm shadow-subtle hover:border-slate-300 transition-all">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Estimated Timeline</span>
+            <span className="text-base font-black text-slate-900 mt-1 flex items-center gap-1.5">
+              <Clock className="w-4 h-4 text-indigo-500" />
+              <span>{inquiry.timelineEstimate || "Standard"}</span>
+            </span>
+          </div>
+
+          <div className="pro-card bg-white border border-slate-200/80 p-4 rounded-pro-sm shadow-subtle hover:border-slate-300 transition-all">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Handshake Status</span>
+            <span className={`text-xs font-black uppercase mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-pro-sm border ${
+              isStarted 
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                : inquiry.proStarted 
+                  ? "bg-amber-50 text-amber-700 border-amber-200" 
+                  : "bg-slate-100 text-slate-600 border-slate-200"
+            }`}>
+              {isStarted ? "✓ Active Workspace" : inquiry.proStarted ? "Awaiting Client" : "Not Started"}
+            </span>
+          </div>
+        </div>
+
+        {/* Layout main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          {/* Main timeline tracker and details (8 Cols) */}
+          {/* Main Content Area (8 Cols) */}
           <div className="lg:col-span-8 space-y-6">
             
-            {/* Timeline Stepper Box */}
-            <div className="bg-white border border-slate-200 p-6 rounded-[8px] shadow-subtle">
-              <h3 className="font-extrabold text-xs uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-3 mb-5">Inquiry Lifecycle Timeline</h3>
+            {/* Inquiry Lifecycle Stepper */}
+            <div className="pro-card bg-white border border-slate-200 p-6 rounded-pro-md shadow-subtle">
+              <h3 className="font-extrabold text-xs uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-primary-600" /> Inquiry Lifecycle Progress Tracker
+              </h3>
               <InquiryTracker inquiry={inquiry} />
             </div>
 
-            {/* TWO-WAY PROJECT START CONFIRMATION BOX */}
-            <div className="bg-white border border-slate-200 p-6 rounded-[8px] shadow-subtle space-y-5">
+            {/* TWO-WAY PROJECT START HANDSHAKE GATE */}
+            <div className="pro-card bg-white border border-slate-200 p-6 rounded-pro-md shadow-subtle space-y-5">
               <div className="border-b border-slate-100 pb-3.5 flex justify-between items-center">
                 <div>
                   <h3 className="font-extrabold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                    <Play className="w-4 h-4 text-indigo-600" /> Two-Way Project Start Handshake
+                    <Play className="w-4 h-4 text-indigo-600" /> Two-Way Project Start Handshake Gate
                   </h3>
                   <p className="text-xs text-slate-500 font-medium mt-0.5">
-                    Kickoff is confirmed only when both Client and Professional confirm project start.
+                    Project execution unlocks only when both Customer and Contractor confirm kickoff.
                   </p>
                 </div>
                 {isStarted && (
-                  <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2.5 py-0.5 rounded-[4px] uppercase">
-                    <Lock className="w-3 h-3" /> Workspace Active
+                  <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2.5 py-0.5 rounded-pro-sm uppercase">
+                    <Lock className="w-3 h-3" /> Live Job Active
                   </span>
                 )}
               </div>
 
               {/* Status Indicators for Both Parties */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className={`p-3.5 rounded-[6px] border flex items-center justify-between ${inquiry.clientStarted
-                  ? "bg-emerald-50/60 border-emerald-200 text-emerald-900"
-                  : "bg-slate-50 border-slate-200 text-slate-700"
-                  }`}>
+                <div className={`p-4 rounded-pro-sm border flex items-center justify-between transition-all ${
+                  inquiry.clientStarted
+                    ? "bg-emerald-50/60 border-emerald-200 text-emerald-900"
+                    : "bg-slate-50 border-slate-200 text-slate-700"
+                }`}>
                   <div>
-                    <span className="text-[10px] font-bold uppercase text-slate-400 block">Customer Confirmation</span>
-                    <span className="font-extrabold text-xs">{inquiry.clientName}</span>
+                    <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Customer Confirmation</span>
+                    <span className="font-extrabold text-xs block mt-0.5">{inquiry.clientName}</span>
                   </div>
-                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-[4px] border ${inquiry.clientStarted ? "bg-emerald-600 text-white border-emerald-600" : "bg-slate-200 text-slate-600 border-slate-300"
-                    }`}>
+                  <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-pro-sm border ${
+                    inquiry.clientStarted ? "bg-emerald-600 text-white border-emerald-600 shadow-subtle" : "bg-slate-200 text-slate-600 border-slate-300"
+                  }`}>
                     {inquiry.clientStarted ? "✓ Confirmed" : "Pending"}
                   </span>
                 </div>
 
-                <div className={`p-3.5 rounded-[6px] border flex items-center justify-between ${inquiry.proStarted
-                  ? "bg-emerald-50/60 border-emerald-200 text-emerald-900"
-                  : "bg-slate-50 border-slate-200 text-slate-700"
-                  }`}>
+                <div className={`p-4 rounded-pro-sm border flex items-center justify-between transition-all ${
+                  inquiry.proStarted
+                    ? "bg-emerald-50/60 border-emerald-200 text-emerald-900"
+                    : "bg-slate-50 border-slate-200 text-slate-700"
+                }`}>
                   <div>
-                    <span className="text-[10px] font-bold uppercase text-slate-400 block">Professional Confirmation</span>
-                    <span className="font-extrabold text-xs">{userData?.name || "Professional"}</span>
+                    <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Contractor Confirmation</span>
+                    <span className="font-extrabold text-xs block mt-0.5">{userData?.name || "Professional"}</span>
                   </div>
-                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-[4px] border ${inquiry.proStarted ? "bg-emerald-600 text-white border-emerald-600" : "bg-slate-200 text-slate-600 border-slate-300"
-                    }`}>
+                  <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-pro-sm border ${
+                    inquiry.proStarted ? "bg-emerald-600 text-white border-emerald-600 shadow-subtle" : "bg-slate-200 text-slate-600 border-slate-300"
+                  }`}>
                     {inquiry.proStarted ? "✓ Confirmed" : "Pending"}
                   </span>
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Handshake Action Button */}
               {!isStarted ? (
-                <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                <div className="pt-1">
                   <button
                     disabled={updatingStage || inquiry.proStarted}
                     onClick={handleConfirmStartProject}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-[6px] text-xs uppercase tracking-wider transition shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                    className="w-full bg-primary-600 hover:bg-primary-500 text-white font-extrabold py-3 px-5 rounded-pro-sm text-xs uppercase tracking-wider transition shadow-subtle disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                   >
-                    <Play className="w-3.5 h-3.5 fill-white" />
-                    {inquiry.proStarted
-                      ? "✓ Professional Start Confirmed (Awaiting Customer)"
-                      : "Confirm Professional Start Project"}
+                    <Play className="w-4 h-4 fill-white" />
+                    <span>
+                      {inquiry.proStarted
+                        ? "✓ Contractor Start Confirmed (Awaiting Customer Confirmation)"
+                        : "Confirm Contractor Start & Lock Kickoff"}
+                    </span>
                   </button>
                 </div>
               ) : (
-                <div className="bg-emerald-50 border border-emerald-200 p-3.5 rounded-[6px] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-pro-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                   <div>
                     <span className="font-extrabold text-xs text-emerald-900 block">✓ Live Project Workspace Active</span>
-                    <p className="text-[11px] text-emerald-700 font-medium">Both sides confirmed kickoff. Real-time site logs active.</p>
+                    <p className="text-[11px] text-emerald-700 font-medium mt-0.5">Both sides confirmed kickoff. Real-time site daily logs & milestone handovers active.</p>
                   </div>
                   {spawnedProjectId && (
                     <Link
                       href={`/projects/${spawnedProjectId}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-[6px] text-xs font-bold uppercase tracking-wider transition shadow-xs shrink-0 cursor-pointer"
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-pro-sm text-xs font-bold uppercase tracking-wider transition shadow-subtle shrink-0 cursor-pointer"
                     >
-                      View Live Project Workspace ↗
+                      View Live Project ↗
                     </Link>
                   )}
                 </div>
               )}
             </div>
 
-            {/* Project Specs Detail Vault */}
-            <div className="bg-white border border-slate-200 p-6 rounded-[8px] shadow-subtle space-y-5">
-              <div className="border-b border-slate-100 pb-3">
-                <h3 className="font-extrabold text-xs uppercase tracking-wider text-slate-700">Project Specifications</h3>
-                <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Key requirements and constraints submitted by the client.</p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="bg-slate-50 p-3.5 rounded-[6px] border border-slate-200 text-xs font-bold">
-                  <span className="block text-[9px] uppercase text-slate-400 tracking-wider">Client Budget Range</span>
-                  <span className="text-slate-800 text-sm mt-1 flex items-center gap-1">
-                    <IndianRupee className="w-4 h-4 text-indigo-500" />
-                    <span>{inquiry.budgetRange}</span>
-                  </span>
-                </div>
-                <div className="bg-slate-50 p-3.5 rounded-[6px] border border-slate-200 text-xs font-bold">
-                  <span className="block text-[9px] uppercase text-slate-400 tracking-wider">Proposed Quotation Total</span>
-                  <span className="text-indigo-600 text-sm mt-1 block font-black">
-                    {quotedAmount ? `₹${quotedAmount.toLocaleString()}` : "Awaiting Quotation Estimate"}
-                  </span>
-                </div>
-                <div className="bg-slate-50 p-3.5 rounded-[6px] border border-slate-200 text-xs font-bold">
-                  <span className="block text-[9px] uppercase text-slate-400 tracking-wider">Timeline estimate</span>
-                  <span className="text-slate-800 text-sm mt-1 flex items-center gap-1">
-                    <Clock className="w-4 h-4 text-indigo-500" />
-                    <span>{inquiry.timelineEstimate}</span>
-                  </span>
+            {/* Project Specs Vault */}
+            <div className="pro-card bg-white border border-slate-200 p-6 rounded-pro-md shadow-subtle space-y-5">
+              <div className="border-b border-slate-100 pb-3 flex justify-between items-center">
+                <div>
+                  <h3 className="font-extrabold text-xs uppercase tracking-wider text-slate-700">Project Requirements & Scope Vault</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Key requirements and specifications submitted by the client.</p>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Client Requirements & Notes</span>
-                <div className="bg-slate-50/50 p-3.5 rounded-[6px] border border-slate-200 text-xs font-semibold leading-relaxed text-slate-700 whitespace-pre-line">
-                  {inquiry.requirements}
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Detailed Scope Description</span>
+                <div className="bg-slate-50 p-4 rounded-pro-sm border border-slate-200 text-xs font-semibold leading-relaxed text-slate-700 whitespace-pre-line">
+                  {inquiry.requirements || "No custom scope details provided."}
                 </div>
               </div>
             </div>
 
-            {/* Quotation history section */}
-            <div className="bg-white border border-slate-200 p-6 rounded-[8px] shadow-subtle space-y-5">
+            {/* Proposal Bids & Quotations History */}
+            <div className="pro-card bg-white border border-slate-200 p-6 rounded-pro-md shadow-subtle space-y-5">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-3">
                 <div>
-                  <h3 className="font-extrabold text-xs uppercase tracking-wider text-slate-700">Proposal Bids & Estimates</h3>
-                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Drafted quotes, invoices, and bids linked to this CRM lead.</p>
+                  <h3 className="font-extrabold text-xs uppercase tracking-wider text-slate-700">Proposal Bids & Draft Quotations</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Drafted quotes, formal proposals, and bids linked to this CRM lead.</p>
                 </div>
                 <Link
                   href={`/worker/quote-generator?inquiryId=${inquiry.id}`}
-                  className="bg-[#0f2744] hover:bg-[#1e3a8a] border border-[#1e3e66] text-white font-extrabold px-4 py-2.5 rounded-[6px] text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 shadow-subtle shrink-0"
+                  className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold px-4 py-2.5 rounded-pro-sm text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5 shadow-subtle shrink-0"
                 >
-                  <Zap className="w-3.5 h-3.5 text-white" /> Open Quote Studio ⚡
+                  <Zap className="w-3.5 h-3.5 text-amber-400" /> Draft New Proposal ⚡
                 </Link>
               </div>
 
-              {/* Quotation Approval Gate Banner */}
+              {/* Quotation Approval Status Banner */}
               {quotations.some(q => q.status.toLowerCase() === "accepted" || q.status.toLowerCase() === "approved") ? (
-                <div className="bg-emerald-50 border border-emerald-200 text-emerald-950 p-4 rounded-[6px] flex items-center gap-3 text-xs font-medium">
+                <div className="bg-emerald-50 border border-emerald-200 text-emerald-950 p-4 rounded-pro-sm flex items-center gap-3 text-xs font-medium">
                   <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
                   <div>
-                    <span className="font-extrabold uppercase tracking-wide block text-emerald-800 text-[10px]">Quotation Approved by Client ✓</span>
+                    <span className="font-extrabold uppercase tracking-wide block text-emerald-800 text-[10px]">Quotation Signed & Authorized ✓</span>
                     <p className="mt-0.5 leading-relaxed">
-                      Client signed and authorized the quotation estimate. Both parties are unlocked to proceed to meetings and project execution!
+                      Client signed and authorized the quotation estimate. Both parties are unlocked to proceed to execution!
                     </p>
                   </div>
                 </div>
               ) : (inquiry.stage === "quotation_sent" || quotations.length > 0) ? (
-                <div className="bg-amber-50 border border-amber-200 text-amber-950 p-4 rounded-[6px] flex items-start gap-3 text-xs font-medium">
+                <div className="bg-amber-50 border border-amber-200 text-amber-950 p-4 rounded-pro-sm flex items-start gap-3 text-xs font-medium">
                   <Lock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                   <div>
                     <span className="font-extrabold uppercase tracking-wide block text-amber-800 text-[10px]">Quotation Approval Gate Active</span>
                     <p className="mt-0.5 leading-relaxed">
-                      Quotation proposal sent! Awaiting client online sign-off & approval. Offline site meetings and project kickoff will unlock once the client approves your proposal.
+                      Quotation proposal sent! Awaiting client online sign-off. Offline site meetings will unlock once approved.
                     </p>
                   </div>
                 </div>
               ) : null}
 
               {quotations.length === 0 ? (
-                <div className="text-center py-8">
-                  <ClipboardList className="w-10 h-10 text-slate-300 mx-auto opacity-40 mb-2" />
-                  <p className="text-xs text-slate-450 font-bold">No bid proposals drafted for this inquiry yet.</p>
+                <div className="text-center py-10 border border-dashed border-slate-200 rounded-pro-sm bg-slate-50/50">
+                  <ClipboardList className="w-10 h-10 text-slate-300 mx-auto opacity-50 mb-2" />
+                  <p className="text-xs text-slate-500 font-bold">No bid proposals drafted for this inquiry yet.</p>
+                  <Link
+                    href={`/worker/quote-generator?inquiryId=${inquiry.id}`}
+                    className="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-primary-600 hover:text-primary-700 underline"
+                  >
+                    + Open Quote Studio to create first proposal
+                  </Link>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -793,20 +675,20 @@ export default function WorkerInquiryDetailPage() {
                     const isExpanded = isLatest || !!expandedQuotes[quote.id];
 
                     return (
-                      <div key={quote.id} className="border-b border-slate-200/70 pb-4 last:border-b-0 space-y-3">
+                      <div key={quote.id} className="border border-slate-200 rounded-pro-sm p-4 bg-white space-y-3 shadow-xs hover:border-slate-300 transition-all">
                         {/* Summary Header Row */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                           <div className="space-y-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-xs font-black uppercase text-indigo-700 bg-indigo-50 border border-indigo-200/60 px-2.5 py-0.5 rounded-[4px]">
+                              <span className="text-xs font-black uppercase text-indigo-700 bg-indigo-50 border border-indigo-200/60 px-2.5 py-0.5 rounded-pro-sm">
                                 Quote #{qNum}
                               </span>
                               {isLatest && (
-                                <span className="text-[9px] font-black uppercase bg-emerald-600 text-white px-2 py-0.5 rounded-[4px]">
+                                <span className="text-[9px] font-black uppercase bg-emerald-600 text-white px-2 py-0.5 rounded-pro-sm">
                                   Latest Proposal
                                 </span>
                               )}
-                              <span className={`text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded-[4px] border ${
+                              <span className={`text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded-pro-sm border ${
                                 (quote.status || "").toLowerCase() === 'accepted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                 (quote.status || "").toLowerCase() === 'submitted' || (quote.status || "").toLowerCase() === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                                 'bg-slate-100 text-slate-600 border-slate-200'
@@ -817,14 +699,13 @@ export default function WorkerInquiryDetailPage() {
                             <h4 className="font-extrabold text-sm text-slate-900 pt-0.5">{quote.projectTitle || (inquiry as any).projectTitle || (inquiry as any).service || "Project Estimate"}</h4>
                           </div>
 
-                          {/* Price & Expand Toggle for Older Quotes */}
                           <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto justify-between sm:justify-end">
-                            <span className="text-base font-extrabold text-slate-900">₹{grandTotal.toLocaleString("en-IN")}</span>
+                            <span className="text-base font-black text-slate-900 font-mono tabular-nums">₹{grandTotal.toLocaleString("en-IN")}</span>
                             {!isLatest && (
                               <button
                                 type="button"
                                 onClick={() => toggleQuoteExpand(quote.id)}
-                                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 bg-indigo-50 px-3 py-1.5 rounded-[4px] border border-indigo-100 transition cursor-pointer"
+                                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 bg-indigo-50 px-3 py-1.5 rounded-pro-sm border border-indigo-100 transition cursor-pointer"
                               >
                                 <span>{isExpanded ? "Hide Details" : "See Details"}</span>
                                 {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -833,33 +714,25 @@ export default function WorkerInquiryDetailPage() {
                           </div>
                         </div>
 
-                        {/* Expandable Details & Actions Bar */}
+                        {/* Actions Bar */}
                         {isExpanded && (
-                          <div className="pt-2 space-y-3.5 animate-in fade-in duration-200">
-                            {/* Pro ID & Destination Email Confirmation Bar */}
+                          <div className="pt-3 border-t border-slate-100 space-y-3">
                             <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-                              <span className="flex items-center gap-1.5 text-indigo-700 font-bold bg-indigo-50 px-3 py-1 rounded-[4px] border border-indigo-200/60 shadow-2xs">
-                                🆔 Pro ID: #{((quote.workerId || user?.uid || "PRO1").slice(0, 8)).toUpperCase()}
+                              <span className="flex items-center gap-1 text-slate-700 font-semibold bg-slate-100 px-2.5 py-1 rounded-pro-sm">
+                                Contractor: <strong>{quote.workerName || userData?.name || "Verified Pro"}</strong>
                               </span>
-                              <span className="flex items-center gap-1 text-slate-700 font-semibold bg-slate-100 px-2.5 py-1 rounded-[4px]">
-                                {quote.workerName || userData?.name || "Verified Contractor"}
-                              </span>
-                              <span className="flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-[4px] border border-emerald-200/60">
+                              <span className="flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-pro-sm border border-emerald-200/60">
                                 <Mail className="w-3.5 h-3.5" />
                                 Sent to: <strong>{targetEmail}</strong>
                               </span>
-                              {quote.createdAt && (
-                                <span className="text-slate-400 text-[11px] ml-auto">Date: {new Date(quote.createdAt).toLocaleDateString("en-IN")}</span>
-                              )}
                             </div>
 
-                            {/* Action Buttons - Executive Square Styling */}
-                            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1 w-full">
+                            <div className="flex flex-wrap items-center gap-2.5 pt-1 w-full">
                               <a
                                 href={`https://wa.me/${((inquiry as any).clientPhone || (inquiry as any).contactPhone || (inquiry as any).customerPhone || quote.customerPhone || "").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(wpText)}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="px-4 py-2.5 bg-[#059669] hover:bg-[#047857] text-white font-extrabold text-xs uppercase tracking-wider rounded-[6px] transition flex items-center justify-center gap-1.5 shadow-subtle cursor-pointer"
+                                className="px-4 py-2 bg-[#059669] hover:bg-[#047857] text-white font-extrabold text-xs uppercase tracking-wider rounded-pro-sm transition flex items-center justify-center gap-1.5 shadow-subtle cursor-pointer"
                               >
                                 <MessageSquare className="w-4 h-4 text-emerald-100" />
                                 <span>WhatsApp Share</span>
@@ -882,7 +755,7 @@ export default function WorkerInquiryDetailPage() {
                                     }
                                   }
                                 }}
-                                className="px-4 py-2.5 bg-[#0f2744] hover:bg-[#1e3a8a] border border-[#1e3e66] text-white font-extrabold text-xs uppercase tracking-wider rounded-[6px] transition flex items-center justify-center gap-1.5 shadow-subtle cursor-pointer"
+                                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-pro-sm transition flex items-center justify-center gap-1.5 shadow-subtle cursor-pointer"
                               >
                                 <Mail className="w-4 h-4 text-indigo-200" />
                                 <span>Send to Client Account</span>
@@ -891,16 +764,16 @@ export default function WorkerInquiryDetailPage() {
                               <Link
                                 href={`/quote/${quote.id}`}
                                 target="_blank"
-                                className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-[6px] transition flex items-center justify-center gap-1.5 shadow-subtle"
+                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 font-extrabold text-xs uppercase tracking-wider rounded-pro-sm transition flex items-center justify-center gap-1.5"
                               >
-                                <Eye className="w-4 h-4 text-slate-300" />
+                                <Eye className="w-4 h-4 text-slate-600" />
                                 <span>View Full Quote</span>
                               </Link>
 
                               <button
                                 type="button"
                                 onClick={() => handleDeleteQuotation(quote.id, qNum)}
-                                className="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-[6px] border border-rose-200/60 transition flex items-center gap-1.5 cursor-pointer ml-auto"
+                                className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-pro-sm border border-rose-200/60 transition flex items-center gap-1.5 cursor-pointer ml-auto"
                                 title="Delete Quotation"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -918,21 +791,21 @@ export default function WorkerInquiryDetailPage() {
 
           </div>
 
-          {/* Sidebar controls for advancing stage */}
+          {/* Right Sidebar Controls (4 Cols) */}
           <div className="lg:col-span-4 space-y-6">
             
-            {/* Stage Advanced CRM panel */}
-            <div className="bg-white border border-slate-200 p-5 rounded-[8px] shadow-subtle space-y-3.5">
-              <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-400">Advance Inquiry Stage</h4>
+            {/* Advance Stage CRM Panel */}
+            <div className="pro-card bg-white border border-slate-200 p-5 rounded-pro-md shadow-subtle space-y-3.5">
+              <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-400">CRM Stage Control</h4>
               
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[9px] text-slate-400 uppercase block font-bold">Transition Stage Status</label>
+                  <label className="text-[9px] text-slate-400 uppercase block font-extrabold">Transition Stage Status</label>
                   <select
                     value={inquiry.stage}
                     onChange={(e) => handleStageChange(e.target.value as Inquiry['stage'])}
                     disabled={updatingStage || isStarted}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-[6px] px-3 py-2 text-xs font-bold text-slate-800 outline-none cursor-pointer focus:border-indigo-600"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-pro-sm px-3 py-2 text-xs font-bold text-slate-800 outline-none cursor-pointer focus:border-indigo-600"
                   >
                     <option value="received">1. Received</option>
                     <option value="viewed">2. Viewed</option>
@@ -947,63 +820,42 @@ export default function WorkerInquiryDetailPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] text-slate-400 uppercase block font-bold">History note (optional)</label>
+                  <label className="text-[9px] text-slate-400 uppercase block font-extrabold">History Note (Optional)</label>
                   <textarea
                     rows={2}
                     value={stageNote}
                     onChange={(e) => setStageNote(e.target.value)}
-                    placeholder="Describe update details..."
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[6px] outline-none text-xs font-semibold resize-none focus:border-indigo-600"
+                    placeholder="Describe status update notes..."
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-pro-sm outline-none text-xs font-semibold resize-none focus:border-indigo-600"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Direct Project Workspace Banner */}
-            {spawnedProjectId && (
-              <div className="bg-slate-900 border border-slate-800 text-white p-5 rounded-[8px] shadow-subtle space-y-2.5">
-                <span className="text-[10px] font-bold uppercase text-indigo-400 tracking-wider bg-indigo-500/20 px-2 py-0.5 rounded-[4px] border border-indigo-500/30">
-                  Active Execution Job
-                </span>
-                <h4 className="font-extrabold text-xs text-white">Live Project Workspace</h4>
-                <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                  Track site daily logs, milestone inspection handovers & material bills in real time.
-                </p>
-                <Link
-                  href={`/projects/${spawnedProjectId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full bg-[#0f2744] hover:bg-[#1e3a8a] border border-[#1e3e66] text-white py-2.5 rounded-[6px] font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 mt-2 cursor-pointer shadow-xs"
-                >
-                  <Play className="w-3.5 h-3.5 fill-white text-white" /> View Project Workspace ↗
-                </Link>
-              </div>
-            )}
-
             {/* Client Info Card */}
-            <div className="bg-white border border-slate-200 p-5 rounded-[8px] shadow-subtle space-y-3.5">
-              <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-400">Client details</h4>
+            <div className="pro-card bg-white border border-slate-200 p-5 rounded-pro-md shadow-subtle space-y-3.5">
+              <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-400">Client Contact Vault</h4>
               
               <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                <div className="w-9 h-9 rounded-[6px] bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
-                  <User className="w-4 h-4 text-slate-500" />
+                <div className="w-10 h-10 rounded-pro-sm bg-primary-50 text-primary-700 flex items-center justify-center shrink-0 border border-primary-100 font-bold">
+                  <User className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <span className="font-bold text-xs text-slate-900 block truncate">{inquiry.clientName}</span>
-                  <span className="text-[9.5px] text-slate-400 font-semibold block mt-0.5 uppercase tracking-wider">Verified Client</span>
+                  <span className="font-extrabold text-sm text-slate-900 block truncate">{inquiry.clientName}</span>
+                  <span className="text-[9.5px] text-emerald-600 font-extrabold block mt-0.5 uppercase tracking-wider">✓ Verified Client</span>
                 </div>
               </div>
 
-              <div className="space-y-1.5 text-xs font-semibold text-slate-500">
+              <div className="space-y-2 text-xs font-semibold text-slate-600">
                 <div className="flex justify-between items-center">
                   <span>Client ID</span>
-                  <span className="text-slate-800 font-mono text-[11px]">#{inquiry.clientId.slice(0, 8)}</span>
+                  <span className="text-slate-800 font-mono text-[11px] font-bold">#{inquiry.clientId.slice(0, 8)}</span>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-slate-100">
                 {isStarted ? (
-                  <div className="bg-slate-100 border border-slate-200 text-slate-500 py-2 rounded-[6px] font-bold text-xs text-center flex items-center justify-center gap-1.5 cursor-not-allowed">
+                  <div className="bg-slate-100 border border-slate-200 text-slate-500 py-2.5 rounded-pro-sm font-bold text-xs text-center flex items-center justify-center gap-1.5 cursor-not-allowed">
                     <Lock className="w-3.5 h-3.5 text-slate-400" />
                     <span>Active Job Locked (Cannot Delete)</span>
                   </div>
@@ -1011,10 +863,10 @@ export default function WorkerInquiryDetailPage() {
                   <button
                     type="button"
                     onClick={handleDeleteInquiry}
-                    className="w-full bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 py-2 rounded-[6px] font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                    className="w-full bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 py-2.5 rounded-pro-sm font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-subtle"
                   >
                     <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                    <span>Delete Inquiry Document</span>
+                    <span>Delete Inquiry Lead</span>
                   </button>
                 )}
               </div>

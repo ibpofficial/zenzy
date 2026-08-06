@@ -52,16 +52,16 @@ export default function InquiryTracker({ inquiry }: InquiryTrackerProps) {
   };
 
   return (
-    <div className="w-full py-4 selection:bg-[#0f2744]/10">
+    <div className="w-full py-2 selection:bg-primary-500/10">
       {/* Desktop Horizontal Timeline */}
-      <div className="hidden xl:flex items-center justify-between relative w-full px-2">
+      <div className="hidden lg:flex items-center justify-between relative w-full px-2">
         {/* Connector Line Background */}
-        <div className="absolute top-[22px] left-[4%] right-[4%] h-[3px] bg-slate-200 z-0 rounded-full" />
+        <div className="absolute top-[20px] left-[3%] right-[3%] h-[2.5px] bg-slate-200/80 z-0 rounded-full" />
         
         {/* Active Progress Filler Line */}
         <div
-          className="absolute top-[22px] left-[4%] h-[3px] bg-[#0f2744] z-0 transition-all duration-500 ease-out rounded-full shadow-subtle"
-          style={{ width: `${currentStep === 0 ? 0 : (currentStep / (stages.length - 1)) * 92}%` }}
+          className="absolute top-[20px] left-[3%] h-[2.5px] bg-gradient-to-r from-primary-600 via-indigo-600 to-emerald-500 z-0 transition-all duration-500 ease-out rounded-full shadow-subtle"
+          style={{ width: `${currentStep === 0 ? 0 : (currentStep / (stages.length - 1)) * 94}%` }}
         />
 
         {stepsInfo.map((step, idx) => {
@@ -74,27 +74,27 @@ export default function InquiryTracker({ inquiry }: InquiryTrackerProps) {
             <div key={idx} className="flex flex-col items-center relative z-10 text-center flex-1 group">
               {/* Step Icon Badge */}
               <div
-                className={`w-11 h-11 rounded-[6px] flex items-center justify-center transition-all duration-200 border cursor-pointer ${
+                className={`w-10 h-10 rounded-pro-sm flex items-center justify-center transition-all duration-200 border cursor-pointer ${
                   isCompleted
-                    ? "bg-[#0f2744] border-[#0f2744] text-white shadow-subtle"
+                    ? "bg-slate-900 border-slate-900 text-white shadow-subtle"
                     : isActive
-                    ? "bg-white text-[#0f2744] border-2 border-[#0f2744] shadow-md ring-2 ring-[#0f2744]/20 font-black scale-105"
-                    : "bg-slate-50 border-slate-200 text-slate-400 hover:border-slate-300"
+                    ? "bg-primary-600 text-white border-primary-600 shadow-float ring-4 ring-primary-500/20 font-black scale-110"
+                    : "bg-white border-slate-200 text-slate-400 hover:border-slate-300 shadow-xs"
                 }`}
                 title={log?.note || step.description}
               >
                 {isCompleted ? (
                   <Check className="w-4 h-4 stroke-[3] text-emerald-400" />
                 ) : (
-                  <Icon className={`w-4 h-4 ${isActive ? "text-[#0f2744] animate-pulse" : ""}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? "text-white animate-pulse" : ""}`} />
                 )}
               </div>
               
               {/* Step Label */}
               <span
-                className={`text-[10.5px] font-extrabold uppercase tracking-tight mt-2.5 transition-colors duration-150 ${
+                className={`text-[10px] font-extrabold uppercase tracking-tight mt-2.5 transition-colors duration-150 ${
                   isActive
-                    ? "text-[#0f2744] font-black"
+                    ? "text-primary-700 font-black"
                     : isCompleted
                     ? "text-slate-900"
                     : "text-slate-400"
@@ -105,7 +105,7 @@ export default function InquiryTracker({ inquiry }: InquiryTrackerProps) {
               
               {/* Step Timestamp */}
               {log && (
-                <span className="text-[9px] font-mono text-slate-500 font-extrabold mt-1 max-w-[85px] leading-tight block bg-slate-100 px-2 py-0.5 rounded-[4px] border border-slate-200">
+                <span className="text-[8.5px] font-mono text-slate-500 font-bold mt-1 max-w-[80px] leading-tight block bg-slate-100/80 px-2 py-0.5 rounded-pro-sm border border-slate-200/60">
                   {new Date(log.timestamp).toLocaleDateString('en-IN', {
                     month: 'short',
                     day: 'numeric'
@@ -118,13 +118,13 @@ export default function InquiryTracker({ inquiry }: InquiryTrackerProps) {
       </div>
 
       {/* Mobile/Tablet Vertical Timeline */}
-      <div className="flex xl:hidden flex-col gap-5 pl-3 relative">
+      <div className="flex lg:hidden flex-col gap-4 pl-2 relative">
         {/* Connector Line Background */}
-        <div className="absolute left-[21px] top-4 bottom-4 w-[3px] bg-slate-200 z-0" />
+        <div className="absolute left-[19px] top-3 bottom-3 w-[2px] bg-slate-200/80 z-0" />
         
         {/* Active Progress Filler Line */}
         <div
-          className="absolute left-[21px] top-4 w-[3px] bg-[#0f2744] z-0 transition-all duration-500 ease-out"
+          className="absolute left-[19px] top-3 w-[2px] bg-primary-600 z-0 transition-all duration-500 ease-out"
           style={{ height: `${currentStep === 0 ? 0 : (currentStep / (stages.length - 1)) * 92}%` }}
         />
 
@@ -138,12 +138,12 @@ export default function InquiryTracker({ inquiry }: InquiryTrackerProps) {
             <div key={idx} className="flex items-start gap-3.5 relative z-10">
               {/* Step Circle */}
               <div
-                className={`w-9 h-9 rounded-[6px] flex items-center justify-center shrink-0 border transition-all ${
+                className={`w-8 h-8 rounded-pro-sm flex items-center justify-center shrink-0 border transition-all ${
                   isCompleted
-                    ? "bg-[#0f2744] border-[#0f2744] text-white"
+                    ? "bg-slate-900 border-slate-900 text-white"
                     : isActive
-                    ? "bg-white text-[#0f2744] border-2 border-[#0f2744] shadow-md ring-2 ring-[#0f2744]/20"
-                    : "bg-slate-50 border-slate-200 text-slate-400"
+                    ? "bg-primary-600 text-white border-primary-600 shadow-float ring-2 ring-primary-500/30"
+                    : "bg-white border-slate-200 text-slate-400"
                 }`}
               >
                 {isCompleted ? <Check className="w-3.5 h-3.5 stroke-[3] text-emerald-400" /> : <Icon className="w-3.5 h-3.5" />}
@@ -151,18 +151,18 @@ export default function InquiryTracker({ inquiry }: InquiryTrackerProps) {
               
               <div className="flex flex-col pt-0.5 min-w-0">
                 <span
-                  className={`text-xs font-black tracking-tight uppercase ${
-                    isActive ? "text-[#0f2744]" : isCompleted ? "text-slate-900" : "text-slate-400"
+                  className={`text-xs font-extrabold tracking-tight uppercase ${
+                    isActive ? "text-primary-700" : isCompleted ? "text-slate-900" : "text-slate-400"
                   }`}
                 >
                   {step.label}
                 </span>
-                <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                <span className="text-[10px] text-slate-500 font-medium mt-0.5">
                   {step.description}
                 </span>
                 {log && (
                   <div className="mt-1 flex items-center gap-2 flex-wrap">
-                    <span className="text-[9px] font-mono text-[#0f2744] font-black bg-indigo-50/80 px-2 py-0.5 rounded-[4px] border border-indigo-100">
+                    <span className="text-[9px] font-mono text-primary-700 font-bold bg-primary-50 px-2 py-0.5 rounded-pro-sm border border-primary-100">
                       {new Date(log.timestamp).toLocaleString('en-IN', {
                         month: 'short',
                         day: 'numeric',
@@ -171,7 +171,7 @@ export default function InquiryTracker({ inquiry }: InquiryTrackerProps) {
                       })}
                     </span>
                     {log.note && (
-                      <span className="text-[10px] text-slate-600 font-medium italic truncate max-w-[260px]">
+                      <span className="text-[10px] text-slate-600 font-medium italic truncate max-w-[240px]">
                         "{log.note}"
                       </span>
                     )}
