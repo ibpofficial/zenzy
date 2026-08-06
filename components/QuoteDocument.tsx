@@ -14,10 +14,13 @@ import {
   CheckSquare,
   Square,
   Sparkles,
-  Lock
+  Lock,
+  GitBranch,
+  History,
+  Copy
 } from "lucide-react";
 import TrustScoreCard from "@/components/TrustScoreCard";
-import { calculateQuoteCalculations } from "@/lib/quoteUtils";
+import { calculateQuoteCalculations, getQuoteStatusConfig } from "@/lib/quoteUtils";
 import { generatePdfFromElement } from "@/lib/pdfExport";
 
 interface QuoteDocumentProps {
@@ -70,9 +73,12 @@ export function decodeQuote(encodedStr: string) {
     }
 
     const binaryString = atob(base64);
-    const decoded = decodeURIComponent(binaryString.split('').map((c) => {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+    const decoded = decodeURIComponent(
+      binaryString
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
     return JSON.parse(decoded);
   } catch (e) {
     console.error("Decoding error caught:", e);
@@ -94,7 +100,7 @@ export function getQuoteSections(quote: any) {
       id: "sec-overview",
       title: quote.projectTitle || "Project Description",
       type: "text",
-      content: quote.projectDescription || ""
+      content: quote.projectDescription || "",
     });
   }
 
@@ -108,7 +114,7 @@ export function getQuoteSections(quote: any) {
       id: "sec-params",
       title: "Project Parameters",
       type: "grid",
-      content: gridItems
+      content: gridItems,
     });
   }
 
@@ -130,22 +136,26 @@ export function getQuoteSections(quote: any) {
         hsn: it.hsn || "",
         discount: Number(it.discount || 0),
         discountType: it.discountType || "flat",
-        optional: Boolean(it.optional)
-      }))
+        optional: Boolean(it.optional),
+      })),
     });
   }
 
   // 4. Material Specifications
-  if (quote.materials && Object.keys(quote.materials).length > 0 && Object.values(quote.materials).some(v => v)) {
+  if (
+    quote.materials &&
+    Object.keys(quote.materials).length > 0 &&
+    Object.values(quote.materials).some((v) => v)
+  ) {
     const materialItems = Object.entries(quote.materials).map(([k, v]) => ({
       key: k.toUpperCase(),
-      value: v as string
+      value: v as string,
     }));
     list.push({
       id: "sec-materials",
       title: "Material Specifications",
       type: "grid",
-      content: materialItems
+      content: materialItems,
     });
   }
 
@@ -155,7 +165,7 @@ export function getQuoteSections(quote: any) {
       id: "sec-scope",
       title: "Scope Inclusions & Exclusions",
       type: "text",
-      content: quote.inclusionsExclusions
+      content: quote.inclusionsExclusions,
     });
   }
 
@@ -169,7 +179,7 @@ export function getQuoteSections(quote: any) {
       id: "sec-warranties",
       title: "Warranties & Prerequisites",
       type: "grid",
-      content: warrantyItems
+      content: warrantyItems,
     });
   }
 
@@ -179,7 +189,7 @@ export function getQuoteSections(quote: any) {
       id: "sec-terms",
       title: "Terms & Conditions",
       type: "text",
-      content: quote.termsAndConditions
+      content: quote.termsAndConditions,
     });
   }
 
@@ -198,7 +208,7 @@ export default function QuoteDocument({
   onUpdateSectionContent,
   onMoveSection,
   onRemoveSection,
-  onAddSection
+  onAddSection,
 }: QuoteDocumentProps) {
   const cardRef = useRef<HTMLDivElement | null>(null);
 
@@ -219,7 +229,7 @@ export default function QuoteDocument({
     sgstAmount,
     igstAmount,
     taxAmount,
-    grandTotal
+    grandTotal,
   } = financialTotals;
 
   const brandLogo = quote.workerLogo || worker?.logo || worker?.avatar || "";
@@ -240,42 +250,56 @@ export default function QuoteDocument({
   const isExpired =
     quote.expiryDate && new Date(quote.expiryDate) < new Date() && !accepted;
 
-  const getStatusConfig = () => {
-    if (accepted) return { label: "Accepted", color: "green", icon: CircleCheck };
-    if (declined) return { label: "Declined", color: "red", icon: XCircle };
-    if (isExpired) return { label: "Expired", color: "orange", icon: TriangleAlert };
-    return { label: "Pending", color: "gray", icon: Clock };
-  };
-
-  const statusConfig = getStatusConfig();
-  const StatusIcon = statusConfig.icon;
+  const statusConfig = getQuoteStatusConfig(quote.status, quote.expiryDate);
+  const quoteVersion = Number(quote.version || 1);
 
   // Helper styles for inline input fields
-  const inputClass = "bg-transparent border-b border-dashed border-transparent hover:border-gray-300 focus:border-gray-800 outline-none transition py-0.5 rounded px-1 w-full";
-  const boldInputClass = `${inputClass} font-semibold text-gray-900`;
+  const inputClass =
+    "bg-transparent border-b border-dashed border-slate-200 hover:border-slate-400 focus:border-slate-800 outline-none transition py-0.5 rounded px-1 w-full text-slate-800";
+  const boldInputClass = `${inputClass} font-semibold text-slate-900`;
 
   return (
-    <div ref={cardRef} className="border border-gray-200 bg-white print:border-0 relative font-sans text-gray-900 shadow-sm">
-      
+    <div
+      ref={cardRef}
+      className="pro-card border border-slate-200 bg-white print:border-0 relative font-sans text-slate-900 shadow-subtle rounded-pro-md overflow-hidden"
+    >
+      {/* Versioning & Revision Bar */}
+      {quoteVersion > 1 && (
+        <div className="px-6 py-2.5 bg-slate-100/70 border-b border-slate-200 text-xs text-slate-600 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 font-mono">
+            <GitBranch className="w-3.5 h-3.5 text-primary-600" />
+            <span className="font-bold text-slate-900">Revision v{quoteVersion}</span>
+            {quote.revisionOf && (
+              <span className="text-slate-500 text-[11px]">(Revised from original)</span>
+            )}
+          </div>
+          {quote.versionSummary && (
+            <span className="text-[11px] text-slate-600 italic">
+              Changes: {quote.versionSummary}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Document Header */}
-      <div className="px-6 sm:px-8 py-6 sm:py-8 border-b border-gray-100">
+      <div className="px-6 sm:px-8 py-6 sm:py-8 border-b border-slate-100">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           <div>
-            <div className="flex items-center gap-3 mb-1 flex-wrap">
+            <div className="flex items-center gap-3 mb-1.5 flex-wrap">
               {isEditable ? (
                 <input
                   type="text"
                   value={quote.quoteDocumentTitle || "Quotation"}
                   onChange={(e) => onUpdateField?.("quoteDocumentTitle", e.target.value)}
-                  className="text-xl font-light tracking-tight text-gray-900 bg-transparent border-b border-dashed border-transparent hover:border-gray-300 focus:border-gray-800 outline-none w-64"
+                  className="text-xl font-bold tracking-tight text-slate-900 bg-transparent border-b border-dashed border-slate-300 focus:border-slate-800 outline-none w-64"
                 />
               ) : (
-                <h1 className="text-xl font-light tracking-tight text-gray-900">
+                <h1 className="text-xl font-bold tracking-tight text-slate-900">
                   {quote.quoteDocumentTitle || "Quotation"}
                 </h1>
               )}
 
-              <span className="text-xs text-gray-600 font-mono">
+              <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
                 {isEditable ? (
                   <div className="flex items-center gap-1">
                     <span>#</span>
@@ -283,7 +307,7 @@ export default function QuoteDocument({
                       type="text"
                       value={quote.quoteNumber || ""}
                       onChange={(e) => onUpdateField?.("quoteNumber", e.target.value)}
-                      className="bg-transparent border-b border-dashed border-transparent hover:border-gray-300 focus:border-gray-800 outline-none w-28 font-mono text-xs"
+                      className="bg-transparent border-b border-dashed border-slate-300 focus:border-slate-800 outline-none w-28 font-mono text-xs"
                     />
                   </div>
                 ) : (
@@ -292,28 +316,32 @@ export default function QuoteDocument({
               </span>
 
               {taxInclusive && (
-                <span className="text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-md">
+                <span className="text-[10px] font-bold bg-primary-50 text-primary-700 border border-primary-100 px-2 py-0.5 rounded-pro-sm">
                   GST Inclusive
                 </span>
               )}
+
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-pro-sm ${statusConfig.badgeClass}`}>
+                {statusConfig.label}
+              </span>
             </div>
 
-            <div className="text-sm text-gray-600 flex items-center gap-1.5 flex-wrap">
+            <div className="text-xs text-slate-500 flex items-center gap-2 flex-wrap">
               <span>Issued</span>
               {isEditable ? (
                 <input
                   type="date"
                   value={quote.createdAt ? quote.createdAt.split("T")[0] : ""}
                   onChange={(e) => onUpdateField?.("createdAt", e.target.value)}
-                  className="bg-transparent text-gray-400 font-sans text-sm border-b border-dashed border-transparent hover:border-gray-350 focus:border-gray-650 outline-none py-0.5"
+                  className="bg-transparent text-slate-600 font-sans text-xs border-b border-dashed border-slate-300 focus:border-slate-800 outline-none py-0.5"
                 />
               ) : (
-                <span>
+                <span className="font-medium text-slate-700">
                   {quote.createdAt
                     ? new Date(quote.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
-                        year: "numeric"
+                        year: "numeric",
                       })
                     : "—"}
                 </span>
@@ -321,121 +349,131 @@ export default function QuoteDocument({
             </div>
           </div>
 
-          <div className="text-right flex flex-col items-end gap-1.5">
+          {/* Eye-catching Primary Accent Grand Total (Largest, boldest element) */}
+          <div className="text-right flex flex-col items-end gap-1 shrink-0">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => {
                   if (cardRef.current) {
-                    generatePdfFromElement(cardRef.current, `Quotation_${quote.quoteNumber || "Estimate"}`);
+                    generatePdfFromElement(
+                      cardRef.current,
+                      `Quotation_${quote.quoteNumber || "Estimate"}`
+                    );
                   }
                 }}
-                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer print:hidden transition shadow-xs"
+                className="pro-btn-secondary px-3 py-1.5 text-xs flex items-center gap-1.5 cursor-pointer print:hidden"
                 title="Export PDF Document"
               >
                 <Download className="w-3.5 h-3.5" /> PDF
               </button>
-              <div className="text-2xl font-light tracking-tight">₹{grandTotal.toLocaleString("en-IN")}</div>
+              <div className="text-3xl font-black tracking-tight text-primary-600 font-mono tabular-nums">
+                ₹{grandTotal.toLocaleString("en-IN")}
+              </div>
             </div>
-            <div className="text-xs text-gray-400">Total Estimated Amount</div>
+            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              Total Estimated Amount
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Business Info (Contractor Details) */}
-      <div className="px-6 sm:px-8 py-5 border-b border-gray-100">
-        <div className="flex items-start gap-4">
-          {brandLogo ? (
-            <img
-              src={brandLogo}
-              alt={proName}
-              className="w-12 h-12 rounded-full object-cover border border-gray-100 shrink-0"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 shrink-0">
-              <Building className="w-5 h-5 text-gray-400" />
-            </div>
-          )}
-          <div className="flex-1">
-            {isEditable ? (
-              <input
-                type="text"
-                value={quote.workerName || ""}
-                placeholder="Company / Contractor Name"
-                onChange={(e) => onUpdateField?.("workerName", e.target.value)}
-                className="text-base font-medium text-gray-900 bg-transparent border-b border-dashed border-transparent hover:border-gray-300 focus:border-gray-800 outline-none w-72 px-1 py-0.5"
+      {/* Business Details & Prominent Trust Score */}
+      <div className="px-6 sm:px-8 py-5 border-b border-slate-100 bg-slate-50/40">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-start gap-4">
+            {brandLogo ? (
+              <img
+                src={brandLogo}
+                alt={proName}
+                className="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0"
               />
             ) : (
-              <h2 className="text-base font-medium text-gray-900 flex items-center gap-2 flex-wrap">
-                <span>{proName}</span>
-                {worker?.trustScore && <TrustScoreCard trustScore={worker.trustScore} compact={true} />}
-              </h2>
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 shrink-0">
+                <Building className="w-5 h-5 text-slate-400" />
+              </div>
             )}
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600 mt-1.5">
-              <div className="flex items-center gap-1">
-                {isEditable ? (
-                  <input
-                    type="text"
-                    value={quote.workerPhone || ""}
-                    placeholder="Phone"
-                    onChange={(e) => onUpdateField?.("workerPhone", e.target.value)}
-                    className="text-xs text-gray-500 bg-transparent border-b border-dashed border-transparent hover:border-gray-300 focus:border-gray-800 outline-none w-28"
-                  />
-                ) : (
-                  <span>{proPhone}</span>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                <span>•</span>
-                {isEditable ? (
-                  <input
-                    type="text"
-                    value={quote.workerAddress || ""}
-                    placeholder="Address"
-                    onChange={(e) => onUpdateField?.("workerAddress", e.target.value)}
-                    className="text-xs text-gray-500 bg-transparent border-b border-dashed border-transparent hover:border-gray-300 focus:border-gray-800 outline-none w-48"
-                  />
-                ) : (
-                  <span>{proAddress}</span>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                <span>•</span>
-                {isEditable ? (
-                  <input
-                    type="text"
-                    value={quote.licenseNo || ""}
-                    placeholder="License / Reg"
-                    onChange={(e) => onUpdateField?.("licenseNo", e.target.value)}
-                    className="text-xs text-gray-500 bg-transparent border-b border-dashed border-transparent hover:border-gray-300 focus:border-gray-800 outline-none w-28"
-                  />
-                ) : (
-                  licenseNo && <span>Lic. {licenseNo}</span>
-                )}
-              </div>
-              {isEditable && (
-                <div className="flex items-center gap-1">
-                  <span>•</span>
-                  <input
-                    type="text"
-                    value={quote.workerGstin || ""}
-                    placeholder="GSTIN"
-                    onChange={(e) => onUpdateField?.("workerGstin", e.target.value)}
-                    className="text-xs text-gray-500 bg-transparent border-b border-dashed border-transparent hover:border-gray-300 focus:border-gray-800 outline-none w-32"
-                  />
-                </div>
+            <div className="flex-1">
+              {isEditable ? (
+                <input
+                  type="text"
+                  value={quote.workerName || ""}
+                  placeholder="Company / Contractor Name"
+                  onChange={(e) => onUpdateField?.("workerName", e.target.value)}
+                  className="text-base font-bold text-slate-900 bg-transparent border-b border-dashed border-slate-300 focus:border-slate-800 outline-none w-72 px-1 py-0.5"
+                />
+              ) : (
+                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 flex-wrap">
+                  <span>{proName}</span>
+                </h2>
               )}
+
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600 mt-1">
+                <div>
+                  {isEditable ? (
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      value={quote.workerPhone || ""}
+                      placeholder="10-digit Phone"
+                      onChange={(e) => onUpdateField?.("workerPhone", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                      className="text-xs text-slate-600 bg-transparent border-b border-dashed border-slate-300 outline-none w-28 font-mono"
+                    />
+                  ) : (
+                    <span>{proPhone}</span>
+                  )}
+                </div>
+                <div>
+                  <span>•</span>{" "}
+                  {isEditable ? (
+                    <input
+                      type="text"
+                      value={quote.workerAddress || ""}
+                      placeholder="Address"
+                      onChange={(e) => onUpdateField?.("workerAddress", e.target.value)}
+                      className="text-xs text-slate-600 bg-transparent border-b border-dashed border-slate-300 outline-none w-48"
+                    />
+                  ) : (
+                    <span>{proAddress}</span>
+                  )}
+                </div>
+                {licenseNo && (
+                  <div>
+                    <span>•</span> <span>Lic. {licenseNo}</span>
+                  </div>
+                )}
+                {isEditable && (
+                  <div>
+                    <span>•</span>{" "}
+                    <input
+                      type="text"
+                      value={quote.workerGstin || ""}
+                      placeholder="GSTIN"
+                      onChange={(e) => onUpdateField?.("workerGstin", e.target.value)}
+                      className="text-xs text-slate-600 bg-transparent border-b border-dashed border-slate-300 outline-none w-32"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Prominent Credibility Trust Score Badge */}
+          {worker?.trustScore && (
+            <div className="shrink-0 self-start sm:self-center">
+              <TrustScoreCard trustScore={worker.trustScore} compact={true} />
+            </div>
+          )}
         </div>
       </div>
 
       {/* Client Info & Project Details Section */}
-      <div className="px-6 sm:px-8 py-5 border-b border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/30">
+      <div className="px-6 sm:px-8 py-5 border-b border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/20">
         <div>
-          <h4 className="text-xs font-semibold text-gray-650 uppercase tracking-wider mb-2">Client Details</h4>
-          <div className="space-y-1.5 text-sm text-gray-700">
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+            Client Details
+          </h4>
+          <div className="space-y-1 text-xs text-slate-700">
             {isEditable ? (
               <div className="space-y-1">
                 <input
@@ -476,19 +514,33 @@ export default function QuoteDocument({
               </div>
             ) : (
               <>
-                <p className="font-semibold text-gray-900">{quote.customerName || "Valued Client"}</p>
-                {quote.customerCompany && <p className="text-xs text-gray-500">{quote.customerCompany}</p>}
-                {quote.customerPhone && <p className="text-xs text-gray-500 mt-0.5">{quote.customerPhone}</p>}
-                {quote.customerEmail && <p className="text-xs text-gray-500">{quote.customerEmail}</p>}
-                {quote.customerAddress && <p className="text-xs text-gray-500">{quote.customerAddress}</p>}
+                <p className="font-bold text-slate-900 text-sm">
+                  {quote.customerName || "Valued Client"}
+                </p>
+                {quote.customerCompany && (
+                  <p className="text-slate-500">{quote.customerCompany}</p>
+                )}
+                {quote.customerPhone && (
+                  <p className="text-slate-500">{quote.customerPhone}</p>
+                )}
+                {quote.customerEmail && (
+                  <p className="text-slate-500 font-mono text-[11px]">
+                    {quote.customerEmail}
+                  </p>
+                )}
+                {quote.customerAddress && (
+                  <p className="text-slate-500">{quote.customerAddress}</p>
+                )}
               </>
             )}
           </div>
         </div>
 
         <div>
-          <h4 className="text-xs font-semibold text-gray-650 uppercase tracking-wider mb-2">Project Overview</h4>
-          <div className="space-y-1.5 text-sm text-gray-700">
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+            Project Overview
+          </h4>
+          <div className="space-y-1 text-xs text-slate-700">
             {isEditable ? (
               <div className="space-y-1">
                 <input
@@ -503,13 +555,15 @@ export default function QuoteDocument({
                   placeholder="Scope / Project Description"
                   rows={3}
                   onChange={(e) => onUpdateField?.("projectDescription", e.target.value)}
-                  className="bg-transparent border border-dashed border-transparent hover:border-gray-300 focus:border-gray-800 outline-none w-full p-1 text-xs resize-none rounded"
+                  className="bg-transparent border border-dashed border-slate-300 hover:border-slate-400 focus:border-slate-800 outline-none w-full p-1 text-xs resize-none rounded-pro-sm"
                 />
               </div>
             ) : (
               <>
-                <p className="font-semibold text-gray-900">{quote.projectTitle || "Technical Service Estimate"}</p>
-                <p className="text-xs text-gray-500 whitespace-pre-line leading-relaxed">
+                <p className="font-bold text-slate-900 text-sm">
+                  {quote.projectTitle || "Technical Service Estimate"}
+                </p>
+                <p className="text-slate-600 whitespace-pre-line leading-relaxed">
                   {quote.projectDescription || "Itemized breakdown of requested works."}
                 </p>
               </>
@@ -519,33 +573,32 @@ export default function QuoteDocument({
       </div>
 
       {/* Render Dynamic Block-based Sections */}
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-slate-100">
         {sections.map((section: any, idx: number) => (
-          <div key={section.id} className="px-6 sm:px-8 py-6 relative group">
-            
-            {/* Section Header */}
+          <div key={section.id} className="px-6 sm:px-8 py-6 relative group quote-section-block">
+            {/* Section Header with Consistent Type Scale */}
             <div className="flex justify-between items-center mb-3">
               {isEditable ? (
                 <input
                   type="text"
                   value={section.title || ""}
                   onChange={(e) => onUpdateSectionTitle?.(section.id, e.target.value)}
-                  className="text-xs font-bold text-gray-900 uppercase tracking-wider bg-transparent border-b border-dashed border-transparent hover:border-gray-350 focus:border-gray-650 outline-none w-72"
+                  className="text-xs font-bold text-slate-600 uppercase tracking-wider bg-transparent border-b border-dashed border-slate-300 outline-none w-72"
                 />
               ) : (
-                <h4 className="text-xs font-semibold text-gray-650 uppercase tracking-wider">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   {section.title}
                 </h4>
               )}
 
-              {/* Section management controls (Move Up/Down, Remove) */}
+              {/* Section management controls */}
               {isEditable && (
-                <div className="flex items-center gap-1.5 print:hidden opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 print:hidden opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     type="button"
                     onClick={() => onMoveSection?.(idx, "up")}
                     disabled={idx === 0}
-                    className="p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded disabled:opacity-30 cursor-pointer"
+                    className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded disabled:opacity-30 cursor-pointer"
                     title="Move Up"
                   >
                     <ArrowUp className="w-3.5 h-3.5" />
@@ -554,7 +607,7 @@ export default function QuoteDocument({
                     type="button"
                     onClick={() => onMoveSection?.(idx, "down")}
                     disabled={idx === sections.length - 1}
-                    className="p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded disabled:opacity-30 cursor-pointer"
+                    className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded disabled:opacity-30 cursor-pointer"
                     title="Move Down"
                   >
                     <ArrowDown className="w-3.5 h-3.5" />
@@ -562,7 +615,7 @@ export default function QuoteDocument({
                   <button
                     type="button"
                     onClick={() => onRemoveSection?.(section.id)}
-                    className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded cursor-pointer"
+                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded cursor-pointer"
                     title="Remove Section"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -571,7 +624,6 @@ export default function QuoteDocument({
               )}
             </div>
 
-            {/* Section Contents based on Type */}
             {/* Type 1: Text Section */}
             {section.type === "text" && (
               <div>
@@ -581,10 +633,10 @@ export default function QuoteDocument({
                     onChange={(e) => onUpdateSectionContent?.(section.id, e.target.value)}
                     placeholder="Enter details..."
                     rows={4}
-                    className="w-full bg-transparent border border-dashed border-gray-200 hover:border-gray-400 focus:border-gray-800 rounded p-2 text-sm outline-none resize-y"
+                    className="w-full bg-transparent border border-dashed border-slate-200 hover:border-slate-400 focus:border-slate-800 rounded-pro-sm p-2 text-xs text-slate-800 outline-none resize-y"
                   />
                 ) : (
-                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                  <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line font-normal">
                     {section.content}
                   </p>
                 )}
@@ -598,31 +650,39 @@ export default function QuoteDocument({
                   <div className="space-y-3 print:hidden">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                       {(section.content || []).map((row: any, rIdx: number) => (
-                        <div key={rIdx} className="bg-white border border-gray-200 rounded-xl p-3.5 relative group/row shadow-xs hover:border-gray-350 hover:shadow-sm transition-all">
+                        <div
+                          key={rIdx}
+                          className="bg-white border border-slate-200 rounded-pro-md p-3 relative group/row shadow-subtle"
+                        >
                           <button
                             type="button"
                             onClick={() => {
-                              const newContent = (section.content || []).filter((_: any, i: number) => i !== rIdx);
+                              const newContent = (section.content || []).filter(
+                                (_: any, i: number) => i !== rIdx
+                              );
                               onUpdateSectionContent?.(section.id, newContent);
                             }}
-                            className="absolute top-2 right-2 text-gray-250 hover:text-red-500 hover:bg-red-50 bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center text-[10px] opacity-0 group-hover/row:opacity-100 transition cursor-pointer"
-                            title="Remove this parameter box"
+                            className="absolute top-2 right-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full w-5 h-5 flex items-center justify-center text-[10px] opacity-0 group-hover/row:opacity-100 transition cursor-pointer"
                           >
                             ✕
                           </button>
-                          <label className="text-[9.5px] text-gray-400 uppercase font-bold tracking-wider block mb-1">Parameter Label</label>
+                          <label className="text-[9px] text-slate-400 uppercase font-bold tracking-wider block mb-1">
+                            Label
+                          </label>
                           <input
                             type="text"
                             value={row.key || ""}
-                            placeholder="e.g. Total Plot Area"
+                            placeholder="e.g. Plot Area"
                             onChange={(e) => {
                               const newContent = [...section.content];
                               newContent[rIdx] = { ...newContent[rIdx], key: e.target.value };
                               onUpdateSectionContent?.(section.id, newContent);
                             }}
-                            className="text-[10px] text-indigo-700 uppercase font-bold bg-transparent outline-none w-full border-b border-dashed border-gray-200 hover:border-indigo-300 focus:border-indigo-500 pb-0.5 transition"
+                            className="text-[10px] text-primary-700 uppercase font-bold bg-transparent outline-none w-full border-b border-dashed border-slate-200 pb-0.5"
                           />
-                          <label className="text-[9.5px] text-gray-400 uppercase font-bold tracking-wider block mt-2 mb-1">Value / Detail</label>
+                          <label className="text-[9px] text-slate-400 uppercase font-bold tracking-wider block mt-2 mb-1">
+                            Value
+                          </label>
                           <input
                             type="text"
                             value={row.value || ""}
@@ -632,61 +692,42 @@ export default function QuoteDocument({
                               newContent[rIdx] = { ...newContent[rIdx], value: e.target.value };
                               onUpdateSectionContent?.(section.id, newContent);
                             }}
-                            className="text-sm font-bold text-gray-900 bg-transparent outline-none w-full border-b border-dashed border-gray-200 hover:border-gray-400 focus:border-gray-700 pb-0.5 transition"
+                            className="text-xs font-bold text-slate-900 bg-transparent outline-none w-full border-b border-dashed border-slate-200 pb-0.5"
                           />
                         </div>
                       ))}
 
-                      {/* Inline Add New Box card */}
                       <button
                         type="button"
                         onClick={() => {
-                          const newContent = [...(section.content || []), { key: "New Parameter", value: "" }];
+                          const newContent = [
+                            ...(section.content || []),
+                            { key: "New Parameter", value: "" },
+                          ];
                           onUpdateSectionContent?.(section.id, newContent);
                         }}
-                        className="border-2 border-dashed border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/30 rounded-xl p-3.5 flex flex-col items-center justify-center gap-2 min-h-[100px] cursor-pointer transition text-gray-400 hover:text-indigo-600 group/add"
+                        className="border border-dashed border-slate-300 hover:border-primary-400 hover:bg-primary-50/20 rounded-pro-md p-3 flex flex-col items-center justify-center gap-1 cursor-pointer transition text-slate-400 hover:text-primary-600"
                       >
-                        <span className="text-2xl font-light group-hover/add:scale-110 transition-transform">+</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Add Parameter Box</span>
+                        <span className="text-xl font-light">+</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">
+                          Add Parameter
+                        </span>
                       </button>
-                    </div>
-
-                    {/* Quick Preset Add Buttons */}
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider self-center mr-1">Quick Add:</span>
-                      {[
-                        { key: "Total Plot / Work Area", value: "" },
-                        { key: "Estimated Timeline", value: "" },
-                        { key: "Structure Type", value: "" },
-                        { key: "Floors / Levels", value: "" },
-                        { key: "No. of Bedrooms", value: "" },
-                        { key: "Foundation Type", value: "" },
-                        { key: "Carpet Area", value: "" },
-                        { key: "Execution Team Size", value: "" },
-                        { key: "Power Rating", value: "" },
-                        { key: "Delivery Format", value: "" },
-                      ].map((preset) => (
-                        <button
-                          key={preset.key}
-                          type="button"
-                          onClick={() => {
-                            if ((section.content || []).some((r: any) => r.key === preset.key)) return;
-                            const newContent = [...(section.content || []), { key: preset.key, value: preset.value }];
-                            onUpdateSectionContent?.(section.id, newContent);
-                          }}
-                          className="text-[9.5px] font-semibold border border-gray-200 bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 text-gray-600 px-2 py-1 rounded-lg cursor-pointer transition"
-                        >
-                          + {preset.key}
-                        </button>
-                      ))}
                     </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {(section.content || []).map((row: any, rIdx: number) => (
-                      <div key={rIdx} className="bg-gray-50/50 rounded-xl p-3 border border-gray-150">
-                        <span className="text-[10px] text-gray-600 uppercase block font-semibold">{row.key}</span>
-                        <span className="text-xs font-bold text-gray-800 block mt-0.5">{row.value}</span>
+                      <div
+                        key={rIdx}
+                        className="bg-slate-50/60 rounded-pro-sm p-2.5 border border-slate-200/60"
+                      >
+                        <span className="text-[9.5px] text-slate-400 uppercase block font-bold tracking-wider">
+                          {row.key}
+                        </span>
+                        <span className="text-xs font-bold text-slate-800 block mt-0.5">
+                          {row.value}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -697,20 +738,36 @@ export default function QuoteDocument({
             {/* Type 3: Itemized Line-Items Table */}
             {section.type === "table" && (
               <div>
-                {/* Edit Mode: Card-based rich row editor */}
                 {isEditable ? (
                   <div className="space-y-2 print:hidden">
-                    {/* Table header labels */}
-                    <div className="grid grid-cols-12 gap-2 px-3 pb-1 border-b border-gray-100">
-                      <div className="col-span-1 text-[9px] font-bold text-gray-400 uppercase tracking-wider">#</div>
-                      <div className="col-span-4 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Description & Phase</div>
-                      <div className="col-span-1 text-[9px] font-bold text-gray-400 uppercase tracking-wider">HSN/SAC</div>
-                      <div className="col-span-1 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Qty</div>
-                      <div className="col-span-1 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Unit</div>
-                      <div className="col-span-1 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Rate (₹)</div>
-                      <div className="col-span-1 text-[9px] font-bold text-gray-400 uppercase tracking-wider">GST%</div>
-                      <div className="col-span-1 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Disc.</div>
-                      <div className="col-span-1 text-[9px] font-bold text-gray-400 uppercase tracking-wider text-right">Total</div>
+                    <div className="grid grid-cols-12 gap-2 px-3 pb-1 border-b border-slate-100">
+                      <div className="col-span-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                        #
+                      </div>
+                      <div className="col-span-4 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                        Description & Phase
+                      </div>
+                      <div className="col-span-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                        HSN
+                      </div>
+                      <div className="col-span-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                        Qty
+                      </div>
+                      <div className="col-span-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                        Unit
+                      </div>
+                      <div className="col-span-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                        Rate (₹)
+                      </div>
+                      <div className="col-span-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                        GST%
+                      </div>
+                      <div className="col-span-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                        Disc
+                      </div>
+                      <div className="col-span-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider text-right">
+                        Total
+                      </div>
                     </div>
 
                     {(section.content || []).map((row: any, rIdx: number) => {
@@ -720,9 +777,10 @@ export default function QuoteDocument({
                       const rowGross = rowQty * rowRate;
                       let lineDisc = 0;
                       if (Number(row.discount) > 0) {
-                        lineDisc = row.discountType === "percent"
-                          ? rowGross * (Number(row.discount) / 100)
-                          : Number(row.discount);
+                        lineDisc =
+                          row.discountType === "percent"
+                            ? rowGross * (Number(row.discount) / 100)
+                            : Number(row.discount);
                       }
                       const rowNet = Math.max(0, rowGross - lineDisc);
                       const gstAmt = rowNet * (Number(row.gst || 0) / 100);
@@ -731,15 +789,17 @@ export default function QuoteDocument({
                       return (
                         <div
                           key={rowId}
-                          className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-sm transition-all group/row"
+                          className="bg-white border border-slate-200 rounded-pro-md overflow-hidden hover:border-slate-300 transition-all group/row"
                         >
-                          {/* Row top: main fields */}
                           <div className="grid grid-cols-12 gap-2 items-start p-3">
-                            {/* Index */}
                             <div className="col-span-1 flex flex-col items-center gap-1 pt-1">
-                              <span className="text-[9px] font-black text-gray-400 bg-gray-100 rounded-md w-6 h-6 flex items-center justify-center">{rIdx + 1}</span>
-                              {/* Optional toggle */}
-                              <label className="flex flex-col items-center gap-0.5 cursor-pointer" title="Mark as optional add-on">
+                              <span className="text-[9px] font-bold text-slate-500 bg-slate-100 rounded w-5 h-5 flex items-center justify-center">
+                                {rIdx + 1}
+                              </span>
+                              <label
+                                className="flex flex-col items-center gap-0.5 cursor-pointer"
+                                title="Mark as optional client add-on"
+                              >
                                 <input
                                   type="checkbox"
                                   checked={Boolean(row.optional)}
@@ -748,50 +808,39 @@ export default function QuoteDocument({
                                     nc[rIdx] = { ...nc[rIdx], optional: e.target.checked };
                                     onUpdateSectionContent?.(section.id, nc);
                                   }}
-                                  className="w-3 h-3 rounded border-gray-300 cursor-pointer"
+                                  className="w-3 h-3 rounded border-slate-300 cursor-pointer"
                                 />
-                                <span className="text-[7.5px] text-gray-400 font-semibold leading-none">OPT</span>
+                                <span className="text-[7.5px] text-slate-400 font-semibold">
+                                  OPT
+                                </span>
                               </label>
                             </div>
 
-                            {/* Description + Phase */}
-                            <div className="col-span-4 space-y-1.5">
+                            <div className="col-span-4 space-y-1">
                               <input
                                 type="text"
                                 value={row.phase || ""}
-                                placeholder="Phase / Stage label"
+                                placeholder="Phase label"
                                 onChange={(e) => {
                                   const nc = [...section.content];
                                   nc[rIdx] = { ...nc[rIdx], phase: e.target.value };
                                   onUpdateSectionContent?.(section.id, nc);
                                 }}
-                                className="text-[9px] font-bold uppercase text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md outline-none w-full"
+                                className="text-[9px] font-bold uppercase text-primary-700 bg-primary-50 px-1.5 py-0.5 rounded outline-none w-full"
                               />
                               <input
                                 type="text"
                                 value={row.name || ""}
-                                placeholder="Item description / scope detail"
+                                placeholder="Item description"
                                 onChange={(e) => {
                                   const nc = [...section.content];
                                   nc[rIdx] = { ...nc[rIdx], name: e.target.value };
                                   onUpdateSectionContent?.(section.id, nc);
                                 }}
-                                className="text-sm font-semibold text-gray-900 bg-transparent outline-none w-full border-b border-dashed border-gray-200 hover:border-gray-400 focus:border-gray-700 pb-0.5"
-                              />
-                              <input
-                                type="text"
-                                value={row.notes || ""}
-                                placeholder="Specification notes (optional)…"
-                                onChange={(e) => {
-                                  const nc = [...section.content];
-                                  nc[rIdx] = { ...nc[rIdx], notes: e.target.value };
-                                  onUpdateSectionContent?.(section.id, nc);
-                                }}
-                                className="text-[10px] text-gray-400 italic bg-transparent outline-none w-full border-b border-dashed border-gray-100 hover:border-gray-300 focus:border-gray-500 pb-0.5"
+                                className="text-xs font-semibold text-slate-900 bg-transparent outline-none w-full border-b border-dashed border-slate-200 focus:border-slate-800 pb-0.5"
                               />
                             </div>
 
-                            {/* HSN/SAC */}
                             <div className="col-span-1">
                               <input
                                 type="text"
@@ -802,27 +851,26 @@ export default function QuoteDocument({
                                   nc[rIdx] = { ...nc[rIdx], hsn: e.target.value };
                                   onUpdateSectionContent?.(section.id, nc);
                                 }}
-                                className="w-full text-center text-xs font-mono bg-gray-50 border border-gray-200 rounded-lg px-1.5 py-1.5 outline-none focus:border-gray-400"
+                                className="w-full text-center text-xs font-mono bg-slate-50 border border-slate-200 rounded px-1 py-1 outline-none"
                               />
                             </div>
 
-                            {/* Qty */}
                             <div className="col-span-1">
                               <input
                                 type="number"
                                 min={0}
                                 step="0.01"
+                                inputMode="decimal"
                                 value={rowQty}
                                 onChange={(e) => {
                                   const nc = [...section.content];
                                   nc[rIdx] = { ...nc[rIdx], qty: e.target.value };
                                   onUpdateSectionContent?.(section.id, nc);
                                 }}
-                                className="w-full text-right text-sm font-bold bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-gray-400"
+                                className="w-full text-right text-xs font-mono font-bold bg-slate-50 border border-slate-200 rounded px-1.5 py-1 outline-none"
                               />
                             </div>
 
-                            {/* Unit */}
                             <div className="col-span-1">
                               <select
                                 value={row.unit || "Sq Ft"}
@@ -831,7 +879,7 @@ export default function QuoteDocument({
                                   nc[rIdx] = { ...nc[rIdx], unit: e.target.value };
                                   onUpdateSectionContent?.(section.id, nc);
                                 }}
-                                className="w-full text-xs font-semibold bg-gray-50 border border-gray-200 rounded-lg px-1 py-1.5 outline-none focus:border-gray-400"
+                                className="w-full text-[10px] font-semibold bg-slate-50 border border-slate-200 rounded px-1 py-1 outline-none"
                               >
                                 <option>Sq Ft</option>
                                 <option>Sq M</option>
@@ -839,37 +887,28 @@ export default function QuoteDocument({
                                 <option>Nos</option>
                                 <option>Job</option>
                                 <option>Units</option>
-                                <option>Sets</option>
                                 <option>Kg</option>
-                                <option>MT</option>
-                                <option>Ltrs</option>
-                                <option>Bags</option>
                                 <option>Days</option>
-                                <option>Hrs</option>
                                 <option>LS</option>
                               </select>
                             </div>
 
-                            {/* Rate */}
                             <div className="col-span-1">
-                              <div className="relative">
-                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">₹</span>
-                                <input
-                                  type="number"
-                                  min={0}
-                                  step="0.01"
-                                  value={rowRate}
-                                  onChange={(e) => {
-                                    const nc = [...section.content];
-                                    nc[rIdx] = { ...nc[rIdx], rate: e.target.value };
-                                    onUpdateSectionContent?.(section.id, nc);
-                                  }}
-                                  className="w-full text-right text-sm font-bold bg-gray-50 border border-gray-200 rounded-lg pl-5 pr-2 py-1.5 outline-none focus:border-gray-400"
-                                />
-                              </div>
+                              <input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                inputMode="decimal"
+                                value={rowRate}
+                                onChange={(e) => {
+                                  const nc = [...section.content];
+                                  nc[rIdx] = { ...nc[rIdx], rate: e.target.value };
+                                  onUpdateSectionContent?.(section.id, nc);
+                                }}
+                                className="w-full text-right text-xs font-mono font-bold bg-slate-50 border border-slate-200 rounded px-1 py-1 outline-none"
+                              />
                             </div>
 
-                            {/* GST % Slab */}
                             <div className="col-span-1">
                               <select
                                 value={String(row.gst ?? 18)}
@@ -878,9 +917,9 @@ export default function QuoteDocument({
                                   nc[rIdx] = { ...nc[rIdx], gst: Number(e.target.value) };
                                   onUpdateSectionContent?.(section.id, nc);
                                 }}
-                                className="w-full text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-1 py-1.5 outline-none focus:border-gray-400"
+                                className="w-full text-[10px] font-bold bg-slate-50 border border-slate-200 rounded px-1 py-1 outline-none"
                               >
-                                <option value="0">0% Nil</option>
+                                <option value="0">0%</option>
                                 <option value="5">5%</option>
                                 <option value="12">12%</option>
                                 <option value="18">18%</option>
@@ -888,12 +927,12 @@ export default function QuoteDocument({
                               </select>
                             </div>
 
-                            {/* Per-row Discount */}
                             <div className="col-span-1 space-y-1">
                               <input
                                 type="number"
                                 min={0}
                                 step="0.01"
+                                inputMode="decimal"
                                 value={row.discount || ""}
                                 placeholder="0"
                                 onChange={(e) => {
@@ -901,130 +940,105 @@ export default function QuoteDocument({
                                   nc[rIdx] = { ...nc[rIdx], discount: e.target.value };
                                   onUpdateSectionContent?.(section.id, nc);
                                 }}
-                                className="w-full text-right text-xs bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-gray-400"
+                                className="w-full text-right text-xs bg-slate-50 border border-slate-200 rounded px-1 py-1 outline-none"
                               />
-                              <select
-                                value={row.discountType || "flat"}
-                                onChange={(e) => {
-                                  const nc = [...section.content];
-                                  nc[rIdx] = { ...nc[rIdx], discountType: e.target.value };
-                                  onUpdateSectionContent?.(section.id, nc);
-                                }}
-                                className="w-full text-[9px] font-bold bg-gray-50 border border-gray-200 rounded-lg px-1 py-1 outline-none focus:border-gray-400"
-                              >
-                                <option value="flat">₹ Flat</option>
-                                <option value="percent">% Off</option>
-                              </select>
                             </div>
 
-                            {/* Row Total + Actions */}
-                            <div className="col-span-1 flex flex-col items-end gap-1.5 pt-1">
-                              <span className="text-sm font-black text-gray-900">₹{Math.round(rowTotal).toLocaleString("en-IN")}</span>
-                              {gstAmt > 0 && (
-                                <span className="text-[9px] text-gray-400 font-mono">+GST ₹{Math.round(gstAmt).toLocaleString("en-IN")}</span>
-                              )}
-                              <div className="flex gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
-                                {/* Duplicate */}
+                            <div className="col-span-1 flex flex-col items-end gap-1">
+                              <span className="text-xs font-bold text-slate-900 font-mono tabular-nums">
+                                ₹{Math.round(rowTotal).toLocaleString("en-IN")}
+                              </span>
+                              <div className="flex flex-col items-center gap-1">
                                 <button
                                   type="button"
-                                  title="Duplicate this row"
                                   onClick={() => {
-                                    const nc = [...section.content];
-                                    const clone = { ...row, id: `item-${Date.now()}` };
-                                    nc.splice(rIdx + 1, 0, clone);
+                                    const nc = [...(section.content || [])];
+                                    const cloned = { ...row, id: `item-${Date.now()}` };
+                                    nc.splice(rIdx + 1, 0, cloned);
                                     onUpdateSectionContent?.(section.id, nc);
                                   }}
-                                  className="p-1 rounded-lg bg-gray-100 hover:bg-indigo-100 hover:text-indigo-700 text-gray-400 cursor-pointer transition"
+                                  className="text-slate-400 hover:text-primary-600 p-0.5 rounded cursor-pointer opacity-0 group-hover/row:opacity-100 transition"
+                                  title="Duplicate line item"
                                 >
-                                  <Plus className="w-3 h-3" />
+                                  <Copy className="w-3 h-3" />
                                 </button>
-                                {/* Delete */}
                                 <button
                                   type="button"
-                                  title="Remove this line item"
                                   onClick={() => {
-                                    const nc = (section.content || []).filter((_: any, i: number) => i !== rIdx);
+                                    const nc = (section.content || []).filter(
+                                      (_: any, i: number) => i !== rIdx
+                                    );
                                     onUpdateSectionContent?.(section.id, nc);
                                   }}
-                                  className="p-1 rounded-lg bg-gray-100 hover:bg-red-100 hover:text-red-600 text-gray-400 cursor-pointer transition"
+                                  className="text-slate-400 hover:text-rose-600 p-0.5 rounded cursor-pointer opacity-0 group-hover/row:opacity-100 transition"
+                                  title="Remove item"
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </button>
                               </div>
                             </div>
                           </div>
-
-                          {/* Row bottom: breakdown hint */}
-                          {rowGross > 0 && (
-                            <div className="px-3 pb-2 flex gap-3 text-[9px] text-gray-400 font-mono border-t border-gray-50 pt-1.5">
-                              <span>Gross: ₹{Math.round(rowGross).toLocaleString("en-IN")}</span>
-                              {lineDisc > 0 && <span className="text-emerald-600">− Disc: ₹{Math.round(lineDisc).toLocaleString("en-IN")}</span>}
-                              <span>Net: ₹{Math.round(rowNet).toLocaleString("en-IN")}</span>
-                              {gstAmt > 0 && <span className="text-indigo-500">GST @{row.gst}%: ₹{Math.round(gstAmt).toLocaleString("en-IN")}</span>}
-                              {row.optional && <span className="text-amber-500 font-bold">OPTIONAL ADD-ON</span>}
-                            </div>
-                          )}
                         </div>
                       );
                     })}
 
-                    {/* Add Row CTA */}
                     <button
                       type="button"
                       onClick={() => {
                         const newContent = [
                           ...(section.content || []),
-                          { id: `item-${Date.now()}`, phase: "", name: "", qty: 1, unit: "Sq Ft", rate: 0, gst: 18, hsn: "9954", discount: 0, discountType: "flat", optional: false, notes: "" }
+                          {
+                            id: `item-${Date.now()}`,
+                            phase: "",
+                            name: "",
+                            qty: 1,
+                            unit: "Sq Ft",
+                            rate: 0,
+                            gst: 18,
+                            hsn: "9954",
+                            discount: 0,
+                            discountType: "flat",
+                            optional: false,
+                          },
                         ];
                         onUpdateSectionContent?.(section.id, newContent);
                       }}
-                      className="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-dashed border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/30 rounded-xl text-xs font-bold text-gray-400 hover:text-indigo-600 transition cursor-pointer group/addrow"
+                      className="w-full py-2 border border-dashed border-slate-300 hover:border-primary-400 hover:bg-primary-50/20 rounded-pro-md text-xs font-semibold text-slate-500 hover:text-primary-700 transition flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <Plus className="w-4 h-4 group-hover/addrow:scale-110 transition-transform" />
-                      Add Line Item
+                      <Plus className="w-3.5 h-3.5" /> Add Line Item
                     </button>
-
-                    {/* Section subtotal strip */}
-                    {(section.content || []).length > 0 && (
-                      <div className="flex justify-end">
-                        <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 text-xs font-bold text-gray-700">
-                          Section Subtotal: ₹{(section.content || []).reduce((s: number, r: any) => {
-                            const g = Number(r.qty || 1) * Number(r.rate || 0);
-                            let d = 0;
-                            if (Number(r.discount) > 0) d = r.discountType === "percent" ? g * Number(r.discount) / 100 : Number(r.discount);
-                            const net = Math.max(0, g - d);
-                            return s + net + net * (Number(r.gst || 0) / 100);
-                          }, 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ) : (
-                  /* Read-only mode table */
+                  /* Read-only Client Table View */
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full text-xs">
                       <thead>
-                        <tr className="border-b border-gray-150 text-gray-600 font-semibold">
-                          {allowClientOptionalSelect && <th className="py-2 text-xs w-8 text-center"></th>}
-                          <th className="text-left py-2 text-xs font-medium uppercase tracking-wider">Description</th>
-                          <th className="text-center py-2 text-xs font-medium uppercase tracking-wider w-20">HSN/SAC</th>
-                          <th className="text-right py-2 text-xs font-medium uppercase tracking-wider w-20">Qty</th>
-                          <th className="text-right py-2 text-xs font-medium uppercase tracking-wider w-24">Rate</th>
-                          <th className="text-right py-2 text-xs font-medium uppercase tracking-wider w-16">GST%</th>
-                          <th className="text-right py-2 text-xs font-medium uppercase tracking-wider w-28">Amount</th>
+                        <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                          {allowClientOptionalSelect && <th className="py-2 w-8 text-center"></th>}
+                          <th className="text-left py-2">Description</th>
+                          <th className="text-center py-2 w-16">HSN</th>
+                          <th className="text-right py-2 w-16">Qty</th>
+                          <th className="text-right py-2 w-24">Rate</th>
+                          <th className="text-right py-2 w-14">GST</th>
+                          <th className="text-right py-2 w-28">Amount</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="divide-y divide-slate-100">
                         {(section.content || []).map((row: any, rIdx: number) => {
                           const rowId = row.id || `item-${rIdx}`;
                           const isOptional = Boolean(row.optional);
-                          const isSelected = selectedOptionalIds ? selectedOptionalIds.includes(rowId) : true;
+                          const isSelected = selectedOptionalIds
+                            ? selectedOptionalIds.includes(rowId)
+                            : true;
                           const rowQty = Number(row.qty || 1);
                           const rowRate = Number(row.rate || 0);
                           const rowGross = rowQty * rowRate;
                           let lineDisc = 0;
                           if (Number(row.discount) > 0) {
-                            lineDisc = row.discountType === "percent" ? rowGross * (Number(row.discount) / 100) : Number(row.discount);
+                            lineDisc =
+                              row.discountType === "percent"
+                                ? rowGross * (Number(row.discount) / 100)
+                                : Number(row.discount);
                           }
                           const rowNet = Math.max(0, rowGross - lineDisc);
                           const rowTotal = rowNet;
@@ -1032,8 +1046,8 @@ export default function QuoteDocument({
                           return (
                             <tr
                               key={rowId}
-                              className={`border-b border-gray-50 transition ${
-                                isOptional && !isSelected ? "opacity-40 bg-gray-50/50" : ""
+                              className={`transition ${
+                                isOptional && !isSelected ? "opacity-35 bg-slate-50" : "hover:bg-slate-50/50"
                               }`}
                             >
                               {allowClientOptionalSelect && (
@@ -1042,12 +1056,13 @@ export default function QuoteDocument({
                                     <button
                                       type="button"
                                       onClick={() => onToggleOptionalItem?.(rowId)}
-                                      className="text-gray-700 hover:text-indigo-600 cursor-pointer p-1"
+                                      className="text-slate-700 hover:text-primary-600 cursor-pointer p-1"
+                                      title="Toggle optional item"
                                     >
                                       {isSelected ? (
-                                        <CheckSquare className="w-4 h-4 text-indigo-600" />
+                                        <CheckSquare className="w-4 h-4 text-primary-600" />
                                       ) : (
-                                        <Square className="w-4 h-4 text-gray-300" />
+                                        <Square className="w-4 h-4 text-slate-300" />
                                       )}
                                     </button>
                                   ) : (
@@ -1055,31 +1070,33 @@ export default function QuoteDocument({
                                   )}
                                 </td>
                               )}
-                              <td className="py-2.5 text-gray-700">
-                                <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                              <td className="py-2.5 text-slate-800">
+                                <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
                                   {row.phase && (
-                                    <span className="text-[9px] font-semibold uppercase text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">
+                                    <span className="text-[8.5px] font-bold uppercase text-primary-700 bg-primary-50 px-1 py-0.5 rounded-pro-sm">
                                       {row.phase}
                                     </span>
                                   )}
                                   {isOptional && (
-                                    <span className="text-[9px] font-bold uppercase text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                                    <span className="text-[8.5px] font-bold uppercase text-amber-700 bg-amber-50 px-1 py-0.5 rounded-pro-sm">
                                       Optional Add-on
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-gray-800 font-medium">{row.name || row.description}</p>
-                                {row.notes && <p className="text-[10px] text-gray-400 italic mt-0.5">{row.notes}</p>}
+                                <p className="font-semibold text-slate-900">{row.name || row.description}</p>
                               </td>
-                              <td className="text-center py-2.5 text-xs text-gray-400 font-mono">{row.hsn || "9954"}</td>
-                              <td className="text-right py-2.5 text-gray-500">{rowQty} {row.unit || ""}</td>
-                              <td className="text-right py-2.5 text-gray-500">₹{rowRate.toLocaleString("en-IN")}</td>
-                              <td className="text-right py-2.5 text-gray-400 text-xs">{row.gst ?? 18}%</td>
-                              <td className="text-right py-2.5 font-medium">
-                                <span>₹{rowTotal.toLocaleString("en-IN")}</span>
-                                {lineDisc > 0 && (
-                                  <span className="block text-[9px] text-emerald-600 font-mono">-₹{Math.round(lineDisc).toLocaleString("en-IN")} disc</span>
-                                )}
+                              <td className="text-center py-2.5 text-slate-400 font-mono">{row.hsn || "9954"}</td>
+                              <td className="text-right py-2.5 font-mono tabular-nums text-slate-600">
+                                {rowQty} {row.unit || ""}
+                              </td>
+                              <td className="text-right py-2.5 font-mono tabular-nums text-slate-600">
+                                ₹{rowRate.toLocaleString("en-IN")}
+                              </td>
+                              <td className="text-right py-2.5 text-slate-400 font-mono text-[11px]">
+                                {row.gst ?? 18}%
+                              </td>
+                              <td className="text-right py-2.5 font-bold font-mono tabular-nums text-slate-900">
+                                ₹{rowTotal.toLocaleString("en-IN")}
                               </td>
                             </tr>
                           );
@@ -1090,69 +1107,99 @@ export default function QuoteDocument({
                 )}
               </div>
             )}
-
           </div>
         ))}
       </div>
 
-      {/* Block addition dashboard in editor mode */}
+      {/* Block insertion in editor mode */}
       {isEditable && (
-        <div className="px-6 sm:px-8 py-4 border-t border-gray-100 bg-gray-50/20 flex flex-wrap gap-2.5 print:hidden">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block w-full mb-1">
-            + Insert Section Block
+        <div className="px-6 sm:px-8 py-3.5 border-t border-slate-100 bg-slate-50/50 flex flex-wrap gap-2 print:hidden">
+          <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block w-full mb-1">
+            + Insert Document Section
           </span>
           <button
             type="button"
             onClick={() => onAddSection?.("text")}
-            className="text-[10.5px] font-semibold border border-gray-250 bg-white hover:bg-gray-50 text-gray-800 px-3 py-1.5 rounded-lg cursor-pointer transition shadow-3xs"
+            className="pro-btn-secondary py-1 px-3 text-xs"
           >
-            + Add Text Scope Block
+            + Text Block
           </button>
           <button
             type="button"
             onClick={() => onAddSection?.("grid")}
-            className="text-[10.5px] font-semibold border border-gray-250 bg-white hover:bg-gray-50 text-gray-800 px-3 py-1.5 rounded-lg cursor-pointer transition shadow-3xs"
+            className="pro-btn-secondary py-1 px-3 text-xs"
           >
-            + Add Parameters Grid
+            + Parameters Grid
           </button>
           <button
             type="button"
             onClick={() => onAddSection?.("table")}
-            className="text-[10.5px] font-semibold border border-gray-250 bg-white hover:bg-gray-50 text-gray-800 px-3 py-1.5 rounded-lg cursor-pointer transition shadow-3xs"
+            className="pro-btn-secondary py-1 px-3 text-xs"
           >
-            + Add Cost Table
+            + Cost Table
           </button>
         </div>
       )}
 
       {/* Financial Summary Footer */}
-      <div className="px-6 sm:px-8 py-6 border-t border-gray-150 bg-gray-50/30">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm">
+      <div className="px-6 sm:px-8 py-6 border-t border-slate-200 bg-slate-50/50">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs">
           <div>
-            <span className="text-xs text-gray-600 uppercase block font-semibold">Payment schedule / terms</span>
+            <span className="text-[10px] text-slate-400 uppercase block font-bold tracking-wider">
+              Payment Terms & Schedule
+            </span>
             {isEditable ? (
               <input
                 type="text"
                 value={quote.paymentTerms || ""}
                 onChange={(e) => onUpdateField?.("paymentTerms", e.target.value)}
                 placeholder="e.g. 30% Booking | 70% Handover"
-                className="bg-transparent border-b border-dashed border-transparent hover:border-gray-300 focus:border-gray-800 outline-none w-80 mt-1 font-semibold text-gray-800"
+                className="bg-transparent border-b border-dashed border-slate-300 outline-none w-80 mt-1 font-semibold text-slate-800 text-xs"
               />
             ) : (
-              <span className="text-gray-800 font-semibold">{quote.paymentTerms || "Standard Net-15"}</span>
+              <span className="text-slate-800 font-semibold mt-0.5 block">
+                {quote.paymentTerms || "Standard Net-15"}
+              </span>
             )}
+
+            {/* Calculated Milestone Breakdown Card */}
+            <div className="mt-3 pt-2">
+              <span className="text-[9.5px] font-extrabold uppercase text-slate-400 tracking-wider block mb-1.5">
+                💳 Milestone Payment Schedule Breakdown
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-slate-50 p-2 rounded border border-slate-200/60">
+                  <span className="text-[9px] font-bold text-slate-500 uppercase block">Booking Deposit (20%)</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">₹{Math.round(grandTotal * 0.20).toLocaleString("en-IN")}</span>
+                </div>
+                <div className="bg-slate-50 p-2 rounded border border-slate-200/60">
+                  <span className="text-[9px] font-bold text-slate-500 uppercase block">Structure & Slab (30%)</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">₹{Math.round(grandTotal * 0.30).toLocaleString("en-IN")}</span>
+                </div>
+                <div className="bg-slate-50 p-2 rounded border border-slate-200/60">
+                  <span className="text-[9px] font-bold text-slate-500 uppercase block">MEP & Finishes (30%)</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">₹{Math.round(grandTotal * 0.30).toLocaleString("en-IN")}</span>
+                </div>
+                <div className="bg-slate-50 p-2 rounded border border-slate-200/60">
+                  <span className="text-[9px] font-bold text-slate-500 uppercase block">Final Handover (20%)</span>
+                  <span className="font-mono font-bold text-slate-900 text-xs">₹{Math.round(grandTotal * 0.20).toLocaleString("en-IN")}</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="w-full sm:w-72 space-y-1.5 text-right">
-            <div className="flex justify-between text-xs text-gray-650">
+          <div className="w-full sm:w-72 space-y-1.5 text-right font-mono tabular-nums">
+            <div className="flex justify-between text-slate-600">
               <span>Subtotal {taxInclusive && "(Tax Incl.)"}</span>
               <span className="font-semibold">₹{subtotal.toLocaleString("en-IN")}</span>
             </div>
 
             {(lineDiscountsTotal > 0 || globalDiscountAmount > 0) && (
-              <div className="flex justify-between text-xs text-emerald-600">
+              <div className="flex justify-between text-emerald-600">
                 <span>Discount</span>
-                <span className="font-semibold">-₹{(lineDiscountsTotal + globalDiscountAmount).toLocaleString("en-IN")}</span>
+                <span className="font-semibold">
+                  -₹{(lineDiscountsTotal + globalDiscountAmount).toLocaleString("en-IN")}
+                </span>
               </div>
             )}
 
@@ -1160,72 +1207,63 @@ export default function QuoteDocument({
               <>
                 {isSameState ? (
                   <>
-                    <div className="flex justify-between text-[11px] text-gray-500">
+                    <div className="flex justify-between text-[11px] text-slate-500">
                       <span>CGST (9%)</span>
-                      <span className="font-mono">₹{cgstAmount.toLocaleString("en-IN")}</span>
+                      <span>₹{cgstAmount.toLocaleString("en-IN")}</span>
                     </div>
-                    <div className="flex justify-between text-[11px] text-gray-500">
+                    <div className="flex justify-between text-[11px] text-slate-500">
                       <span>SGST (9%)</span>
-                      <span className="font-mono">₹{sgstAmount.toLocaleString("en-IN")}</span>
+                      <span>₹{sgstAmount.toLocaleString("en-IN")}</span>
                     </div>
                   </>
                 ) : (
-                  <div className="flex justify-between text-[11px] text-gray-500">
+                  <div className="flex justify-between text-[11px] text-slate-500">
                     <span>IGST (18%)</span>
-                    <span className="font-mono">₹{igstAmount.toLocaleString("en-IN")}</span>
+                    <span>₹{igstAmount.toLocaleString("en-IN")}</span>
                   </div>
                 )}
               </>
             )}
 
-            <div className="border-t border-gray-250 pt-2 flex justify-between text-base font-bold text-gray-900">
+            <div className="border-t border-slate-300 pt-2 flex justify-between text-base font-black text-slate-900 font-sans">
               <span>Grand Total</span>
-              <span>₹{grandTotal.toLocaleString("en-IN")}</span>
+              <span className="text-primary-600 font-mono font-black text-xl">
+                ₹{grandTotal.toLocaleString("en-IN")}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Signature Verification Block (read-only) */}
-      {!isEditable && accepted && (quote.signatureName || quote.acceptedSignature || quote.signatureDataUrl) && (
-        <div className="px-6 sm:px-8 py-5 border-t border-gray-100 bg-green-50/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-green-100 text-green-700 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-6 h-6" />
+      {!isEditable && accepted && (quote.signatureName || quote.acceptedSignature) && (
+        <div className="px-6 sm:px-8 py-4 border-t border-slate-200 bg-emerald-50/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs font-bold text-green-800 uppercase tracking-wider">Digitally Signed & Authorized</p>
-              <p className="text-sm font-semibold text-gray-900 mt-0.5">
-                {quote.signatureName || quote.acceptedSignature || "Authorized Client"}
+              <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
+                Digitally Signed & Authorized
               </p>
-              {quote.acceptedEmail && <p className="text-xs text-gray-500 font-mono">{quote.acceptedEmail}</p>}
+              <p className="font-bold text-slate-900">
+                {quote.signatureName || quote.acceptedSignature}
+              </p>
               {quote.snapshotHash && (
-                <p className="text-[9.5px] font-mono text-gray-400 mt-1 flex items-center gap-1">
-                  <Lock className="w-3 h-3 text-emerald-600" /> Hash: {quote.snapshotHash}
+                <p className="text-[9.5px] font-mono text-slate-400 mt-0.5 flex items-center gap-1">
+                  <Lock className="w-3 h-3 text-emerald-600" /> Audit Hash: {quote.snapshotHash}
                 </p>
               )}
             </div>
           </div>
-
-          {quote.signatureDataUrl ? (
-            <div className="border border-green-200 bg-white p-2 rounded-xl text-center shrink-0">
-              <img
-                src={quote.signatureDataUrl}
-                alt="Drawn E-Signature"
-                className="h-12 object-contain max-w-[160px] mx-auto"
-              />
-              <span className="text-[9px] text-gray-400 font-semibold uppercase block border-t border-gray-100 pt-1 mt-1">Drawn E-Signature</span>
-            </div>
-          ) : (
-            <span className="text-[10.5px] font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full border border-green-200">
-              ✓ Verified Sign-off
-            </span>
-          )}
+          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-pro-sm">
+            ✓ Verified Sign-off
+          </span>
         </div>
       )}
 
       {/* Footer info (Valid Until date) */}
-      <div className="px-6 sm:px-8 py-5 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs text-gray-600">
+      <div className="px-6 sm:px-8 py-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs text-slate-500">
         <span>
           Valid until{" "}
           {isEditable ? (
@@ -1233,21 +1271,22 @@ export default function QuoteDocument({
               type="date"
               value={quote.expiryDate ? quote.expiryDate.split("T")[0] : ""}
               onChange={(e) => onUpdateField?.("expiryDate", e.target.value)}
-              className="bg-transparent text-gray-400 font-sans text-xs border-b border-dashed border-transparent hover:border-gray-300 focus:border-gray-650 outline-none w-28 py-0.5"
+              className="bg-transparent text-slate-600 font-sans text-xs border-b border-dashed border-slate-300 outline-none w-28 py-0.5"
             />
           ) : quote.expiryDate ? (
             new Date(quote.expiryDate).toLocaleDateString("en-IN", {
               day: "numeric",
               month: "short",
-              year: "numeric"
+              year: "numeric",
             })
           ) : (
             "—"
           )}
         </span>
-        <span className="font-mono">Estimate #{quote.quoteNumber || quote.id?.slice(0, 8) || "Draft"}</span>
+        <span className="font-mono text-[11px]">
+          Estimate #{quote.quoteNumber || quote.id?.slice(0, 8) || "Draft"}
+        </span>
       </div>
-
     </div>
   );
 }

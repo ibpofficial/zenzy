@@ -13,6 +13,7 @@ import { useAuth } from "@/context/AuthContext";
 import { STARTER_WORKFLOW_TEMPLATES, instantiateWorkflowMilestones } from "@/lib/workflowTemplates";
 import { createAndVaultAgreement } from "@/lib/agreementGenerator";
 import { logProjectEvent } from "@/lib/projectEvents";
+import { generateQuoteSnapshotHash } from "@/lib/quoteUtils";
 import {
   FileText,
   ShieldCheck,
@@ -208,6 +209,12 @@ export default function AcceptQuotePage() {
       }
 
       // 3. Vault Legal Agreement
+      const snapshotHash = await generateQuoteSnapshotHash(
+        quotation,
+        signatureName.trim(),
+        user?.email || quotation.customerEmail || ""
+      );
+
       await createAndVaultAgreement({
         projectId: newProjectId,
         quotation,
@@ -226,8 +233,22 @@ export default function AcceptQuotePage() {
         acceptedAt: now,
         acceptedSignature: signatureName.trim(),
         signatureName: signatureName.trim(),
+        snapshotHash,
         projectId: newProjectId
       }));
+
+      // Trigger instant notification to contractor/business
+      try {
+        const { triggerNotification } = await import("@/lib/notifications");
+        await triggerNotification(
+          businessId,
+          "Quotation Proposal Accepted & Signed! 🎉",
+          `Client ${clientName} accepted and digitally signed Quotation #${quotation.quoteNumber || quotation.id.slice(0, 8)}. Total Agreed: ₹${grandTotal.toLocaleString("en-IN")}.`,
+          "system"
+        );
+      } catch (nErr) {
+        console.warn("Acceptance notification trigger warning:", nErr);
+      }
 
       // 5. Update Inquiry Stage if present
       const targetInquiryId = quotation.inquiryId || quotation.enquiryId;

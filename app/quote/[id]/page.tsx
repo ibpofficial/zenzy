@@ -215,11 +215,28 @@ export default function PublicQuotationPage() {
             setSelectedOptionalIds(qData.clientSelectedOptionIds || optIds);
 
             try {
+              const isNewView = !qData.firstViewedAt;
               await updateDoc(qRef, {
                 viewCount: (qData.viewCount || 0) + 1,
                 lastViewedAt: new Date().toISOString(),
-                ...(!qData.firstViewedAt ? { firstViewedAt: new Date().toISOString() } : {})
+                ...(!qData.firstViewedAt ? { firstViewedAt: new Date().toISOString() } : {}),
+                ...(qData.status === "Pending" || qData.status === "Sent" ? { status: "Viewed" } : {})
               });
+
+              const wId = qData.workerId || qData.businessId;
+              if (wId && isNewView) {
+                try {
+                  const { triggerNotification } = await import("@/lib/notifications");
+                  await triggerNotification(
+                    wId,
+                    "Quotation Proposal Viewed 👁️",
+                    `Client ${qData.customerName || "Customer"} just opened & viewed Quotation #${qData.quoteNumber || qData.id.slice(0, 8)}.`,
+                    "system"
+                  );
+                } catch (nErr) {
+                  console.warn("View notification dispatch warn:", nErr);
+                }
+              }
             } catch (vErr) {
               console.warn("View count update failed:", vErr);
             }

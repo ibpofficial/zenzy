@@ -63,18 +63,28 @@ import {
   TrendingUp,
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Ruler,
+  Paintbrush
 } from "lucide-react";
 import QuoteDocument, { getContrastColor, decodeQuote } from "@/components/QuoteDocument";
-import { calculateQuoteCalculations } from "@/lib/quoteUtils";
-
+import {
+  calculateQuoteCalculations,
+  PRESEEDED_CATALOG_ITEMS,
+  STARTER_CATEGORY_TEMPLATES,
+  CatalogItem,
+  createQuoteRevision,
+  calculateQuoteDiff
+} from "@/lib/quoteUtils";
 
 function encodeQuote(quoteObj: any) {
   try {
     const jsonStr = JSON.stringify(quoteObj);
-    const encoded = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => {
-      return String.fromCharCode(parseInt(p1, 16));
-    }));
+    const encoded = btoa(
+      encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+        return String.fromCharCode(parseInt(p1, 16));
+      })
+    );
     const urlSafe = encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     return `url_${urlSafe}`;
   } catch (e) {
@@ -176,6 +186,155 @@ function QuoteComposerContent() {
       content: "1. Quotation valid for 15 days.\n2. Milestone payments must be released upon physical verification of completed phases.\n3. Extra work beyond the stated scope will be billed separately."
     }
   ]);
+
+  // Catalog Picker & Starter Templates State
+  const [catalogItems, setCatalogItems] = useState<CatalogItem[]>(PRESEEDED_CATALOG_ITEMS);
+  const [catalogModalOpen, setCatalogModalOpen] = useState(false);
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [catalogCategory, setCatalogCategory] = useState("all");
+  const [targetSectionIdForCatalog, setTargetSectionIdForCatalog] = useState<string | null>(null);
+
+  // Undo Toast state for non-destructive edits
+  const [undoToast, setUndoToast] = useState<{ message: string; undoAction: () => void } | null>(null);
+
+  // Draft restored state
+  const [draftRestored, setDraftRestored] = useState(false);
+
+  // Continuous Autosave effect
+  useEffect(() => {
+    if (typeof window !== "undefined" && sections.length > 0) {
+      const draftPayload = {
+        sections,
+        quoteDocumentTitle: "TECHNICAL & COMMERCIAL QUOTATION",
+        customerName,
+        customerCompany,
+        customerPhone,
+        customerEmail,
+        customerAddress,
+        projectTitle,
+        projectDescription,
+        paymentTerms: "20% Booking Deposit | 30% Plinth & Slab | 30% Brickwork & MEP | 20% Handover",
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem("zenzy_quote_draft", JSON.stringify(draftPayload));
+    }
+  }, [sections, customerName, customerCompany, customerPhone, customerEmail, customerAddress, projectTitle, projectDescription]);
+
+  // Restore draft on load if present
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedDraft = localStorage.getItem("zenzy_quote_draft");
+      if (savedDraft) {
+        try {
+          const parsed = JSON.parse(savedDraft);
+          if (parsed.sections && Array.isArray(parsed.sections) && parsed.sections.length > 0) {
+            setDraftRestored(true);
+          }
+        } catch (e) {}
+      }
+    }
+  }, []);
+
+  const handleRestoreDraft = () => {
+    if (typeof window === "undefined") return;
+    const savedDraft = localStorage.getItem("zenzy_quote_draft");
+    if (!savedDraft) return;
+    try {
+      const parsed = JSON.parse(savedDraft);
+      if (parsed.sections) setSections(parsed.sections);
+      if (parsed.customerName) setCustomerName(parsed.customerName);
+      if (parsed.customerPhone) setCustomerPhone(parsed.customerPhone);
+      if (parsed.customerEmail) setCustomerEmail(parsed.customerEmail);
+      if (parsed.customerAddress) setCustomerAddress(parsed.customerAddress);
+      if (parsed.projectTitle) setProjectTitle(parsed.projectTitle);
+      if (parsed.projectDescription) setProjectDescription(parsed.projectDescription);
+      alert("✓ Draft restored successfully!");
+      setDraftRestored(false);
+    } catch (e) {
+      console.error("Draft restore error:", e);
+    }
+  };
+
+  const handleDiscardDraft = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("zenzy_quote_draft");
+    }
+    setDraftRestored(false);
+  };
+
+  // Load custom catalog from Firestore
+  useEffect(() => {
+    if (!user?.uid) return;
+    const uid = user.uid;
+    async function loadCatalog() {
+      try {
+        const catSnap = await getDocs(collection(db, "workers", uid, "catalogItems"));
+        const customList: CatalogItem[] = [];
+        catSnap.forEach(d => customList.push({ id: d.id, ...d.data() } as CatalogItem));
+        if (customList.length > 0) {
+          setCatalogItems([...customList, ...PRESEEDED_CATALOG_ITEMS]);
+        }
+      } catch (e) {
+        console.warn("Worker catalog fetch error:", e);
+      }
+    }
+    loadCatalog();
+  }, [user?.uid]);
+
+  const handleInsertFromCatalog = (item: CatalogItem) => {
+    const targetId = targetSectionIdForCatalog || (sections.find(s => s.type === "table")?.id);
+    if (!targetId) return;
+
+    setSections(prev => prev.map(sec => {
+      if (sec.id === targetId) {
+        const newItems = [
+          ...(sec.content || []),
+          {
+            id: `item-${Date.now()}`,
+            phase: item.category ? item.category.toUpperCase() : "GENERAL",
+            name: item.name,
+            notes: item.description,
+            qty: 1,
+            unit: item.unit || "Sq Ft",
+            rate: item.rate || 0,
+            gst: item.gst ?? 18,
+            hsn: item.hsn || "9954",
+            discount: 0,
+            discountType: "flat",
+            optional: false,
+          }
+        ];
+        return { ...sec, content: newItems };
+      }
+      return sec;
+    }));
+
+    setCatalogModalOpen(false);
+    showUndoToast(`Added "${item.name}" from catalog`, () => {
+      setSections(prev => prev.map(sec => {
+        if (sec.id === targetId) {
+          return { ...sec, content: sec.content.slice(0, -1) };
+        }
+        return sec;
+      }));
+    });
+  };
+
+  const showUndoToast = (msg: string, undoAction: () => void) => {
+    setUndoToast({ message: msg, undoAction });
+    setTimeout(() => {
+      setUndoToast(null);
+    }, 5000);
+  };
+
+  const handleApplyCategoryStarterTemplate = (starter: typeof STARTER_CATEGORY_TEMPLATES[0]) => {
+    if (confirm(`Apply starter template "${starter.name}"? This will populate pre-filled sections and sample line items.`)) {
+      setProjectTitle(starter.name);
+      setProjectDescription(starter.description);
+      setSections(starter.sections);
+      showUndoToast(`Template "${starter.name}" applied`, () => {});
+    }
+  };
 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [newAttachmentTitle, setNewAttachmentTitle] = useState("");
@@ -638,7 +797,7 @@ function QuoteComposerContent() {
       case "expiryDate": setExpiryDate(value); break;
       case "customerName": setCustomerName(value); break;
       case "customerCompany": setCustomerCompany(value); break;
-      case "customerPhone": setCustomerPhone(value); break;
+      case "customerPhone": setCustomerPhone(String(value).replace(/\D/g, "").slice(0, 10)); break;
       case "customerEmail": setCustomerEmail(value); break;
       case "customerAddress": setCustomerAddress(value); break;
       case "projectTitle": setProjectTitle(value); break;
@@ -646,7 +805,7 @@ function QuoteComposerContent() {
       case "paymentTerms": setPaymentTerms(value); break;
       case "discount": setDiscount(String(value)); break;
       case "workerName": setWorkerName(value); break;
-      case "workerPhone": setWorkerPhone(value); break;
+      case "workerPhone": setWorkerPhone(String(value).replace(/\D/g, "").slice(0, 10)); break;
       case "workerAddress": setWorkerAddress(value); break;
       case "licenseNo": setLicenseNo(value); break;
       case "workerGstin": setWorkerGstin(value); break;
@@ -891,44 +1050,43 @@ function QuoteComposerContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/60 flex flex-col font-sans text-slate-900 print:bg-white print:p-0">
 
-      {/* Studio Navigation Header - Premium Redesign */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 py-4 px-6 shadow-sm sticky top-0 z-[100] print:hidden">
+      {/* Studio Navigation Header - Mobile Responsive High Contrast */}
+      <div className="bg-slate-900 text-white border-b border-slate-800 py-3.5 px-4 sm:px-6 shadow-md sticky top-0 z-[100] print:hidden">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => router.push("/worker/dashboard")}
-              className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3.5 py-1.5 rounded-[6px] transition-all duration-200"
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-pro-sm transition cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span>Dashboard</span>
+              <span className="hidden sm:inline">Dashboard</span>
             </button>
-            <div className="h-6 w-px bg-slate-200" />
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-[6px] bg-slate-900 flex items-center justify-center text-white font-bold">
+            <div className="h-5 w-px bg-slate-700 hidden sm:block" />
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-pro-sm bg-primary-600 flex items-center justify-center text-white font-bold shrink-0">
                 <Briefcase className="w-4 h-4" />
               </div>
               <div>
-                <span className="font-bold text-sm text-slate-900 tracking-tight">
+                <span className="font-extrabold text-sm text-white tracking-tight block leading-none">
                   Zenzy Studio
                 </span>
-                <span className="ml-2 text-[10px] font-bold bg-indigo-600 text-white px-2 py-0.5 rounded-[4px]">
-                  Quote Composer
+                <span className="text-[9px] font-bold text-primary-300 block mt-0.5">
+                  Pro Proposal Composer
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Live Running Total Indicator */}
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-3 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-[6px]">
-              <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Estimate</span>
-              <span className="text-sm font-bold text-slate-900">₹{grandTotal.toLocaleString("en-IN")}</span>
+          {/* Running Total & Live Indicator */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-pro-sm">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline">Estimate</span>
+              <span className="text-xs sm:text-sm font-black text-white font-mono tabular-nums">₹{grandTotal.toLocaleString("en-IN")}</span>
             </div>
-
-            <div className="flex items-center gap-1.5 text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-[4px]">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>WYSIWYG Editor</span>
+            <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-pro-sm">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Verified Editor</span>
             </div>
           </div>
         </div>
@@ -977,15 +1135,19 @@ function QuoteComposerContent() {
           </div>
         )}
 
-        {/* Professional Templates & Financial Settings - Premium Redesign */}
-        <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-3xl p-6 mb-8 space-y-5 print:hidden shadow-sm">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200/50 pb-4">
+        {/* Professional Branding & Customization Settings Panel - Square Pro Design */}
+        <div className="pro-card bg-white border border-slate-200 rounded-pro-md p-6 mb-8 space-y-6 print:hidden shadow-subtle w-full max-w-7xl">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200/80 pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-500" />
-                <span className="text-sm font-semibold text-slate-900">Professional Templates & Financial Settings</span>
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">
+                  Branding, Theme & Financial Customization
+                </h3>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">Configure GST state compliance, tax inclusion, and discounts.</p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Customize accent brand colors, GST tax compliance, global discounts, and digital signature terms.
+              </p>
             </div>
 
             <button
@@ -1008,100 +1170,175 @@ function QuoteComposerContent() {
                   alert("Failed to save custom template.");
                 }
               }}
-              className="flex items-center gap-2 text-xs font-semibold bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl transition-all duration-200 shadow-md shadow-indigo-500/25 hover:shadow-lg active:scale-[0.98]"
+              className="pro-btn-primary px-4 py-2 text-xs font-bold flex items-center gap-2 cursor-pointer shadow-subtle hover:-translate-y-0.5 transition-all"
             >
-              <Save className="w-4 h-4" /> Save as Template
+              <Save className="w-3.5 h-3.5" /> Save Layout as Template
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Brand Accent Color Swatch Picker */}
+            <div className="space-y-2 sm:col-span-2">
+              <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                Brand Accent Color & Theme Palette
+              </label>
+              <div className="flex flex-wrap items-center gap-2">
+                {PRESET_COLORS.map((preset) => (
+                  <button
+                    key={preset.color}
+                    type="button"
+                    onClick={() => setBrandColor(preset.color)}
+                    className={`w-7 h-7 rounded-pro-sm transition-transform border-2 flex items-center justify-center cursor-pointer ${
+                      brandColor === preset.color ? "scale-110 border-slate-900 shadow-subtle" : "border-white shadow-xs"
+                    }`}
+                    style={{ backgroundColor: preset.color }}
+                    title={preset.name}
+                  >
+                    {brandColor === preset.color && <Check className="w-3.5 h-3.5 text-white" />}
+                  </button>
+                ))}
+                <div className="flex items-center gap-1.5 ml-2">
+                  <input
+                    type="color"
+                    value={brandColor}
+                    onChange={(e) => setBrandColor(e.target.value)}
+                    className="w-8 h-8 rounded-pro-sm cursor-pointer border border-slate-200 p-0.5"
+                    title="Custom Brand Hex Color"
+                  />
+                  <input
+                    type="text"
+                    value={brandColor}
+                    onChange={(e) => setBrandColor(e.target.value)}
+                    className="w-20 px-2 py-1 bg-slate-50 border border-slate-200 rounded-pro-sm text-xs font-mono font-bold text-slate-700 outline-none uppercase"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Discount Value & Type */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5" /> GST Pricing Mode
+              <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                Global Discount Amount
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
+                  placeholder="0"
+                  className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-pro-sm text-xs font-semibold text-slate-800 outline-none focus:border-primary-500"
+                />
+                <select
+                  value={discountType}
+                  onChange={(e) => setDiscountType(e.target.value as any)}
+                  className="px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-pro-sm text-xs font-semibold text-slate-700 outline-none cursor-pointer"
+                >
+                  <option value="flat">₹ Flat</option>
+                  <option value="percent">% Off</option>
+                </select>
+              </div>
+            </div>
+
+            {/* GST Pricing Mode */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                GST Tax Calculation
               </label>
               <select
                 value={taxInclusive ? "inclusive" : "exclusive"}
                 onChange={(e) => setTaxInclusive(e.target.value === "inclusive")}
-                className="w-full px-4 py-2.5 bg-white border border-slate-200/80 rounded-xl text-sm font-medium text-slate-700 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-pro-sm text-xs font-semibold text-slate-800 outline-none focus:border-primary-500 cursor-pointer"
               >
                 <option value="exclusive">Tax Exclusive (Rates + GST)</option>
-                <option value="inclusive">Tax Inclusive (GST included in rates)</option>
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5" /> Worker State (Source)
-              </label>
-              <input
-                type="text"
-                value={workerState}
-                onChange={(e) => setWorkerState(e.target.value)}
-                placeholder="e.g. Rajasthan"
-                className="w-full px-4 py-2.5 bg-white border border-slate-200/80 rounded-xl text-sm font-medium text-slate-700 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all placeholder:text-slate-400"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5" /> Client State (Destination)
-              </label>
-              <input
-                type="text"
-                value={customerState}
-                onChange={(e) => setCustomerState(e.target.value)}
-                placeholder="e.g. Rajasthan"
-                className="w-full px-4 py-2.5 bg-white border border-slate-200/80 rounded-xl text-sm font-medium text-slate-700 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all placeholder:text-slate-400"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-medium text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Percent className="w-3.5 h-3.5" /> Global Discount Type
-              </label>
-              <select
-                value={discountType}
-                onChange={(e) => setDiscountType(e.target.value as any)}
-                className="w-full px-4 py-2.5 bg-white border border-slate-200/80 rounded-xl text-sm font-medium text-slate-700 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200 transition-all"
-              >
-                <option value="flat">Flat Amount (₹)</option>
-                <option value="percent">Percentage (%)</option>
+                <option value="inclusive">Tax Inclusive (GST inside rates)</option>
               </select>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-200/50 flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mr-1">Quick Presets:</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+            {/* Payment Terms Input */}
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                Payment Schedule & Contract Terms
+              </label>
+              <input
+                type="text"
+                value={paymentTerms}
+                onChange={(e) => setPaymentTerms(e.target.value)}
+                placeholder="e.g. 20% Deposit | 40% Mid-point | 40% Handover"
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-pro-sm text-xs font-semibold text-slate-800 outline-none focus:border-primary-500"
+              />
+            </div>
+
+            {/* Worker vs Customer State for GST calculation */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                State GST Alignment (CGST vs IGST)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={workerState}
+                  onChange={(e) => setWorkerState(e.target.value)}
+                  placeholder="Worker State"
+                  className="w-1/2 px-2.5 py-2 bg-white border border-slate-200 rounded-pro-sm text-xs font-semibold text-slate-800 outline-none focus:border-primary-500"
+                  title="Source State"
+                />
+                <input
+                  type="text"
+                  value={customerState}
+                  onChange={(e) => setCustomerState(e.target.value)}
+                  placeholder="Client State"
+                  className="w-1/2 px-2.5 py-2 bg-white border border-slate-200 rounded-pro-sm text-xs font-semibold text-slate-800 outline-none focus:border-primary-500"
+                  title="Destination State"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Presets with Lucide Icons (No Emojis) */}
+          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2.5">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mr-1">
+              Quick Industry Presets:
+            </span>
             <button
               type="button"
               onClick={() => applyPreset("construction")}
-              className="py-1.5 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-xl text-xs font-medium text-slate-700 transition-all duration-200 hover:shadow-sm"
+              className="pro-btn-secondary py-1.5 px-3.5 text-xs font-bold text-slate-800 transition-all duration-200 hover:-translate-y-0.5 shadow-subtle flex items-center gap-1.5 cursor-pointer"
             >
-              🏛️ Civil Construction
+              <Building2 className="w-3.5 h-3.5 text-primary-600" />
+              <span>Civil Construction</span>
             </button>
             <button
               type="button"
               onClick={() => applyPreset("architecture")}
-              className="py-1.5 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-xl text-xs font-medium text-slate-700 transition-all duration-200 hover:shadow-sm"
+              className="pro-btn-secondary py-1.5 px-3.5 text-xs font-bold text-slate-800 transition-all duration-200 hover:-translate-y-0.5 shadow-subtle flex items-center gap-1.5 cursor-pointer"
             >
-              📐 Design & Plans
+              <Ruler className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Design & Plans</span>
             </button>
             <button
               type="button"
               onClick={() => applyPreset("interior")}
-              className="py-1.5 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-xl text-xs font-medium text-slate-700 transition-all duration-200 hover:shadow-sm"
+              className="pro-btn-secondary py-1.5 px-3.5 text-xs font-bold text-slate-800 transition-all duration-200 hover:-translate-y-0.5 shadow-subtle flex items-center gap-1.5 cursor-pointer"
             >
-              🎨 Interior Fitout
+              <Paintbrush className="w-3.5 h-3.5 text-amber-600" />
+              <span>Interior Fitout</span>
             </button>
             <button
               type="button"
               onClick={() => applyPreset("mep")}
-              className="py-1.5 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-200/60 rounded-xl text-xs font-medium text-slate-700 transition-all duration-200 hover:shadow-sm"
+              className="pro-btn-secondary py-1.5 px-3.5 text-xs font-bold text-slate-800 transition-all duration-200 hover:-translate-y-0.5 shadow-subtle flex items-center gap-1.5 cursor-pointer"
             >
-              ⚡ MEP Infrastructure
+              <Zap className="w-3.5 h-3.5 text-emerald-600" />
+              <span>MEP Infrastructure</span>
             </button>
 
-            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider ml-2">Templates:</span>
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider ml-2">
+              Saved Templates:
+            </span>
             {customTemplates.map((t) => (
               <button
                 key={t.id}
@@ -1112,9 +1349,9 @@ function QuoteComposerContent() {
                     alert(`✓ Loaded custom template "${t.name}"`);
                   }
                 }}
-                className="py-1.5 px-4 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200/60 rounded-xl text-xs font-semibold text-indigo-700 transition-all duration-200 hover:shadow-sm"
+                className="py-1.5 px-3.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-pro-sm text-xs font-bold text-indigo-700 transition-all duration-200 hover:-translate-y-0.5 shadow-subtle flex items-center gap-1 cursor-pointer"
               >
-                ⭐ {t.name}
+                <span>⭐</span> {t.name}
               </button>
             ))}
           </div>
@@ -1341,6 +1578,68 @@ function QuoteComposerContent() {
                   <FileText className="w-5 h-5" />
                   <span>{savingQuote ? "Compiling Document..." : "Save & Generate Quotation"}</span>
                 </button>
+                {/* Restored Draft Alert Notice */}
+                {draftRestored && (
+                  <div className="mb-6 bg-primary-50 border border-primary-200 p-4 rounded-pro-md flex items-center justify-between gap-4 text-xs text-primary-900 print:hidden shadow-subtle">
+                    <div className="flex items-center gap-2">
+                      <History className="w-4 h-4 text-primary-600" />
+                      <span>We restored your un-saved quote draft from continuous site autosave.</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleRestoreDraft}
+                        className="pro-btn-primary py-1 px-3 text-xs"
+                      >
+                        Load Draft
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDiscardDraft}
+                        className="pro-btn-secondary py-1 px-3 text-xs"
+                      >
+                        Discard
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Category Starter Templates Bar */}
+                <div className="mb-6 bg-white border border-slate-200/80 rounded-pro-md p-4 space-y-2 print:hidden shadow-subtle">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-primary-600" /> Category Starter Templates
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTargetSectionIdForCatalog(sections.find(s => s.type === "table")?.id || null);
+                        setCatalogModalOpen(true);
+                      }}
+                      className="pro-btn-primary text-xs py-1.5 px-3 flex items-center gap-1"
+                    >
+                      <Tag className="w-3.5 h-3.5" /> Open Item Catalog
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Start a new quote instantly using pre-configured industry templates or pull items directly from your rate catalog.
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {STARTER_CATEGORY_TEMPLATES.map((tmpl) => (
+                      <button
+                        key={tmpl.id}
+                        type="button"
+                        onClick={() => handleApplyCategoryStarterTemplate(tmpl)}
+                        className="pro-btn-secondary py-1 px-3 text-xs flex items-center gap-1 hover:border-primary-400 hover:text-primary-700"
+                      >
+                        <span>{tmpl.name}</span>
+                        <span className="text-[9px] font-bold uppercase text-slate-400 bg-slate-100 px-1 rounded">
+                          {tmpl.category}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
             </form>
@@ -1398,13 +1697,13 @@ function QuoteComposerContent() {
               <button
                 type="button"
                 onClick={() => {
-                  setTargetClientEmail(customerEmail);
                   setTargetQuoteForEmail(null);
+                  setTargetClientEmail(customerEmail || "");
                   setEmailModalOpen(true);
                 }}
-                className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-5 py-3 rounded-xl transition-all duration-200 shadow-md shadow-indigo-600/20 hover:shadow-lg flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm px-5 py-3 rounded-xl transition-all duration-200 shadow-md flex items-center justify-center gap-2 shrink-0 cursor-pointer"
               >
-                <Mail className="w-4 h-4 text-indigo-200" />
+                <Mail className="w-4 h-4 text-slate-300" />
                 <span>Send to Client Account</span>
               </button>
 
@@ -1420,89 +1719,182 @@ function QuoteComposerContent() {
           </div>
         )}
 
-        {/* Send to Client Email Modal */}
-        {emailModalOpen && (
-          <div className="fixed inset-0 z-[200] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl border border-slate-200 animate-scale-in space-y-5">
+        {/* SEARCHABLE RATE CATALOG COMMAND PALETTE MODAL */}
+        {catalogModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs print:hidden">
+            <div className="bg-white border border-slate-200 rounded-pro-lg max-w-2xl w-full p-6 shadow-float space-y-4 animate-scale-in">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                    <Mail className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-base">Send Quotation to Client Account</h3>
-                    <p className="text-[11px] text-slate-400 font-medium">Deliver estimate directly to customer's dashboard</p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Tag className="w-5 h-5 text-primary-600" />
+                  <h3 className="font-bold text-slate-900 text-base">Rate & Item Catalog Picker</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCatalogModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 text-sm font-bold cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Filter Search Input */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={catalogSearch}
+                  onChange={(e) => setCatalogSearch(e.target.value)}
+                  placeholder="Type to filter line items (e.g. plaster, wiring, kitchen)..."
+                  className="flex-1 px-3 py-2 border border-slate-200 rounded-pro-sm text-xs font-semibold outline-none focus:border-primary-500"
+                />
+                <select
+                  value={catalogCategory}
+                  onChange={(e) => setCatalogCategory(e.target.value)}
+                  className="px-3 py-2 border border-slate-200 rounded-pro-sm text-xs font-semibold outline-none bg-slate-50"
+                >
+                  <option value="all">All Categories</option>
+                  <option value="civil">Civil Work</option>
+                  <option value="interior">Interior</option>
+                  <option value="electrical">Electrical</option>
+                  <option value="plumbing">Plumbing</option>
+                  <option value="consulting">Consulting/Fees</option>
+                </select>
+              </div>
+
+              {/* Catalog Items Grid / List */}
+              <div className="max-h-[380px] overflow-y-auto space-y-2 divide-y divide-slate-100 pr-1">
+                {catalogItems
+                  .filter((item) => {
+                    const matchCat = catalogCategory === "all" || item.category === catalogCategory;
+                    const matchText =
+                      !catalogSearch ||
+                      item.name.toLowerCase().includes(catalogSearch.toLowerCase()) ||
+                      item.description.toLowerCase().includes(catalogSearch.toLowerCase());
+                    return matchCat && matchText;
+                  })
+                  .map((item) => (
+                    <div
+                      key={item.id}
+                      className="pt-2.5 flex items-start justify-between gap-4 group/cat"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-xs text-slate-900">{item.name}</span>
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                            {item.category}
+                          </span>
+                          {item.hsn && (
+                            <span className="text-[9px] font-mono text-slate-400">HSN: {item.hsn}</span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5">{item.description}</p>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="text-right font-mono tabular-nums">
+                          <span className="text-xs font-bold text-slate-900">
+                            ₹{item.rate.toLocaleString("en-IN")}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block">per {item.unit}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertFromCatalog(item)}
+                          className="pro-btn-primary py-1 px-3 text-xs"
+                        >
+                          + Add
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* STICKY MOBILE BOTTOM TOTAL & ACTION BAR */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[150] bg-slate-900/95 backdrop-blur-md text-white px-4 py-3 border-t border-slate-800 flex items-center justify-between shadow-float print:hidden">
+        <div>
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Estimated Total</span>
+          <span className="text-base font-black text-white font-mono tabular-nums">₹{grandTotal.toLocaleString("en-IN")}</span>
+        </div>
+        <button
+          type="button"
+          onClick={handleSaveQuotation}
+          disabled={savingQuote}
+          className="bg-primary-600 hover:bg-primary-500 text-white font-bold text-xs px-4 py-2.5 rounded-pro-sm shadow-sm flex items-center gap-1.5 cursor-pointer"
+        >
+          <FileText className="w-4 h-4" />
+          <span>{savingQuote ? "Saving..." : "Save & Share"}</span>
+        </button>
+      </div>
+
+      {/* LIGHTWEIGHT INLINE UNDO TOAST */}
+        {undoToast && (
+          <div className="fixed bottom-6 right-6 z-[300] bg-slate-900 text-white text-xs font-bold py-3 px-5 rounded-pro-md shadow-float flex items-center gap-4 print:hidden animate-fade-up">
+            <span>{undoToast.message}</span>
+            <button
+              type="button"
+              onClick={() => {
+                undoToast.undoAction();
+                setUndoToast(null);
+              }}
+              className="text-primary-400 hover:underline uppercase tracking-wider font-extrabold cursor-pointer"
+            >
+              Undo
+            </button>
+          </div>
+        )}
+
+        {/* SEND TO CLIENT EMAIL MODAL */}
+        {emailModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs print:hidden">
+            <div className="bg-white max-w-md w-full p-6 border border-slate-200 rounded-2xl shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-indigo-600" />
+                  <h3 className="font-bold text-slate-900 text-base">Send Quote to Client Account</h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => setEmailModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition"
+                  className="text-slate-400 hover:text-slate-600 text-xs font-bold"
                 >
-                  <X className="w-4 h-4" />
+                  ✕
                 </button>
               </div>
 
-              <form onSubmit={handleSendQuoteToClientEmail} className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
-                {/* Professional Confirmation Badge */}
-                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 space-y-1.5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 rounded-md">
-                      🆔 Pro ID: #{((user?.uid || "PRO1").slice(0, 8)).toUpperCase()}
-                    </span>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
-                      ✓ Verified Contractor
-                    </span>
-                  </div>
-                  <div className="text-slate-700 font-semibold pt-0.5">
-                    Sender: <strong className="text-slate-900">{workerName || userData?.name || "Professional Contractor"}</strong>
-                  </div>
-                  {workerPhone && (
-                    <div className="text-slate-500 text-[11px]">
-                      Contact: <strong>{workerPhone}</strong>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-700">Client's Account Email Address <span className="text-red-500">*</span></label>
+              <form onSubmit={handleSendQuoteToClientEmail} className="space-y-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">
+                    Client Email Address *
+                  </label>
                   <input
                     type="email"
                     required
                     value={targetClientEmail}
                     onChange={(e) => setTargetClientEmail(e.target.value)}
                     placeholder="client@example.com"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/10"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold outline-none focus:border-indigo-600 focus:bg-white"
                   />
                   <p className="text-[11px] text-slate-400 leading-relaxed pt-1">
-                    When the client logs into Zenzy with this email address, this quotation will automatically appear on their <strong>Customer Dashboard</strong> for review and sign-off.
+                    When the client logs into Zenzy with this email address, this quotation will automatically appear on their <strong>Customer Dashboard</strong>.
                   </p>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-2">
+                <div className="flex justify-end gap-2 pt-2">
                   <button
                     type="button"
                     onClick={() => setEmailModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+                    className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={sendingEmailAccount}
-                    className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold transition shadow-md disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                    className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5"
                   >
-                    {sendingEmailAccount ? (
-                      <>
-                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Mail className="w-3.5 h-3.5" />
-                        Send to Client Account
-                      </>
-                    )}
+                    {sendingEmailAccount ? "Sending..." : "Send Proposal"}
                   </button>
                 </div>
               </form>
