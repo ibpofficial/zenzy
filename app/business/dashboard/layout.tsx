@@ -40,8 +40,9 @@ export default function ProDashboardLayout({ children }: ProDashboardLayoutProps
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const isCustomer = role === "user" || (role as string) === "customer" || (role as string) === "client";
+  const isCrmRoute = pathname?.startsWith("/business/dashboard/crm");
 
-  if (user && isCustomer) {
+  if (user && isCustomer && isCrmRoute) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
         <Navbar />
@@ -50,18 +51,18 @@ export default function ProDashboardLayout({ children }: ProDashboardLayoutProps
             <Users className="w-8 h-8" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Professional Suite Access Restricted</h1>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Customer CRM Access Restricted</h1>
             <p className="text-xs text-slate-600 font-medium max-w-md mx-auto">
-              This Management &amp; CRM suite is designed for registered contractors, interior designers, and service professionals. Customer accounts do not have access to professional business suites.
+              The Customer CRM lead directory is designed for registered contractors and service professionals. To track your project inquiries, contractor bids, and active project workspaces, please visit your dashboard.
             </p>
           </div>
 
           <div className="pt-2 flex justify-center gap-3">
             <Link
-              href="/dashboard"
+              href="/business/dashboard/inquiries"
               className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-extrabold uppercase tracking-wider shadow-md hover:bg-slate-800 transition"
             >
-              My Customer Dashboard
+              My Inquiries & Bids
             </Link>
             <Link
               href="/apps"
@@ -76,22 +77,24 @@ export default function ProDashboardLayout({ children }: ProDashboardLayoutProps
     );
   }
 
-  const navItems = [
+  const allNavItems = [
     { name: "📱 ALL APPS Page", href: "/apps", icon: Grid, badge: "ALL" },
     { name: "Notifications & Alerts", href: "/notifications", icon: BellRing, badge: "Alerts" },
-    { name: "Customer CRM", href: "/business/dashboard/crm", icon: Users, badge: "CRM" },
-    { name: "Portfolio Manager", href: "/business/dashboard/portfolio", icon: ImageIcon },
+    { name: "Customer CRM", href: "/business/dashboard/crm", icon: Users, badge: "CRM", proOnly: true },
+    { name: "Portfolio Manager", href: "/business/dashboard/portfolio", icon: ImageIcon, proOnly: true },
     { name: "Universal Calendar", href: "/business/dashboard/calendar", icon: Calendar },
     { name: "Document Vault", href: "/business/dashboard/vault", icon: FolderArchive },
-    { name: "Team & Staff", href: "/business/dashboard/team", icon: UserCheck },
-    { name: "Finance & Invoices", href: "/business/dashboard/finance", icon: DollarSign },
+    { name: "Team & Staff", href: "/business/dashboard/team", icon: UserCheck, proOnly: true },
+    { name: "Finance & Invoices", href: "/business/dashboard/finance", icon: DollarSign, proOnly: true },
     { name: "Warranty Desk", href: "/business/dashboard/warranty", icon: ShieldCheck },
-    { name: "Business Analytics", href: "/business/dashboard/analytics", icon: TrendingUp },
-    { name: "Suppliers & Costs", href: "/business/dashboard/suppliers", icon: Truck },
+    { name: "Business Analytics", href: "/business/dashboard/analytics", icon: TrendingUp, proOnly: true },
+    { name: "Suppliers & Costs", href: "/business/dashboard/suppliers", icon: Truck, proOnly: true },
     { name: "Active Projects", href: "/business/dashboard/projects", icon: Briefcase },
     { name: "Leads & Inquiries", href: "/business/dashboard/inquiries", icon: MessageSquare },
     { name: "Sent Quotes", href: "/business/dashboard/quotes", icon: FileText }
   ];
+
+  const navItems = allNavItems.filter((item) => !isCustomer || !item.proOnly);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">

@@ -295,9 +295,11 @@ export default function DedicatedAllAppsPage() {
   const isCustomerRole = role === "user" || (role as string) === "customer" || (role as string) === "client";
   const [activeCategory, setActiveCategory] = useState<"all" | "business" | "customer">("all");
 
+  const PRO_ONLY_APP_IDS = ["crm", "crm-360", "portfolio", "team", "finance", "analytics", "suppliers"];
+
   const filteredApps = ALL_APPS.filter((app) => {
-    // Hide business apps if user is a customer
-    if (isCustomerRole && app.category === "business") {
+    // Hide contractor-only CRM tools if user is a customer
+    if (isCustomerRole && PRO_ONLY_APP_IDS.includes(app.id)) {
       return false;
     }
 
@@ -350,18 +352,16 @@ export default function DedicatedAllAppsPage() {
               >
                 All Apps
               </button>
-              {!isCustomerRole && (
-                <button
-                  onClick={() => setActiveCategory("business")}
-                  className={`px-3 py-1.5 rounded-lg font-extrabold text-[11px] transition cursor-pointer ${
-                    activeCategory === "business"
-                      ? "bg-white text-slate-900 shadow-xs border border-slate-200/80"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
-                  }`}
-                >
-                  Business Suite
-                </button>
-              )}
+              <button
+                onClick={() => setActiveCategory("business")}
+                className={`px-3 py-1.5 rounded-lg font-extrabold text-[11px] transition cursor-pointer ${
+                  activeCategory === "business"
+                    ? "bg-white text-slate-900 shadow-xs border border-slate-200/80"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
+                }`}
+              >
+                Project Suite
+              </button>
               <button
                 onClick={() => setActiveCategory("customer")}
                 className={`px-3 py-1.5 rounded-lg font-extrabold text-[11px] transition cursor-pointer ${
