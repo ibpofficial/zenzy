@@ -35,9 +35,46 @@ interface ProDashboardLayoutProps {
 
 export default function ProDashboardLayout({ children }: ProDashboardLayoutProps) {
   const pathname = usePathname();
-  const { user, userData } = useAuth();
+  const { user, userData, role } = useAuth();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const isCustomer = role === "customer" || role === "user" || role === "client";
+
+  if (user && isCustomer) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+        <Navbar />
+        <main className="flex-1 max-w-2xl mx-auto w-full px-4 pt-32 pb-20 text-center space-y-6">
+          <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-md">
+            <Users className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Professional Suite Access Restricted</h1>
+            <p className="text-xs text-slate-600 font-medium max-w-md mx-auto">
+              This Management &amp; CRM suite is designed for registered contractors, interior designers, and service professionals. Customer accounts do not have access to professional business suites.
+            </p>
+          </div>
+
+          <div className="pt-2 flex justify-center gap-3">
+            <Link
+              href="/dashboard"
+              className="px-5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-extrabold uppercase tracking-wider shadow-md hover:bg-slate-800 transition"
+            >
+              My Customer Dashboard
+            </Link>
+            <Link
+              href="/apps"
+              className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-800 text-xs font-extrabold uppercase tracking-wider border border-slate-200 hover:bg-slate-200 transition"
+            >
+              Back to Apps
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const navItems = [
     { name: "📱 ALL APPS Page", href: "/apps", icon: Grid, badge: "ALL" },

@@ -874,5 +874,96 @@ export interface ProMaterialPrice {
   createdAt: string;
 }
 
+export interface CrmLead {
+  id: string;
+  professionalId: string;
+  name: string;
+  phone: string;
+  email?: string;
+  location: string;
+  serviceNeeded: string;
+  budget: number;
+  propertyType: "Residential" | "Commercial" | "Villa" | "Apartment" | "Office";
+  leadSource: "Zenzy Marketplace" | "Direct Website" | "WhatsApp" | "Referral" | "Instagram";
+  createdAt: string;
+  updatedAt?: string;
+  status: "new" | "contacted" | "site_visit" | "quotation_sent" | "negotiation" | "won" | "lost";
+  aiScore: number; // e.g. 92%
+  aiReasons: string[]; // ["Budget matches", "Replies quickly", "Site visit done", "Likely to convert"]
+  followUps: {
+    id: string;
+    type: "call" | "whatsapp" | "reminder" | "visit" | "email";
+    scheduledFor: string;
+    notes?: string;
+    status: "pending" | "done";
+  }[];
+  timeline: {
+    id: string;
+    title: string;
+    description?: string;
+    timestamp: string;
+    actor?: string;
+  }[];
+  notes?: string[];
+  sitePhotos?: string[];
+  callLogs?: { id: string; date: string; duration: string; summary: string }[];
+  quotationId?: string;
+}
+
+export interface ProCustomer {
+  id: string;
+  professionalId: string;
+  name: string;
+  phone: string;
+  email?: string;
+  city?: string;
+  companyName?: string;
+  status: "active" | "completed" | "archived" | "lead";
+  isFavourite?: boolean;
+  isRepeat?: boolean;
+  completedProjectsCount?: number;
+  createdAt?: string;
+  profilePhoto?: string;
+  preferredTime?: string;
+  paymentPreference?: string;
+  materialPreference?: string;
+  familyMembers?: string[];
+  specialNotes?: string[];
+  addresses?: { label: string; address: string; isPrimary?: boolean }[];
+}
+
+export interface CrmQuotation {
+  id: string;
+  professionalId: string;
+  leadId?: string;
+  customerName: string;
+  customerPhone: string;
+  projectTitle: string;
+  totalAmount: number;
+  status: "draft" | "sent" | "viewed" | "accepted" | "rejected" | "expired";
+  createdAt: string;
+  validUntil?: string;
+  items: { title: string; qty: number; unit: string; rate: number; amount: number }[];
+  pdfUrl?: string;
+  aiGenerated?: boolean;
+}
+
+export interface CrmInvoice {
+  id: string;
+  professionalId: string;
+  invoiceNumber: string;
+  customerName: string;
+  customerPhone: string;
+  amount: number;
+  gstAmount: number;
+  totalAmount: number;
+  status: "pending" | "paid" | "overdue" | "cancelled";
+  dueDate: string;
+  createdAt: string;
+  paymentLink?: string;
+  paymentId?: string;
+}
+
+
 
 
