@@ -21,7 +21,7 @@ import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
-import WorkspaceAiAssistant from "@/components/WorkspaceAiAssistant";
+import ZenAssistant from "@/components/ZenAssistant";
 import { logProjectEvent } from "@/lib/projectEvents";
 import { recalculateProjectTrust } from "@/lib/projectTrust";
 import { generateProjectAlerts, ProjectAlert } from "@/lib/projectAlerts";
@@ -3432,19 +3432,8 @@ export default function WorkspacePage() {
 
       </main>
 
-      {/* AI Assistant Scoped to Real Project Events */}
-      {project && (
-        <WorkspaceAiAssistant
-          project={project}
-          events={events}
-          milestones={milestones}
-          dailyLogs={dailyLogs}
-          documents={documents}
-          paymentRequests={paymentRequests}
-          warranty={warranty}
-          actorRole={actorRole}
-        />
-      )}
+      {/* ZEN AI Assistant - Platform AI Assistant */}
+      <ZenAssistant />
 
       <Footer />
     </div>
