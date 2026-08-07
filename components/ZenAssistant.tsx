@@ -142,7 +142,7 @@ export default function ZenAssistant() {
 
   // Usage limits calculation
   const aiUsageLimit = (userData?.zenQueriesLimit as number) ?? 15;
-  const isUnlimitedUser = role === "admin" || role === "super_admin" || userData?.isUnlimitedAi === true;
+  const isUnlimitedUser = (role as string) === "admin" || (role as string) === "super_admin" || userData?.isUnlimitedAi === true;
 
   // Initialize Chat & load usage statistics
   useEffect(() => {
