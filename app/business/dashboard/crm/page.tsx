@@ -48,11 +48,16 @@ import {
   Layers,
   LayoutGrid,
   List,
-  Inbox
+  Inbox,
+  Maximize2,
+  Minimize2
 } from "lucide-react";
 
 export default function ProfessionalCrmSuitePage() {
   const { user, userData } = useAuth();
+
+  // Full Focus Screen Mode (Removes side nav and top header completely)
+  const [isFullFocusMode, setIsFullFocusMode] = useState(false);
 
   // Active Tab State
   const [activeTab, setActiveTab] = useState<
@@ -373,17 +378,46 @@ export default function ProfessionalCrmSuitePage() {
   const pendingFollowUpsCount = leads.flatMap((l) => l.followUps || []).filter((f) => f.status === "pending").length;
 
   return (
-    <div className="space-y-6 font-sans text-slate-900 text-left max-w-[1536px] mx-auto p-3 sm:p-6">
-      
-      {/* ── CLEAN SQUARE EXECUTIVE HEADER BAR WITH SUBTLE CORNERS ── */}
+    <div
+      className={
+        isFullFocusMode
+          ? "fixed inset-0 z-50 bg-slate-50 overflow-y-auto p-4 sm:p-6 space-y-5 font-sans text-slate-900 text-left"
+          : "space-y-6 font-sans text-slate-900 text-left max-w-[1536px] mx-auto p-3 sm:p-6"
+      }
+    >
+      {/* ── CLEAN SQUARE EXECUTIVE HEADER BAR WITH FULL VIEW TOGGLE ── */}
       <div className="bg-[#0f172a] rounded-lg p-4 sm:p-5 text-white shadow-sm border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-            Professional CRM Suite
-          </h1>
-          <p className="text-xs text-slate-400 font-medium mt-0.5">
-            Real-time Client Inquiry Pipeline &amp; Sales Management
-          </p>
+        <div className="flex items-center gap-3">
+          {/* Translucent Glassmorphic Back Button in Full Focus Mode */}
+          {isFullFocusMode ? (
+            <button
+              type="button"
+              onClick={() => setIsFullFocusMode(false)}
+              className="bg-slate-800/80 backdrop-blur-md hover:bg-slate-700 text-white text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-md border border-slate-700 shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4 text-emerald-400" />
+              <span>Back to Suite</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsFullFocusMode(true)}
+              title="Full View CRM Focus Mode (hides side nav and top header)"
+              className="bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-bold px-3 py-1.5 rounded-md border border-slate-700/80 transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Maximize2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">Full View</span>
+            </button>
+          )}
+
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              Professional CRM Suite
+            </h1>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">
+              Real-time Client Inquiry Pipeline &amp; Sales Management
+            </p>
+          </div>
         </div>
 
         {/* Tab Navigation Bar with Scroll Arrows & Square Buttons */}
@@ -618,7 +652,7 @@ export default function ProfessionalCrmSuitePage() {
       )}
 
       {/* ───────────────────────────────────────────────────────────
-          2. LEADS MODULE (SQUARE CARDS, NO DOUBLE NESTED BOXES)
+          2. LEADS MODULE
           ─────────────────────────────────────────────────────────── */}
       {activeTab === "leads" && (
         <div className="space-y-5 animate-fade-in">
