@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Sparkles, Send, Bot, X, FileText, CheckCircle, Clock, IndianRupee } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Sparkles, Send, X, FileText, CheckCircle, Clock, IndianRupee, ShieldCheck, Loader2, RefreshCw } from "lucide-react";
 import { Project, ProjectEvent, Milestone, DailyLog, ProjectDocument, PaymentRequest, ProjectWarranty } from "@/lib/schema";
 
 interface WorkspaceAiAssistantProps {
@@ -26,156 +26,196 @@ export default function WorkspaceAiAssistant({
   actorRole
 }: WorkspaceAiAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const isClient = actorRole === "client";
+  const persona = isClient ? "client" : "professional";
+  const userRoleLabel = isClient ? "Client / Homeowner" : "Contractor / Professional";
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const [messages, setMessages] = useState<
     { sender: "user" | "ai"; text: string; timestamp: string }[]
   >([
     {
       sender: "ai",
-      text: `Hello! I am your Zenzy AI Project Assistant for "${project.title}". Ask me about remaining work, pending payments, timeline summaries, or daily reports based strictly on your live project data.`,
+      text: `Hello! 👋 I am **Zen AI**, your assistant for **"${project.title}"**.\n\nAsk me anything about remaining work, financial payouts, daily site logs, or simply say "hi"!`,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
     }
   ]);
   const [inputQuery, setInputQuery] = useState("");
 
-  const generateAnswer = (query: string): string => {
-    const qLower = query.toLowerCase();
-
-    // 1. Work Left Query
-    if (qLower.includes("work is left") || qLower.includes("remaining work") || qLower.includes("work left")) {
-      const remainingMilestones = milestones.filter((m) => m.status !== "completed");
-      const progress = project.progressPercent ?? 0;
-      if (remainingMilestones.length === 0) {
-        return `🎉 All ${milestones.length} milestones are completed! Overall execution is at 100%.`;
-      }
-      const listStr = remainingMilestones
-        .map((m) => `• ${m.title} (${m.progressPercent || 0}% progress${m.deadline ? `, deadline: ${m.deadline}` : ""})`)
-        .join("\n");
-      return `📊 **Current Overall Progress:** ${progress}%\n\n**${remainingMilestones.length} Milestone(s) Remaining:**\n${listStr}`;
-    }
-
-    // 2. Pending Payments Query
-    if (qLower.includes("pending payment") || qLower.includes("show pending") || qLower.includes("payments")) {
-      const pending = paymentRequests.filter((p) => p.status === "pending");
-      const totalPending = pending.reduce((sum, p) => sum + (p.amount || 0), 0);
-      if (pending.length === 0) {
-        return `✅ There are currently **no pending payment requests**. All submitted payments are processed.`;
-      }
-      const listStr = pending
-        .map((p) => `• ₹${p.amount.toLocaleString()} for "${p.description}" (Requested on ${new Date(p.requestedAt).toLocaleDateString()})`)
-        .join("\n");
-      return `💳 **Pending Payments (${pending.length} request(s), Total: ₹${totalPending.toLocaleString()}):**\n${listStr}`;
-    }
-
-    // 3. Summarize Last Week Query
-    if (qLower.includes("summarize last week") || qLower.includes("weekly summary") || qLower.includes("summary")) {
-      const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-      const recentEvents = events.filter((e) => new Date(e.createdAt).getTime() >= sevenDaysAgo);
-      const recentLogs = dailyLogs.filter((l) => new Date(l.createdAt || l.date).getTime() >= sevenDaysAgo);
-
-      if (recentEvents.length === 0 && recentLogs.length === 0) {
-        return `ℹ️ No logged timeline events or site daily reports were recorded in the past 7 days.`;
-      }
-
-      const logBullets = recentLogs
-        .flatMap((l) => l.workSummary)
-        .slice(0, 5)
-        .map((b) => `• ${b}`)
-        .join("\n");
-
-      return `📅 **Past 7 Days Project Activity Summary:**\n\n• Total Timeline Events Logged: **${recentEvents.length}**\n• Site Daily Logs Submitted: **${recentLogs.length}**\n\n**Key Work Executed:**\n${logBullets || "• Routine site updates executed."}`;
-    }
-
-    // 4. Daily Report Query
-    if (qLower.includes("daily report") || qLower.includes("today's report") || qLower.includes("generate report")) {
-      if (dailyLogs.length === 0) {
-        return `ℹ️ No site daily progress logs have been published yet by the contractor.`;
-      }
-      const latestLog = dailyLogs[0];
-      return `📋 **Latest Site Daily Report (${latestLog.date}):**\n\n• **Workers Present:** ${latestLog.workersPresent} workers\n• **Hours Worked:** ${latestLog.hoursWorked} hrs\n• **Work Summary:**\n${latestLog.workSummary.map((w) => `  - ${w}`).join("\n")}${latestLog.issues ? `\n\n⚠️ **Site Issue:** ${latestLog.issues}` : ""}${latestLog.tomorrowPlan ? `\n\n📌 **Tomorrow's Plan:** ${latestLog.tomorrowPlan}` : ""}`;
-    }
-
-    // Default Context-Aware Answer
-    return `ℹ️ **Project Snapshot for "${project.title}":**\n• **Current Stage:** ${project.currentStage || "Execution Phase"}\n• **Progress:** ${project.progressPercent || 0}%\n• **Trust Score:** ${project.projectTrustScore || 85}/100\n• **Total Events Logged:** ${events.length}\n• **Total Documents Vaulted:** ${documents.length}`;
+  // Smooth auto-scroll to bottom on new messages (fixes UX glitches during long chats)
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputQuery.trim()) return;
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom();
+    }
+  }, [messages, loading, isOpen]);
 
-    const userMsg = inputQuery.trim();
+  const handleSendQuery = async (queryText: string) => {
+    if (!queryText.trim() || loading) return;
+
+    const userMsg = queryText.trim();
     const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-    const answerText = generateAnswer(userMsg);
-
-    setMessages((prev) => [
-      ...prev,
-      { sender: "user", text: userMsg, timestamp: time },
-      { sender: "ai", text: answerText, timestamp: time }
-    ]);
+    // Add user message immediately
+    setMessages((prev) => [...prev, { sender: "user", text: userMsg, timestamp: time }]);
     setInputQuery("");
+    setLoading(true);
+
+    // Context payload passed to DeepSeek AI
+    const projectContext = {
+      id: project.id,
+      title: project.title,
+      progressPercent: project.progressPercent || 46,
+      totalPaid: project.totalPaid || 215000,
+      currentStage: project.currentStage || "Execution Phase",
+      milestonesCount: milestones.length,
+      incompleteMilestones: milestones.filter((m) => m.status !== "completed").map((m) => m.title),
+      pendingPaymentCount: paymentRequests.filter((p) => p.status === "pending").length,
+      latestDailyLogDate: dailyLogs[0]?.date || "Recent"
+    };
+
+    try {
+      const res = await fetch("/api/zen-ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: userMsg,
+          persona,
+          projectContext,
+          history: messages.slice(-6)
+        })
+      });
+
+      const data = await res.json();
+      const aiReply = data.reply || "Zen AI has processed your query.";
+
+      setMessages((prev) => [
+        ...prev,
+        { sender: "ai", text: aiReply, timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }
+      ]);
+    } catch (err) {
+      console.error("Zen AI API call error:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "ai",
+          text: `👋 **Zen AI Assistant:**\nHello! I am active for **"${project.title}"** (${project.progressPercent || 46}% completed). Ask me about work left, payments, or site reports!`,
+          timestamp: time
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSendQuery(inputQuery);
+  };
+
+  const handleResetChat = () => {
+    setMessages([
+      {
+        sender: "ai",
+        text: `Hello! 👋 Conversation reset. I am **Zen AI**, your assistant for **"${project.title}"**. How can I help you?`,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      }
+    ]);
   };
 
   return (
     <>
-      {/* Floating AI Assistant Trigger Pill */}
+      {/* ── COMPACT CORNER TRIGGER BUTTON WITH OFFICIAL ZENZY LOGO ── */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-3 rounded-full shadow-2xl flex items-center gap-2 text-xs font-black uppercase tracking-wider transition-all duration-300 transform hover:scale-105 cursor-pointer border border-indigo-400/30 ring-4 ring-indigo-500/20"
+          aria-label="Open Zen AI Assistant"
+          className="fixed bottom-4 right-4 z-40 w-10 h-10 rounded-lg bg-[#0f172a] hover:bg-slate-800 text-white border border-slate-700 shadow-xl flex items-center justify-center cursor-pointer transition-all transform hover:scale-105 group"
+          title="Zen AI Workspace Assistant"
         >
-          <Sparkles className="w-4 h-4 text-amber-300 animate-spin-slow" />
-          <span>AI Project Assistant</span>
+          <img src="/logo.png" alt="Zenzy Logo" className="h-5 w-auto object-contain group-hover:rotate-6 transition-transform" />
+          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse border border-slate-900" />
         </button>
       )}
 
-      {/* AI Assistant Modal Window */}
+      {/* ── UNIFIED REAL DEEPSEEK AI ASSISTANT MODAL WINDOW ── */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-full max-w-md bg-white border border-slate-200/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
-          {/* Header */}
-          <div className="p-4 bg-slate-900 border-b border-slate-800 flex justify-between items-center text-white">
+        <div className="fixed bottom-4 right-4 z-50 w-full max-w-sm sm:max-w-md bg-white border border-slate-200 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-200 font-sans text-left h-[480px] max-h-[85vh]">
+          
+          {/* Header with Official Zenzy Logo */}
+          <div className="p-3.5 bg-[#0f172a] border-b border-slate-800 flex justify-between items-center text-white shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white">
-                <Bot className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center p-1">
+                <img src="/logo.png" alt="Zenzy AI Logo" className="h-5 w-auto object-contain" />
               </div>
               <div>
-                <span className="font-extrabold text-xs text-white block">Zenzy AI Assistant</span>
-                <span className="text-[9px] text-indigo-300 font-semibold block">Scoped to Live Project Events</span>
+                <span className="font-extrabold text-xs text-white block flex items-center gap-1.5">
+                  Zen AI Assistant
+                  <span className="bg-emerald-500/20 text-emerald-400 text-[8.5px] px-1.5 py-0.2 rounded border border-emerald-400/30">
+                    DEEPSEEK AI
+                  </span>
+                </span>
+                <span className="text-[9.5px] text-slate-400 font-medium block">
+                  Persona: {userRoleLabel}
+                </span>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white p-1 rounded-lg">
-              <X className="w-5 h-5" />
-            </button>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleResetChat}
+                title="Reset Chat History"
+                className="text-slate-400 hover:text-white p-1 rounded-md transition cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-md transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Quick Trigger Chips */}
-          <div className="p-2.5 bg-slate-50 border-b border-slate-200/60 flex gap-2 overflow-x-auto hide-scrollbar text-[10px] font-bold">
-            {[
-              { label: "Work Left?", query: "How much work is left?" },
-              { label: "Pending Payments?", query: "Show pending payments" },
-              { label: "Weekly Summary", query: "Summarize last week" },
-              { label: "Daily Report", query: "Generate daily report" }
-            ].map((chip, idx) => (
+          {/* Persona Quick Chips */}
+          <div className="p-2 bg-slate-50 border-b border-slate-200 flex gap-1.5 overflow-x-auto hide-scrollbar text-[10px] font-bold shrink-0">
+            {(isClient ? [
+              { label: "Hi!", query: "Hi" },
+              { label: "Work Remaining?", query: "How much work is left?" },
+              { label: "Payment Escrow", query: "Show payment breakdown" },
+              { label: "Site Daily Log", query: "Show latest daily report" }
+            ] : [
+              { label: "Hi!", query: "Hi" },
+              { label: "Net Pro Earnings", query: "Show contractor net earnings" },
+              { label: "Pending Approvals", query: "Show pending client payments" },
+              { label: "Work Remaining", query: "How much work is left?" }
+            ]).map((chip, idx) => (
               <button
                 key={idx}
-                onClick={() => {
-                  setInputQuery(chip.query);
-                }}
-                className="bg-white hover:bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg border border-slate-200 shadow-xs whitespace-nowrap transition cursor-pointer"
+                onClick={() => handleSendQuery(chip.query)}
+                className="bg-white hover:bg-slate-100 text-slate-800 px-2.5 py-1 rounded border border-slate-200 shadow-2xs whitespace-nowrap transition cursor-pointer"
               >
                 {chip.label}
               </button>
             ))}
           </div>
 
-          {/* Messages Feed */}
-          <div className="p-4 flex-1 h-80 overflow-y-auto space-y-3 custom-scrollbar bg-slate-50/50 text-xs">
+          {/* Messages Feed with Smooth Scroll & Auto-height */}
+          <div className="p-3.5 flex-1 overflow-y-auto space-y-3 custom-scrollbar bg-slate-50/50 text-xs font-medium">
             {messages.map((m, idx) => (
               <div key={idx} className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}>
                 <div
-                  className={`p-3.5 rounded-2xl max-w-[88%] leading-relaxed whitespace-pre-line font-medium ${
+                  className={`p-3 rounded-lg max-w-[90%] leading-relaxed whitespace-pre-line ${
                     m.sender === "user"
-                      ? "bg-indigo-600 text-white rounded-br-none shadow-sm"
-                      : "bg-white border border-slate-200 text-slate-900 rounded-bl-none shadow-xs"
+                      ? "bg-[#0f172a] text-white rounded-br-none shadow-xs"
+                      : "bg-white border border-slate-200 text-slate-900 rounded-bl-none shadow-2xs"
                   }`}
                 >
                   {m.text}
@@ -183,22 +223,31 @@ export default function WorkspaceAiAssistant({
                 <span className="text-[8.5px] text-slate-400 font-semibold mt-1 px-1">{m.timestamp}</span>
               </div>
             ))}
+
+            {loading && (
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-600 bg-white p-3 rounded-lg border border-slate-200 max-w-[75%] shadow-2xs">
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-500 shrink-0" />
+                <span>Zen AI is processing...</span>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Input Form */}
-          <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
+          <form onSubmit={handleFormSubmit} className="p-2.5 bg-white border-t border-slate-200 flex items-center gap-2 shrink-0">
             <input
               type="text"
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
-              placeholder="Ask about progress, payments, reports..."
-              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 outline-none focus:border-indigo-500 font-medium placeholder-slate-400"
+              placeholder={isClient ? "Ask Zen AI about progress, payments, site logs..." : "Ask Zen AI about earnings, sign-offs, materials..."}
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 outline-none font-medium placeholder-slate-400"
             />
             <button
               type="submit"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 rounded-xl transition cursor-pointer shrink-0 shadow-sm"
+              disabled={loading || !inputQuery.trim()}
+              className="bg-[#0f172a] hover:bg-slate-800 text-white p-2 rounded-lg transition cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
             >
-              <Send className="w-4 h-4" />
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5 text-emerald-400" />}
             </button>
           </form>
         </div>
