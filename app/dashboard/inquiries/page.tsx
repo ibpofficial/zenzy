@@ -31,7 +31,9 @@ import {
   ShieldCheck,
   Building2,
   Filter,
-  Plus
+  Plus,
+  Sparkles,
+  Play
 } from "lucide-react";
 import { Inquiry } from "@/lib/schema";
 
@@ -84,11 +86,11 @@ export default function ClientInquiriesPage() {
 
       const uniqueWorkerIds = Array.from(new Set(list.map(i => i.professionalId)));
       uniqueWorkerIds.forEach(async (wId) => {
-        if (!workerNames[wId]) {
+        if (wId && !workerNames[wId]) {
           try {
             const wSnap = await getDoc(doc(db, "workers", wId));
             if (wSnap.exists()) {
-              setWorkerNames(prev => ({ ...prev, [wId]: wSnap.data().name || "Professional" }));
+              setWorkerNames(prev => ({ ...prev, [wId]: wSnap.data().name || "Partner Contractor" }));
             }
           } catch (e) {
             console.error("Failed to fetch worker name:", e);
@@ -111,14 +113,14 @@ export default function ClientInquiriesPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans">
         <Navbar />
         <main className="max-w-md mx-auto px-6 py-32 text-center space-y-6">
-          <div className="w-16 h-16 rounded-[10px] bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto shadow-xs">
+          <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto shadow-md">
             <AlertTriangle className="w-8 h-8" />
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Access Restricted</h1>
-          <p className="text-slate-500 text-xs font-semibold">Please sign in to track your submitted project inquiries.</p>
+          <p className="text-slate-500 text-xs font-semibold">Please sign in to track your project inquiries.</p>
         </main>
         <Footer />
       </div>
@@ -175,72 +177,103 @@ export default function ClientInquiriesPage() {
     ? inquiries
     : inquiries.filter(i => i.stage === stageFilter);
 
+  const quotationSentCount = inquiries.filter(i => i.stage === "quotation_sent").length;
+  const activeStartedCount = inquiries.filter(i => i.stage === "project_started").length;
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-[#0f2744] selection:text-white">
       <Navbar />
 
-      <main className="flex-grow max-w-[1536px] mx-auto w-full px-3 sm:px-5 lg:px-6 pt-28 pb-16 space-y-6">
+      <main className="flex-grow max-w-7xl mx-auto w-full px-3 sm:px-5 lg:px-6 pt-24 sm:pt-28 pb-16 space-y-6">
 
-        {/* Admin Navigation Breadcrumb */}
+        {/* Back Link Breadcrumb */}
         <div className="flex justify-between items-center border-b border-slate-200 pb-3">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition"
           >
-            <ChevronLeft className="w-4 h-4" /> Back to Dashboard
+            <ChevronLeft className="w-4 h-4" /> Back to Client Dashboard
           </Link>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[11px] font-extrabold uppercase text-slate-500 tracking-wider">
-              Inquiries Portal Active
+              Customer Portal Active
             </span>
           </div>
         </div>
 
         {/* Executive Header Banner */}
-        <div className="bg-gradient-to-r from-[#0f2744] via-[#1a365d] to-[#0f2744] text-white p-6 sm:p-8 rounded-[10px] border border-slate-800 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-[10px] font-black uppercase tracking-widest bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Client CRM Pipeline
+        <div className="bg-gradient-to-r from-[#0f2744] via-[#1a365d] to-[#0f2744] text-white p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-5 relative overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+          
+          <div className="space-y-2 relative z-10">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Customer Inquiries Hub
               </span>
-              <span className="text-[10px] font-bold text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-[4px] border border-amber-500/30">
+              <span className="text-[10px] font-bold text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-500/30">
                 {inquiries.length} Active Records
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Submitted Project Inquiries & Bids
+              My Project Briefs & Contractor Bids
             </h1>
             <p className="text-xs text-slate-300 font-medium max-w-2xl leading-relaxed">
-              Monitor real-time proposal stages, inspect contractor bids, manage stage histories, and navigate to active project workspaces.
+              Track proposal lifecycle stages, inspect itemized contractor quotes, confirm start handshakes, and enter live project workspaces.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 relative z-10">
             <Link
               href="/requirements/brief-generator"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-[8px] font-black text-xs uppercase tracking-wider transition shadow-md flex items-center gap-2 cursor-pointer"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition shadow-md flex items-center gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Create New Brief</span>
+              <span>Submit New Brief</span>
             </Link>
           </div>
         </div>
 
+        {/* Metric KPI Summary Pills */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs space-y-1">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Total Briefs</span>
+            <span className="text-xl font-black text-slate-900 font-mono">{inquiries.length}</span>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs space-y-1">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Bids Received</span>
+            <span className="text-xl font-black text-indigo-600 font-mono">{quotationSentCount}</span>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs space-y-1">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Projects Active</span>
+            <span className="text-xl font-black text-emerald-600 font-mono">{activeStartedCount}</span>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-xs space-y-1">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Handshake Status</span>
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5 mt-1">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Real-Time Sync</span>
+            </span>
+          </div>
+        </div>
+
         {/* Stage Filter Control Bar */}
-        <div className="bg-white p-4 rounded-[10px] border border-slate-200/90 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-2 text-xs font-black text-[#0f2744] uppercase tracking-wider">
             <Filter className="w-4 h-4" /> Filter by Stage:
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
             {[
-              { id: "all", label: "All Inquiries" },
+              { id: "all", label: "All Briefs" },
               { id: "received", label: "Received" },
               { id: "discussion", label: "Discussion" },
-              { id: "quotation_sent", label: "Quotation Sent" },
+              { id: "quotation_sent", label: "Quotes Sent" },
               { id: "accepted", label: "Accepted" },
-              { id: "project_started", label: "Project Started" }
+              { id: "project_started", label: "Workspace Active" }
             ].map((f) => {
               const isActive = stageFilter === f.id;
               return (
@@ -248,7 +281,7 @@ export default function ClientInquiriesPage() {
                   key={f.id}
                   type="button"
                   onClick={() => setStageFilter(f.id)}
-                  className={`px-3 py-1.5 rounded-[6px] text-xs font-extrabold uppercase transition cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer ${
                     isActive
                       ? "bg-[#0f2744] text-white shadow-xs"
                       : "bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/80"
@@ -263,17 +296,17 @@ export default function ClientInquiriesPage() {
 
         {/* Inquiry Cards Grid */}
         {filteredInquiries.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-[10px] border border-slate-200/90 p-8 shadow-xs space-y-3">
-            <div className="w-14 h-14 mx-auto bg-indigo-50 text-[#0f2744] rounded-[8px] border border-indigo-100 flex items-center justify-center">
+          <div className="text-center py-20 bg-white rounded-2xl border border-slate-200/90 p-8 shadow-xs space-y-3">
+            <div className="w-14 h-14 mx-auto bg-indigo-50 text-[#0f2744] rounded-xl border border-indigo-100 flex items-center justify-center">
               <FileText className="w-7 h-7" />
             </div>
             <h3 className="text-base font-black text-slate-900">No project inquiries found</h3>
             <p className="text-xs text-slate-500 font-semibold max-w-md mx-auto leading-relaxed">
-              No inquiries match the selected filter stage. Submit a new requirement brief to begin receiving professional contractor bids.
+              No inquiries match the selected filter stage. Submit a new requirement brief to receive professional contractor bids.
             </p>
             <Link
               href="/requirements/brief-generator"
-              className="inline-flex items-center gap-2 bg-[#0f2744] hover:bg-[#1e3a8a] text-white px-5 py-2.5 rounded-[8px] font-black text-xs uppercase tracking-wider transition shadow-xs mt-2"
+              className="inline-flex items-center gap-2 bg-[#0f2744] hover:bg-[#1e3a8a] text-white px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition shadow-xs mt-2"
             >
               Generate Requirements Brief &rarr;
             </Link>
@@ -283,7 +316,7 @@ export default function ClientInquiriesPage() {
             {filteredInquiries.map((inquiry) => (
               <div
                 key={inquiry.id}
-                className={`bg-white rounded-[10px] shadow-xs hover:shadow-md transition-all border flex flex-col justify-between space-y-4 p-6 ${
+                className={`bg-white rounded-2xl shadow-xs hover:shadow-md transition-all border flex flex-col justify-between space-y-4 p-6 ${
                   inquiry.overdue
                     ? 'border-amber-300 ring-1 ring-amber-400/30'
                     : 'border-slate-200/90 hover:border-slate-300'
@@ -293,7 +326,7 @@ export default function ClientInquiriesPage() {
                   
                   {/* Top Badge & Date */}
                   <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-[10px] font-black uppercase tracking-wider border ${getStageBadgeStyle(inquiry.stage)}`}>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider border ${getStageBadgeStyle(inquiry.stage)}`}>
                       {getStageIcon(inquiry.stage)}
                       <span>{getStageLabel(inquiry.stage)}</span>
                     </span>
@@ -321,7 +354,7 @@ export default function ClientInquiriesPage() {
                   </div>
 
                   {/* Commercial Parameters Bar */}
-                  <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-800 bg-slate-50 p-3 rounded-[8px] border border-slate-200/80">
+                  <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
                     <div className="flex items-center gap-1.5">
                       <IndianRupee className="w-3.5 h-3.5 text-[#0f2744]" />
                       <span className="truncate">{inquiry.budgetRange}</span>
@@ -342,7 +375,7 @@ export default function ClientInquiriesPage() {
                 <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
                   <Link
                     href={`/dashboard/inquiries/${inquiry.id}`}
-                    className="flex-1 bg-[#0f2744] hover:bg-[#1e3a8a] text-white px-4 py-2.5 rounded-[8px] text-xs font-black uppercase tracking-wider transition shadow-xs flex items-center justify-between cursor-pointer"
+                    className="flex-1 bg-[#0f2744] hover:bg-[#1e3a8a] text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-xs flex items-center justify-between cursor-pointer"
                   >
                     <span>View Bids & Details</span>
                     <ArrowRight className="w-4 h-4" />
@@ -351,7 +384,7 @@ export default function ClientInquiriesPage() {
                   <button
                     type="button"
                     onClick={() => handleDeleteInquiry(inquiry.id, inquiry.title)}
-                    className="p-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 rounded-[8px] transition cursor-pointer flex items-center justify-center shrink-0"
+                    className="p-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 rounded-xl transition cursor-pointer flex items-center justify-center shrink-0"
                     title="Delete Inquiry Record"
                   >
                     <Trash2 className="w-4 h-4" />
