@@ -59,6 +59,20 @@ export default function ProfessionalCrmSuitePage() {
     "dashboard" | "leads" | "customers" | "projects" | "quotations" | "invoices" | "tasks"
   >("dashboard");
 
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollTabsLeft = () => {
+    if (tabsContainerRef.current) {
+      tabsContainerRef.current.scrollBy({ left: -260, behavior: "smooth" });
+    }
+  };
+
+  const handleScrollTabsRight = () => {
+    if (tabsContainerRef.current) {
+      tabsContainerRef.current.scrollBy({ left: 260, behavior: "smooth" });
+    }
+  };
+
   // View Mode for Leads: Board (Kanban) or Table
   const [leadsViewMode, setLeadsViewMode] = useState<"board" | "table">("board");
 
@@ -378,38 +392,61 @@ export default function ProfessionalCrmSuitePage() {
           </p>
         </div>
 
-        {/* Tab Navigation Pill Bar */}
-        <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar bg-slate-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-700/80 z-10 w-full lg:w-auto">
-          {[
-            { id: "dashboard", label: "Dashboard", icon: Home },
-            { id: "leads", label: "Leads", icon: Flame, badge: leads.length },
-            { id: "customers", label: "Customers", icon: Users, badge: customers.length },
-            { id: "projects", label: "Projects", icon: Briefcase, badge: projects.length },
-            { id: "quotations", label: "Quotations", icon: FileText, badge: quotations.length },
-            { id: "invoices", label: "Invoices", icon: DollarSign, badge: invoices.filter((i) => i.status === "pending").length },
-          ].map((tb) => {
-            const Icon = tb.icon;
-            const isActive = activeTab === tb.id;
-            return (
-              <button
-                key={tb.id}
-                onClick={() => setActiveTab(tb.id as any)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-md scale-102"
-                    : "text-slate-300 hover:text-white hover:bg-slate-800/80"
-                }`}
-              >
-                <Icon className="w-4 h-4 shrink-0" />
-                <span>{tb.label}</span>
-                {tb.badge !== undefined && (
-                  <span className={`px-2 py-0.5 rounded-md text-[9.5px] font-black ${isActive ? "bg-amber-400 text-slate-950" : "bg-slate-800 text-slate-300"}`}>
-                    {tb.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+        {/* Tab Navigation Pill Bar with Scroll Arrows */}
+        <div className="flex items-center gap-1.5 z-10 w-full lg:w-auto">
+          <button
+            type="button"
+            onClick={handleScrollTabsLeft}
+            aria-label="Scroll tabs left"
+            className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center cursor-pointer transition shrink-0"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          <div
+            ref={tabsContainerRef}
+            className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar scroll-smooth bg-slate-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-700/80 max-w-full"
+          >
+            {[
+              { id: "dashboard", label: "Dashboard", icon: Home },
+              { id: "leads", label: "Leads", icon: Flame, badge: leads.length },
+              { id: "customers", label: "Customers", icon: Users, badge: customers.length },
+              { id: "projects", label: "Projects", icon: Briefcase, badge: projects.length },
+              { id: "quotations", label: "Quotations", icon: FileText, badge: quotations.length },
+              { id: "invoices", label: "Invoices", icon: DollarSign, badge: invoices.filter((i) => i.status === "pending").length },
+            ].map((tb) => {
+              const Icon = tb.icon;
+              const isActive = activeTab === tb.id;
+              return (
+                <button
+                  key={tb.id}
+                  onClick={() => setActiveTab(tb.id as any)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+                    isActive
+                      ? "bg-indigo-600 text-white shadow-md scale-102"
+                      : "text-slate-300 hover:text-white hover:bg-slate-800/80"
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span>{tb.label}</span>
+                  {tb.badge !== undefined && (
+                    <span className={`px-2 py-0.5 rounded-md text-[9.5px] font-black ${isActive ? "bg-amber-400 text-slate-950" : "bg-slate-800 text-slate-300"}`}>
+                      {tb.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleScrollTabsRight}
+            aria-label="Scroll tabs right"
+            className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center cursor-pointer transition shrink-0"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
