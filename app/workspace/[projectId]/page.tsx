@@ -2025,29 +2025,6 @@ export default function WorkspacePage() {
           onOpenNotifications={() => setShowProjectNotifDrawer(true)}
         />
 
-        {/* ── 2. PENDING ACTIONS CENTER (ZERO SEARCHING FOR CUSTOMER & CONTRACTOR) ── */}
-        <PendingActionsCenter
-          isClient={isClient}
-          pendingPaymentCount={paymentRequests.filter((p) => p.status === "pending").length}
-          pendingPaymentAmount={pendingPaymentsAmount}
-          pendingDailyLogsCount={dailyLogs.length > 0 ? 1 : 0}
-          pendingChangeRequestsCount={changeRequests.filter((c) => c.status === "pending").length}
-          newPhotosCount={mediaList.filter((m) => new Date(m.createdAt).toDateString() === new Date().toDateString()).length}
-          unansweredQuestionsCount={chatMessages.length > 0 ? 1 : 0}
-          onOpenPaymentModal={() => setShowPaymentGatewayModal(true)}
-          onNavigateTab={(t) => setActiveTab(t)}
-        />
-
-        {/* ── 3. AI WEEKLY SUMMARY DIGEST CARD ── */}
-        <AiWeeklySummaryCard
-          completedMilestonesCount={milestones.filter((m) => m.status === "completed").length || 1}
-          uploadedImagesCount={mediaList.length || 22}
-          resolvedIssuesCount={issues.filter((i) => i.status === "resolved").length || 2}
-          fundsReleasedAmount={totalPaid || 40000}
-          progressGainPercent={18}
-          nextWeekOutlook={milestones.find((m) => m.status === "pending")?.title || "Painting begins."}
-        />
-
         {/* PAYMENT GATEWAY MODAL */}
         {showPaymentGatewayModal && (
           <PaymentGatewayModal
@@ -3379,6 +3356,30 @@ export default function WorkspacePage() {
             onUploadPhoto={handleUploadSpacePhoto}
           />
         )}
+
+        {/* ── BOTTOM COMPACT SECTION: PENDING ACTIONS & WEEKLY SUMMARY ── */}
+        <div className="pt-6 border-t border-slate-200 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <PendingActionsCenter
+            isClient={isClient}
+            pendingPaymentCount={paymentRequests.filter((p) => p.status === "pending").length}
+            pendingPaymentAmount={pendingPaymentsAmount}
+            pendingDailyLogsCount={dailyLogs.length > 0 ? 1 : 0}
+            pendingChangeRequestsCount={changeRequests.filter((c) => c.status === "pending").length}
+            newPhotosCount={mediaList.filter((m) => new Date(m.createdAt).toDateString() === new Date().toDateString()).length}
+            unansweredQuestionsCount={chatMessages.length > 0 ? 1 : 0}
+            onOpenPaymentModal={() => setShowPaymentGatewayModal(true)}
+            onNavigateTab={(t) => setActiveTab(t)}
+          />
+
+          <AiWeeklySummaryCard
+            completedMilestonesCount={milestones.filter((m) => m.status === "completed").length || 1}
+            uploadedImagesCount={mediaList.length || 22}
+            resolvedIssuesCount={issues.filter((i) => i.status === "resolved").length || 2}
+            fundsReleasedAmount={totalPaid || 40000}
+            progressGainPercent={18}
+            nextWeekOutlook={milestones.find((m) => m.status === "pending")?.title || "Painting begins."}
+          />
+        </div>
 
       </main>
 

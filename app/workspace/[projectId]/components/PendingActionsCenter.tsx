@@ -5,15 +5,13 @@ import {
   CreditCard,
   FileText,
   Camera,
-  CheckCircle,
+  AlertCircle,
+  ArrowRight,
   Upload,
   Play,
   PlusCircle,
   MessageSquare,
-  AlertCircle,
-  ArrowRight,
-  Zap,
-  ShieldAlert
+  CheckCircle2
 } from "lucide-react";
 
 interface PendingActionsCenterProps {
@@ -40,31 +38,24 @@ export default function PendingActionsCenter({
   onNavigateTab,
 }: PendingActionsCenterProps) {
   return (
-    <div className="bg-white border border-indigo-100 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 text-left">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
+    <div className="bg-white border border-slate-200/90 rounded-xl p-4 sm:p-5 shadow-xs space-y-3 text-left font-sans transition-all">
+      <div className="flex justify-between items-center border-b border-slate-100 pb-2.5">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold">
-            <Zap className="w-4 h-4 text-indigo-600" />
+          <div className="w-6 h-6 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 font-bold">
+            <CheckCircle2 className="w-3.5 h-3.5" />
           </div>
-          <div>
-            <h3 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
-              Pending Actions Center
-            </h3>
-            <p className="text-xs text-slate-500 font-medium">
-              {isClient
-                ? "Immediate actions requiring your customer sign-off or payment release."
-                : "Tasks requiring contractor updates to keep project moving without delay."}
-            </p>
-          </div>
+          <h3 className="text-xs font-black text-slate-900 tracking-tight uppercase">
+            Action Items &amp; Sign-Offs
+          </h3>
         </div>
 
-        <span className="text-[10px] font-extrabold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-md">
-          ⚡ No Searching Needed
+        <span className="text-[9.5px] font-extrabold uppercase tracking-wider text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+          Priority Ledger
         </span>
       </div>
 
-      {/* Role-Based Action Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Role-Based Compact Action Tiles */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
         {isClient ? (
           <>
             {/* Action 1: Approve Payment */}
@@ -76,123 +67,83 @@ export default function PendingActionsCenter({
                   onNavigateTab("financials");
                 }
               }}
-              className={`p-4 rounded-xl border transition cursor-pointer flex flex-col justify-between space-y-3 group ${
+              className={`p-3 rounded-lg border transition cursor-pointer flex items-center justify-between gap-3 group ${
                 pendingPaymentCount > 0
-                  ? "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300 hover:border-emerald-500 shadow-sm"
-                  : "bg-slate-50 border-slate-200 hover:bg-slate-100/80"
+                  ? "bg-amber-50/70 border-amber-200 hover:border-amber-300"
+                  : "bg-slate-50 border-slate-200 hover:bg-slate-100/70"
               }`}
             >
-              <div className="flex justify-between items-start">
-                <div className="w-9 h-9 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-xs">
-                  <CreditCard className="w-5 h-5" />
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center shrink-0">
+                  <CreditCard className="w-3.5 h-3.5" />
                 </div>
-                {pendingPaymentCount > 0 && (
-                  <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase animate-pulse">
-                    Action Required
-                  </span>
-                )}
+                <div className="min-w-0">
+                  <h4 className="text-xs font-black text-slate-900 truncate">Approve Payment</h4>
+                  <p className="text-[10.5px] text-slate-500 font-medium truncate">
+                    {pendingPaymentCount > 0
+                      ? `₹${pendingPaymentAmount.toLocaleString("en-IN")} release`
+                      : "0 pending release"}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900">Approve Payment</h4>
-                <p className="text-[11px] text-slate-600 font-medium mt-0.5">
-                  {pendingPaymentCount > 0
-                    ? `₹${pendingPaymentAmount.toLocaleString("en-IN")} milestone release pending`
-                    : "No payment release pending right now"}
-                </p>
-              </div>
-              <div className="text-xs font-black text-emerald-700 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                <span>{pendingPaymentCount > 0 ? "Pay via Gateway" : "View Payments"}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </div>
 
             {/* Action 2: Review Daily Log */}
             <div
               onClick={() => onNavigateTab("logs")}
-              className={`p-4 rounded-xl border transition cursor-pointer flex flex-col justify-between space-y-3 group ${
-                pendingDailyLogsCount > 0
-                  ? "bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-300 hover:border-blue-500 shadow-sm"
-                  : "bg-slate-50 border-slate-200 hover:bg-slate-100/80"
-              }`}
+              className="bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-3 rounded-lg border transition cursor-pointer flex items-center justify-between gap-3 group"
             >
-              <div className="flex justify-between items-start">
-                <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
-                  <FileText className="w-5 h-5" />
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center shrink-0">
+                  <FileText className="w-3.5 h-3.5" />
                 </div>
-                {pendingDailyLogsCount > 0 && (
-                  <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
-                    New Diary Entry
-                  </span>
-                )}
+                <div className="min-w-0">
+                  <h4 className="text-xs font-black text-slate-900 truncate">Review Daily Log</h4>
+                  <p className="text-[10.5px] text-slate-500 font-medium truncate">
+                    Construction diary &amp; site notes
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900">Review Daily Log</h4>
-                <p className="text-[11px] text-slate-600 font-medium mt-0.5">
-                  Check today's site work report, workers & weather summary
-                </p>
-              </div>
-              <div className="text-xs font-black text-blue-700 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                <span>View Construction Diary</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </div>
 
             {/* Action 3: Accept Change Request */}
             <div
               onClick={() => onNavigateTab("issues")}
-              className={`p-4 rounded-xl border transition cursor-pointer flex flex-col justify-between space-y-3 group ${
-                pendingChangeRequestsCount > 0
-                  ? "bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300 hover:border-amber-500 shadow-sm"
-                  : "bg-slate-50 border-slate-200 hover:bg-slate-100/80"
-              }`}
+              className="bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-3 rounded-lg border transition cursor-pointer flex items-center justify-between gap-3 group"
             >
-              <div className="flex justify-between items-start">
-                <div className="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-xs">
-                  <AlertCircle className="w-5 h-5" />
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center shrink-0">
+                  <AlertCircle className="w-3.5 h-3.5" />
                 </div>
-                {pendingChangeRequestsCount > 0 && (
-                  <span className="bg-amber-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
-                    {pendingChangeRequestsCount} Pending
-                  </span>
-                )}
+                <div className="min-w-0">
+                  <h4 className="text-xs font-black text-slate-900 truncate">Change Requests</h4>
+                  <p className="text-[10.5px] text-slate-500 font-medium truncate">
+                    {pendingChangeRequestsCount} pending scope updates
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900">Accept Change Request</h4>
-                <p className="text-[11px] text-slate-600 font-medium mt-0.5">
-                  Review scope adjustments or material substitutions
-                </p>
-              </div>
-              <div className="text-xs font-black text-amber-700 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                <span>Open Change Requests</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </div>
 
-            {/* Action 4: View New Photos */}
+            {/* Action 4: View Site Photos */}
             <div
               onClick={() => onNavigateTab("gallery")}
-              className="bg-slate-50 hover:bg-indigo-50/60 border border-slate-200 hover:border-indigo-300 p-4 rounded-xl transition cursor-pointer flex flex-col justify-between space-y-3 group"
+              className="bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-3 rounded-lg border transition cursor-pointer flex items-center justify-between gap-3 group"
             >
-              <div className="flex justify-between items-start">
-                <div className="w-9 h-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-xs">
-                  <Camera className="w-5 h-5" />
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center shrink-0">
+                  <Camera className="w-3.5 h-3.5" />
                 </div>
-                {newPhotosCount > 0 && (
-                  <span className="bg-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full font-mono">
-                    +{newPhotosCount} Today
-                  </span>
-                )}
+                <div className="min-w-0">
+                  <h4 className="text-xs font-black text-slate-900 truncate">Site Photos</h4>
+                  <p className="text-[10.5px] text-slate-500 font-medium truncate">
+                    +{newPhotosCount} new progress photos
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900">View New Photos</h4>
-                <p className="text-[11px] text-slate-600 font-medium mt-0.5">
-                  Check site progress photos & Before/After room comparisons
-                </p>
-              </div>
-              <div className="text-xs font-black text-indigo-700 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                <span>Open Stage Gallery</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </div>
           </>
         ) : (
@@ -200,97 +151,71 @@ export default function PendingActionsCenter({
             {/* Pro Action 1: Upload Photos */}
             <div
               onClick={() => onNavigateTab("gallery")}
-              className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 hover:border-indigo-400 p-4 rounded-xl transition cursor-pointer flex flex-col justify-between space-y-3 group shadow-xs"
+              className="bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-3 rounded-lg transition cursor-pointer flex items-center justify-between gap-3 group"
             >
-              <div className="flex justify-between items-start">
-                <div className="w-9 h-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
-                  <Upload className="w-5 h-5" />
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center shrink-0">
+                  <Upload className="w-3.5 h-3.5" />
                 </div>
-                <span className="bg-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
-                  Daily Task
-                </span>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-black text-slate-900 truncate">Upload Photos</h4>
+                  <p className="text-[10.5px] text-slate-500 font-medium truncate">Add site progress photos</p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900">Upload Site Photos</h4>
-                <p className="text-[11px] text-slate-600 font-medium mt-0.5">
-                  Upload today's work photos & assign to stage/room
-                </p>
-              </div>
-              <div className="text-xs font-black text-indigo-700 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                <span>Upload Media</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </div>
 
             {/* Pro Action 2: Start Milestone */}
             <div
               onClick={() => onNavigateTab("stages")}
-              className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 hover:border-emerald-400 p-4 rounded-xl transition cursor-pointer flex flex-col justify-between space-y-3 group shadow-xs"
+              className="bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-3 rounded-lg transition cursor-pointer flex items-center justify-between gap-3 group"
             >
-              <div className="flex justify-between items-start">
-                <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
-                  <Play className="w-5 h-5" />
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center shrink-0">
+                  <Play className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-black text-slate-900 truncate">Stage Milestone</h4>
+                  <p className="text-[10.5px] text-slate-500 font-medium truncate">Submit stage for inspection</p>
                 </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900">Start / Request Milestone</h4>
-                <p className="text-[11px] text-slate-600 font-medium mt-0.5">
-                  Complete stage checklist & submit for inspection
-                </p>
-              </div>
-              <div className="text-xs font-black text-emerald-700 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                <span>Stage Center</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </div>
 
             {/* Pro Action 3: Add Invoice */}
             <div
               onClick={() => onNavigateTab("documents")}
-              className="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 p-4 rounded-xl transition cursor-pointer flex flex-col justify-between space-y-3 group"
+              className="bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-3 rounded-lg transition cursor-pointer flex items-center justify-between gap-3 group"
             >
-              <div className="flex justify-between items-start">
-                <div className="w-9 h-9 rounded-lg bg-purple-600 text-white flex items-center justify-center">
-                  <PlusCircle className="w-5 h-5" />
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center shrink-0">
+                  <PlusCircle className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-black text-slate-900 truncate">Add Invoice</h4>
+                  <p className="text-[10.5px] text-slate-500 font-medium truncate">Upload bill / receipt</p>
                 </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900">Add Invoice / Receipt</h4>
-                <p className="text-[11px] text-slate-600 font-medium mt-0.5">
-                  Upload material bill or milestone invoice to customer vault
-                </p>
-              </div>
-              <div className="text-xs font-black text-purple-700 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                <span>Upload Document</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </div>
 
-            {/* Pro Action 4: Answer Customer Question */}
+            {/* Pro Action 4: Answer Question */}
             <div
               onClick={() => onNavigateTab("communication")}
-              className="bg-slate-50 hover:bg-slate-100/80 border border-slate-200 p-4 rounded-xl transition cursor-pointer flex flex-col justify-between space-y-3 group"
+              className="bg-slate-50 hover:bg-slate-100/70 border border-slate-200 p-3 rounded-lg transition cursor-pointer flex items-center justify-between gap-3 group"
             >
-              <div className="flex justify-between items-start">
-                <div className="w-9 h-9 rounded-lg bg-sky-600 text-white flex items-center justify-center">
-                  <MessageSquare className="w-5 h-5" />
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center shrink-0">
+                  <MessageSquare className="w-3.5 h-3.5" />
                 </div>
-                {unansweredQuestionsCount > 0 && (
-                  <span className="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full font-mono animate-pulse">
-                    {unansweredQuestionsCount} New
-                  </span>
-                )}
+                <div className="min-w-0">
+                  <h4 className="text-xs font-black text-slate-900 truncate">Client Messages</h4>
+                  <p className="text-[10.5px] text-slate-500 font-medium truncate">
+                    {unansweredQuestionsCount} new messages
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-slate-900">Answer Customer Question</h4>
-                <p className="text-[11px] text-slate-600 font-medium mt-0.5">
-                  Respond to customer messages & post site updates
-                </p>
-              </div>
-              <div className="text-xs font-black text-sky-700 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                <span>Open Discussion</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </div>
           </>
         )}
