@@ -382,7 +382,7 @@ AI Response Rules:
   );
 
   return createPortal(
-    <div className="fixed bottom-4 right-4 z-[9999] font-sans">
+    <div className="fixed bottom-20 right-4 md:bottom-5 md:right-5 z-[9999] font-sans">
       <style dangerouslySetInnerHTML={{
         __html: `
         @keyframes zen-pulse-glow {

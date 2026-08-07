@@ -957,9 +957,13 @@ export default function WorkspacePage() {
     }
   };
 
-  // Custom Milestone Creation Handler
+  // Custom Milestone Creation Handler (Contractor Only)
   const handleCreateCustomMilestone = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isClient) {
+      alert("⛔ Contractor Action Only:\n\nCustom project milestones and workflow stages must be created and managed by the contractor.");
+      return;
+    }
     if (!user || !project || !newMilestoneTitle.trim()) return;
 
     setActionProcessing("createMilestone");
@@ -1094,8 +1098,12 @@ export default function WorkspacePage() {
     }
   };
 
-  // Delete Custom Milestone (Protected once double-approved)
+  // Delete Custom Milestone (Contractor Only, Protected once double-approved)
   const handleDeleteMilestone = async (mId: string) => {
+    if (isClient) {
+      alert("⛔ Contractor Action Only:\n\nMilestone stages are managed by the contractor.");
+      return;
+    }
     const target = milestones.find((m) => m.id === mId);
     if (target && ((target.proApproved && target.clientApproved) || target.status === "completed")) {
       alert(
@@ -2931,13 +2939,15 @@ export default function WorkspacePage() {
                   <p className="text-xs text-slate-500 font-medium mt-0.5">Strict 2-Way Confirmation Gate (Contractor + Customer Signoff required)</p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowAddMilestoneModal(true)}
-                  className="bg-[#0f2744] hover:bg-[#1e3a8a] border border-[#1e3e66] text-white font-extrabold px-4 py-2.5 rounded-[6px] text-xs uppercase tracking-wider transition shadow-subtle flex items-center gap-1.5 cursor-pointer shrink-0"
-                >
-                  <Plus className="w-4 h-4" /> Add Custom Milestone
-                </button>
+                {!isClient && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddMilestoneModal(true)}
+                    className="bg-[#0f2744] hover:bg-[#1e3a8a] border border-[#1e3e66] text-white font-extrabold px-4 py-2.5 rounded-[6px] text-xs uppercase tracking-wider transition shadow-subtle flex items-center gap-1.5 cursor-pointer shrink-0"
+                  >
+                    <Plus className="w-4 h-4" /> Add Custom Milestone
+                  </button>
+                )}
               </div>
 
               <div className="space-y-5">
@@ -2945,13 +2955,15 @@ export default function WorkspacePage() {
                   <div className="py-12 text-center bg-slate-50 rounded-[8px] border border-dashed border-slate-200 space-y-3">
                     <Clock className="w-8 h-8 text-slate-300 mx-auto" />
                     <p className="text-xs text-slate-500 font-bold">No custom milestones created for this stage yet.</p>
-                    <button
-                      type="button"
-                      onClick={() => setShowAddMilestoneModal(true)}
-                      className="text-xs font-extrabold text-[#0f2744] hover:underline"
-                    >
-                      + Create First Milestone
-                    </button>
+                    {!isClient && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAddMilestoneModal(true)}
+                        className="text-xs font-extrabold text-[#0f2744] hover:underline"
+                      >
+                        + Create First Milestone
+                      </button>
+                    )}
                   </div>
                 ) : (
                   filteredMilestones.map((m, idx) => {
@@ -2991,7 +3003,7 @@ export default function WorkspacePage() {
                             >
                               <span>🔒 Locked (Accepted Both Sides)</span>
                             </span>
-                          ) : (
+                          ) : !isClient ? (
                             <button
                               type="button"
                               onClick={() => handleDeleteMilestone(m.id)}
@@ -3000,7 +3012,7 @@ export default function WorkspacePage() {
                             >
                               <X className="w-4 h-4" />
                             </button>
-                          )}
+                          ) : null}
                         </div>
 
                         {/* 2-Way Handshake Confirmation Indicators */}

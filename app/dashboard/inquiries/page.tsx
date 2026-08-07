@@ -341,7 +341,7 @@ export default function ClientInquiriesPage() {
                 {/* Card Action Footer */}
                 <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
                   <Link
-                    href={`/business/dashboard/inquiries/${inquiry.id}`}
+                    href={`/dashboard/inquiries/${inquiry.id}`}
                     className="flex-1 bg-[#0f2744] hover:bg-[#1e3a8a] text-white px-4 py-2.5 rounded-[8px] text-xs font-black uppercase tracking-wider transition shadow-xs flex items-center justify-between cursor-pointer"
                   >
                     <span>View Bids & Details</span>

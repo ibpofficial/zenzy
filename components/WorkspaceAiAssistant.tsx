@@ -136,7 +136,7 @@ export default function WorkspaceAiAssistant({
         <button
           onClick={() => setIsOpen(true)}
           aria-label="Open Zen AI Assistant"
-          className="fixed bottom-4 right-4 z-40 w-10 h-10 rounded-lg bg-[#0f172a] hover:bg-slate-800 text-white border border-slate-700 shadow-xl flex items-center justify-center cursor-pointer transition-all transform hover:scale-105 group"
+          className="fixed bottom-20 right-4 md:bottom-5 md:right-5 z-40 w-10 h-10 rounded-lg bg-[#0f172a] hover:bg-slate-800 text-white border border-slate-700 shadow-xl flex items-center justify-center cursor-pointer transition-all transform hover:scale-105 group"
           title="Zen AI Workspace Assistant"
         >
           <img src="/logo.png" alt="Zenzy Logo" className="h-5 w-auto object-contain group-hover:rotate-6 transition-transform" />

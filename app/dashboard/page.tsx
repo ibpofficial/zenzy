@@ -1536,7 +1536,7 @@ export default function CustomerDashboardPage() {
                               <span>Delete</span>
                             </button>
                             <Link
-                              href={`/business/dashboard/inquiries/${inquiry.id}`}
+                              href={`/dashboard/inquiries/${inquiry.id}`}
                               className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition shadow-sm"
                             >
                               Track Inquiry Pipeline →
