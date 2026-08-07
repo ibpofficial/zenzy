@@ -701,7 +701,7 @@ export interface ProCustomer {
   id: string;
   professionalId: string;
   name: string;
-  email: string;
+  email?: string;
   phone: string;
   companyName?: string;
   address?: string;
@@ -712,7 +712,14 @@ export interface ProCustomer {
   completedProjectsCount?: number;
   totalRevenue?: number;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
+  profilePhoto?: string;
+  preferredTime?: string;
+  paymentPreference?: string;
+  materialPreference?: string;
+  familyMembers?: string[];
+  specialNotes?: string[];
+  addresses?: { label: string; address: string; isPrimary?: boolean }[];
 }
 
 export interface ProCustomerNote {
@@ -910,27 +917,7 @@ export interface CrmLead {
   quotationId?: string;
 }
 
-export interface ProCustomer {
-  id: string;
-  professionalId: string;
-  name: string;
-  phone: string;
-  email?: string;
-  city?: string;
-  companyName?: string;
-  status: "active" | "completed" | "archived" | "lead";
-  isFavourite?: boolean;
-  isRepeat?: boolean;
-  completedProjectsCount?: number;
-  createdAt?: string;
-  profilePhoto?: string;
-  preferredTime?: string;
-  paymentPreference?: string;
-  materialPreference?: string;
-  familyMembers?: string[];
-  specialNotes?: string[];
-  addresses?: { label: string; address: string; isPrimary?: boolean }[];
-}
+
 
 export interface CrmQuotation {
   id: string;
