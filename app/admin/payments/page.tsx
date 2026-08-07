@@ -183,6 +183,56 @@ export default function AdminPaymentsPage() {
           </div>
         </div>
 
+        {/* Active Payment Gateway Overview Card */}
+        <div className="bg-white border border-indigo-100 rounded-pro-md p-5 shadow-subtle space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-pro-sm bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 font-bold">
+                <Zap className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-900 tracking-tight">
+                  Active Payment Gateway Infrastructure
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Primary Gateway: <strong className="text-emerald-600 font-extrabold">Razorpay (Test / Sandbox Active)</strong>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              <span className="text-slate-500 font-bold">Gateway Health:</span>
+              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-pro-sm font-black text-[10px] uppercase flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                Operational 100%
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-semibold">
+            <div className="bg-slate-50 p-3 rounded-pro-sm border border-slate-200">
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Supported Payment Channels</span>
+              <span className="font-extrabold text-slate-800 mt-1 block">
+                UPI (GPay, PhonePe, Paytm), Credit/Debit Cards, NetBanking
+              </span>
+            </div>
+
+            <div className="bg-slate-50 p-3 rounded-pro-sm border border-slate-200">
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Escrow Auto Release</span>
+              <span className="font-extrabold text-emerald-600 mt-1 block">
+                Enabled upon Customer 2-Way Signoff
+              </span>
+            </div>
+
+            <div className="bg-slate-50 p-3 rounded-pro-sm border border-slate-200">
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Instant Notifications</span>
+              <span className="font-extrabold text-indigo-600 mt-1 block">
+                Automated Customer & Pro Push Alerts
+              </span>
+            </div>
+          </div>
+        </div>
+
         {/* Hero Financial Summary Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="pro-card bg-white border border-slate-200 p-4.5 rounded-pro-sm shadow-subtle">
@@ -214,7 +264,7 @@ export default function AdminPaymentsPage() {
 
           <div className="pro-card bg-white border border-slate-200 p-4.5 rounded-pro-sm shadow-subtle">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-              Test Mode Key
+              Active Gateway Key
             </span>
             <span className="text-xs font-mono font-bold text-slate-700 mt-1 block truncate">
               rzp_test_TMW...

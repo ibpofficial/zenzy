@@ -466,6 +466,8 @@ export interface Milestone {
   mandatory?: boolean;
 
   // Stage Intelligence Extensions
+  // Stage Checklist Items (Strictly required for stage completion)
+  stageChecklist?: { id: string; title: string; completed: boolean; completedAt?: string; completedBy?: string }[];
   instructions?: string[];
   objectives?: string[];
   deliverables?: string[];
@@ -496,15 +498,21 @@ export interface DailyLog {
   workersPresent: number;
   hoursWorked: number;
   workSummary: string[];
+  workCompletedList?: string[];
   issues?: string;
   tomorrowPlan?: string;
   completionPercentToday?: number;
   overallCompletionPercent?: number;
+  expensesAmount?: number;
+  customerRemarks?: string;
+  proRemarks?: string;
+  aiSummary?: string;
+  photoUrls?: string[];
   submittedBy: string;
   createdAt: string;
   beforePhotoIds?: string[];
   afterPhotoIds?: string[];
-  materialsUsed?: { itemName: string; quantity: number }[];
+  materialsUsed?: { itemName: string; quantity: number; unit?: string }[];
   weather?: string;
   supervisorNotes?: string;
   videoIds?: string[];
@@ -516,6 +524,8 @@ export interface ProjectMedia {
   projectId: string;
   milestoneId?: string;
   milestoneTitle?: string;
+  spaceName?: string; // e.g. "Bedroom", "Kitchen", "Living Room"
+  stageTag?: 'before' | 'during' | 'after';
   type: 'image' | 'video';
   url: string;
   caption?: string;
@@ -550,6 +560,14 @@ export interface MaterialEntry {
   billUrl?: string;
   purchasedAt: string;
   addedBy: string;
+  requiredQuantity?: number;
+  deliveredQuantity?: number;
+  usedQuantity?: number;
+  remainingQuantity?: number;
+  supplierName?: string;
+  supplierPhone?: string;
+  invoiceRef?: string;
+  deliveryDate?: string;
 }
 
 export interface ProjectTeamMember {
@@ -562,6 +580,7 @@ export interface ProjectTeamMember {
   linkedUserId?: string;
   phone?: string;
   attendance?: { date: string; present: boolean }[];
+  attendanceLog?: { date: string; inTime: string; outTime: string; hoursWorked: number; todayWork?: string }[];
   assignedWork?: string;
   verified?: boolean;
   experience?: string;
@@ -575,9 +594,36 @@ export interface PaymentRequest {
   amount: number;
   description: string;
   status: 'pending' | 'approved' | 'paid' | 'rejected';
+  gateway?: string;
+  paymentId?: string;
+  orderId?: string;
   requestedBy: string;
   requestedAt: string;
   respondedAt?: string;
+}
+
+export interface ProjectWeeklySummary {
+  id: string;
+  projectId: string;
+  weekLabel: string;
+  weekStartDate: string;
+  weekEndDate: string;
+  milestonesCompleted: string[];
+  mediaUploadedCount: number;
+  issuesResolvedCount: number;
+  fundsReleasedAmount: number;
+  progressPercentGain: number;
+  highlights: string[];
+  nextWeekOutlook: string;
+  aiSummaryText: string;
+  createdAt: string;
+}
+
+export interface BeforeAfterGroup {
+  spaceName: string;
+  beforePhotos: ProjectMedia[];
+  duringPhotos: ProjectMedia[];
+  afterPhotos: ProjectMedia[];
 }
 
 export interface ProjectWarranty {

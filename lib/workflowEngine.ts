@@ -84,7 +84,15 @@ export function canRequestMilestoneCompletion(
     }
   }
 
-  // 4. Inspection requirement
+  // 4. Stage Checklist items check
+  if (milestone.stageChecklist && milestone.stageChecklist.length > 0) {
+    const incompleteTasks = milestone.stageChecklist.filter((c) => !c.completed);
+    if (incompleteTasks.length > 0) {
+      missing.push(`Stage Checklist Incomplete (${incompleteTasks.length} task(s) remaining: ${incompleteTasks.map((t) => t.title).join(", ")})`);
+    }
+  }
+
+  // 5. Inspection requirement
   if (milestone.inspectionRequired && !milestone.inspectionId && !milestone.proApproved) {
     missing.push("Contractor site completion inspection recorded");
   }
@@ -152,4 +160,41 @@ export function canCompleteProject(
   }
 
   return { allowed: true };
+}
+
+/**
+ * Calculate dynamic smart progress percent based on milestones, stage checklists, and task completion rates.
+ */
+export function calculateSmartProgressPercent(milestones: Milestone[]): {
+  overallPercent: number;
+  stageBreakdown: { stageId: string; title: string; percent: number; status: string }[];
+} {
+  if (!milestones || milestones.length === 0) {
+    return { overallPercent: 0, stageBreakdown: [] };
+  }
+  const breakdown = milestones.map((m) => {
+    let percent = 0;
+    if (m.status === "completed" || (m.proApproved && m.clientApproved)) {
+      percent = 100;
+    } else if (m.stageChecklist && m.stageChecklist.length > 0) {
+      const done = m.stageChecklist.filter((c) => c.completed).length;
+      percent = Math.round((done / m.stageChecklist.length) * 100);
+    } else if (m.tasks && m.tasks.length > 0) {
+      const done = m.tasks.filter((t) => t.completed).length;
+      percent = Math.round((done / m.tasks.length) * 100);
+    } else if (m.status === "in_progress") {
+      percent = m.progressPercent || 50;
+    }
+    return {
+      stageId: m.id,
+      title: m.title,
+      percent,
+      status: m.status
+    };
+  });
+
+  const totalWeight = breakdown.reduce((sum, item) => sum + item.percent, 0);
+  const overallPercent = Math.min(100, Math.max(0, Math.round(totalWeight / milestones.length)));
+
+  return { overallPercent, stageBreakdown: breakdown };
 }
