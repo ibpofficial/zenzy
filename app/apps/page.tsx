@@ -292,7 +292,7 @@ const ALL_APPS: AppItem[] = [
 export default function DedicatedAllAppsPage() {
   const { role } = useAuth();
   const [search, setSearch] = useState("");
-  const isCustomerRole = role === "customer" || role === "user" || role === "client";
+  const isCustomerRole = role === "user" || (role as string) === "customer" || (role as string) === "client";
   const [activeCategory, setActiveCategory] = useState<"all" | "business" | "customer">("all");
 
   const filteredApps = ALL_APPS.filter((app) => {
