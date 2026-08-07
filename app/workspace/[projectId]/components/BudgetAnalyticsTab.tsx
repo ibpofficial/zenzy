@@ -11,7 +11,11 @@ import {
   PieChart,
   ArrowUpRight,
   ShieldCheck,
-  Building
+  Building,
+  CreditCard,
+  Check,
+  Zap,
+  DollarSign
 } from "lucide-react";
 
 interface BudgetAnalyticsTabProps {
@@ -40,7 +44,6 @@ export default function BudgetAnalyticsTab({
 
   const totalMaterialCost = materials.reduce((sum, m) => sum + (m.cost || 0), 0);
 
-  // Labour cost derived from project breakdown or estimated
   const totalLabourCost = Math.max(
     0,
     originalBudget - totalMaterialCost > 0 ? Math.round((originalBudget - totalMaterialCost) * 0.4) : 95000
@@ -50,22 +53,26 @@ export default function BudgetAnalyticsTab({
   const estimatedFinalCost = originalBudget + extraWorkAmount;
   const remainingBalance = Math.max(0, estimatedFinalCost - paidAmount);
 
+  // Zenzy Platform Fee & Net Professional Earnings Payout Breakdown (5% Fee)
+  const zenzyFeeTotal = Math.round(paidAmount * 0.05);
+  const netProEarningsTotal = paidAmount - zenzyFeeTotal;
+
   return (
-    <div className="space-y-6 text-left">
+    <div className="space-y-6 text-left font-sans">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-6 sm:p-7 shadow-lg border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded border border-emerald-400/30">
-              📊 BUDGET & FINANCIAL ANALYTICS
+              📊 BUDGET &amp; FINANCIAL ANALYTICS
             </span>
             <span className="text-xs text-slate-400 font-mono">Excel Financial Ledger</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white mt-1">
-            Project Financial Ledger & Cost Variance
+            Project Financial Ledger &amp; Net Payout Audit
           </h2>
           <p className="text-xs text-slate-300 font-medium mt-0.5">
-            Transparent breakdown of original budget, extra scope work, material & labor expenditure, and remaining balance.
+            Transparent breakdown of original budget, extra scope work, material &amp; labor expenditure, platform fees, and net contractor payouts.
           </p>
         </div>
 
@@ -73,7 +80,7 @@ export default function BudgetAnalyticsTab({
           <button
             type="button"
             onClick={onOpenPaymentModal}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs uppercase px-5 py-2.5 rounded-xl transition shadow-md cursor-pointer flex items-center gap-2"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs uppercase px-5 py-2.5 rounded-xl transition shadow-md cursor-pointer flex items-center gap-2 shrink-0"
           >
             <IndianRupee className="w-4 h-4" />
             <span>Make Milestone Payment</span>
@@ -103,7 +110,7 @@ export default function BudgetAnalyticsTab({
 
         <div className="bg-white border border-slate-200 p-4.5 rounded-2xl shadow-sm">
           <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-            Paid to Date
+            Gross Paid to Date
           </span>
           <span className="text-xl font-black text-emerald-600 font-mono mt-1 block">
             ₹{paidAmount.toLocaleString("en-IN")}
@@ -117,6 +124,52 @@ export default function BudgetAnalyticsTab({
           <span className="text-xl font-black text-indigo-700 font-mono mt-1 block">
             ₹{estimatedFinalCost.toLocaleString("en-IN")}
           </span>
+        </div>
+      </div>
+
+      {/* PROFESSIONAL NET PAYOUT RECEIPT WIDGET */}
+      <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white rounded-2xl p-6 shadow-md border border-emerald-700/60 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-emerald-700/50 pb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 font-bold">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-white tracking-tight">
+                Contractor / Professional Net Earnings Summary
+              </h3>
+              <p className="text-xs text-emerald-200 font-medium">
+                Net money received in bank account after Zenzy 5% platform fee deduction
+              </p>
+            </div>
+          </div>
+
+          <span className="bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase px-3 py-1 rounded-full border border-emerald-400/40">
+            ✓ Auto Verified Payout
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-semibold">
+          <div className="bg-white/10 p-3.5 rounded-xl border border-white/10">
+            <span className="text-[10px] font-extrabold text-slate-300 uppercase tracking-wider block">Gross Client Payments</span>
+            <span className="text-lg font-black text-white font-mono mt-1 block">
+              ₹{paidAmount.toLocaleString("en-IN")}
+            </span>
+          </div>
+
+          <div className="bg-white/10 p-3.5 rounded-xl border border-white/10">
+            <span className="text-[10px] font-extrabold text-rose-300 uppercase tracking-wider block">Zenzy Platform Fee (5%)</span>
+            <span className="text-lg font-black text-rose-400 font-mono mt-1 block">
+              -₹{zenzyFeeTotal.toLocaleString("en-IN")}
+            </span>
+          </div>
+
+          <div className="bg-emerald-500/20 p-3.5 rounded-xl border border-emerald-400/40">
+            <span className="text-[10px] font-extrabold text-emerald-300 uppercase tracking-wider block">Net Professional Payout</span>
+            <span className="text-xl font-black text-emerald-400 font-mono mt-1 block">
+              ₹{netProEarningsTotal.toLocaleString("en-IN")}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -160,7 +213,7 @@ export default function BudgetAnalyticsTab({
 
               <tr>
                 <td className="py-3.5 px-4 font-sans font-bold text-slate-900">
-                  Extra Work & Change Requests
+                  Extra Work &amp; Change Requests
                 </td>
                 <td className="py-3.5 px-4 text-right text-slate-500">₹0</td>
                 <td className="py-3.5 px-4 text-right text-sky-600 font-bold">
@@ -198,7 +251,7 @@ export default function BudgetAnalyticsTab({
 
               <tr>
                 <td className="py-3.5 px-4 font-sans font-bold text-slate-900">
-                  Labour & Workforce Cost
+                  Labour &amp; Workforce Cost
                 </td>
                 <td className="py-3.5 px-4 text-right text-slate-700">
                   ₹{Math.round(originalBudget * 0.35).toLocaleString("en-IN")}
@@ -235,12 +288,12 @@ export default function BudgetAnalyticsTab({
               </tr>
 
               <tr className="bg-emerald-50/60 font-black text-sm text-emerald-900">
-                <td className="py-4 px-4 font-sans">Paid to Date</td>
+                <td className="py-4 px-4 font-sans">Paid to Date (Gross Escrow Released)</td>
                 <td className="py-4 px-4 text-right" colSpan={2}>
                   ₹{paidAmount.toLocaleString("en-IN")}
                 </td>
                 <td className="py-4 px-4 text-right text-amber-700" colSpan={2}>
-                  Remaining: ₹{remainingBalance.toLocaleString("en-IN")}
+                  Remaining Balance: ₹{remainingBalance.toLocaleString("en-IN")}
                 </td>
               </tr>
             </tbody>

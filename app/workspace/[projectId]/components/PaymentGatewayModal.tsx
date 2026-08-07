@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Project, PaymentRequest } from "@/lib/schema";
-import { CreditCard, IndianRupee, ShieldCheck, CheckCircle2, Lock, X, Zap, Loader2 } from "lucide-react";
+import { CreditCard, IndianRupee, ShieldCheck, CheckCircle2, Lock, X, Zap, Loader2, DollarSign } from "lucide-react";
 
 interface PaymentGatewayModalProps {
   project: Project;
@@ -26,6 +26,10 @@ export default function PaymentGatewayModal({
   const [processing, setProcessing] = useState(false);
   const [paymentDone, setPaymentDone] = useState(false);
   const [txnId, setTxnId] = useState("");
+
+  // Zenzy Platform Fee Calculation (5% Platform Fee, 95% Net Pro Payout)
+  const zenzyFee = Math.round(paymentAmount * 0.05);
+  const netProPayout = paymentAmount - zenzyFee;
 
   const handleRazorpayCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +76,7 @@ export default function PaymentGatewayModal({
 
       const orderData = await orderRes.json();
 
-      // 3. Configure Razorpay Popup Options (Same as Shop & Accept Quote)
+      // 3. Configure Razorpay Popup Options
       const options = {
         key: orderData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TMWjMDIprOz1xj",
         amount: orderData.amount,
@@ -91,6 +95,8 @@ export default function PaymentGatewayModal({
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 amount: paymentAmount,
+                zenzyFee,
+                netProPayout,
                 projectId: project.id,
                 clientId: project.clientId,
                 clientName: project.clientName || "Customer",
@@ -160,7 +166,7 @@ export default function PaymentGatewayModal({
               </h3>
               <span className="text-[10px] text-emerald-600 font-extrabold flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                Razorpay Test &amp; Live Gateway Ready
+                Live Payment Ledger Sync
               </span>
             </div>
           </div>
@@ -175,19 +181,35 @@ export default function PaymentGatewayModal({
         </div>
 
         {paymentDone ? (
-          <div className="text-center py-6 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
-              <CheckCircle2 className="w-10 h-10" />
+          <div className="text-center py-4 space-y-4">
+            <div className="w-14 h-14 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+              <CheckCircle2 className="w-9 h-9" />
             </div>
 
             <div>
-              <h4 className="text-lg font-black text-slate-900">Razorpay Payment Verified!</h4>
+              <h4 className="text-base font-black text-slate-900">Razorpay Payment Verified &amp; Logged!</h4>
               <p className="text-xs text-slate-500 font-medium mt-1">
-                Transaction ID: <strong className="font-mono text-slate-900">{txnId}</strong>
+                Txn Ref: <strong className="font-mono text-slate-900">{txnId}</strong>
               </p>
-              <p className="text-xs text-emerald-700 font-extrabold mt-1">
-                ₹{paymentAmount.toLocaleString("en-IN")} deposited securely in Escrow ledger.
-              </p>
+            </div>
+
+            {/* Detailed Payout Breakdown Receipt */}
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs font-semibold space-y-2 text-left">
+              <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">
+                Transaction &amp; Professional Payout Receipt
+              </span>
+              <div className="flex justify-between items-center text-slate-700">
+                <span>Gross Payment Released:</span>
+                <span className="font-mono font-black text-slate-900">₹{paymentAmount.toLocaleString("en-IN")}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-500">
+                <span>Zenzy Platform Fee (5%):</span>
+                <span className="font-mono text-rose-600 font-bold">-₹{zenzyFee.toLocaleString("en-IN")}</span>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-slate-200 text-emerald-700 font-black text-sm">
+                <span>Net Contractor Payout Received:</span>
+                <span className="font-mono">₹{netProPayout.toLocaleString("en-IN")}</span>
+              </div>
             </div>
 
             <button
@@ -225,20 +247,23 @@ export default function PaymentGatewayModal({
               </div>
             </div>
 
-            {/* Gateway Info */}
-            <div className="bg-indigo-50/70 border border-indigo-200 p-3.5 rounded-xl space-y-1.5">
-              <div className="flex items-center gap-2 text-indigo-900 font-black text-xs">
-                <Zap className="w-4 h-4 text-indigo-600" />
-                <span>Official Razorpay Checkout</span>
+            {/* Payout Transparency Summary */}
+            <div className="bg-emerald-50/70 border border-emerald-200 p-3.5 rounded-xl space-y-1 text-xs">
+              <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider block">
+                Professional Payout Breakdown (Net Received)
+              </span>
+              <div className="flex justify-between text-slate-700">
+                <span>Gross Payment: ₹{paymentAmount.toLocaleString("en-IN")}</span>
+                <span>Platform Fee (5%): -₹{zenzyFee.toLocaleString("en-IN")}</span>
               </div>
-              <p className="text-[11px] text-indigo-800 font-medium leading-relaxed">
-                Clicking below opens the official Razorpay Checkout popup supporting <strong>UPI (GPay, PhonePe, Paytm), Credit/Debit Cards, NetBanking, &amp; Wallets</strong>.
+              <p className="text-emerald-800 font-extrabold text-[11px] pt-1 border-t border-emerald-200/60">
+                Contractor Net Payout: <strong className="font-mono text-emerald-900">₹{netProPayout.toLocaleString("en-IN")}</strong>
               </p>
             </div>
 
             <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl flex items-center gap-2 text-[11px] text-slate-600 font-medium">
               <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Escrow Protected · Instant HMAC Verification</span>
+              <span>Escrow Protected · Auto Disbursed Upon Signoff</span>
             </div>
 
             <div className="pt-2 border-t border-slate-100 flex justify-end gap-2">

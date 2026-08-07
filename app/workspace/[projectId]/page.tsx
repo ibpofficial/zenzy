@@ -213,15 +213,20 @@ export default function WorkspacePage() {
       const now = new Date().toISOString();
       const actorName = user.displayName || user.email?.split("@")[0] || "Customer";
 
-      // 1. Log Payment Transaction Record
+      const zenzyFee = Math.round(amount * 0.05);
+      const netProPayout = amount - zenzyFee;
+
+      // 1. Log Payment Transaction Record with Payout Breakdown
       await addDoc(collection(db, "payments"), {
         paymentId,
         orderId: `ORD-${Date.now().toString().slice(-6)}`,
         projectId,
         quoteId: project.inquiryId || projectId,
         amount,
+        zenzyFee,
+        netProPayout,
         status: "Success",
-        gateway: gateway || "Razorpay Test Mode",
+        gateway: gateway || "Razorpay Gateway",
         clientName: project.clientName || actorName,
         clientEmail: user.email || "",
         clientPhone: (project as any).clientPhone || "",
@@ -235,16 +240,20 @@ export default function WorkspacePage() {
           status: "paid",
           gateway,
           paymentId,
+          zenzyFee,
+          netProPayout,
           respondedAt: now,
         });
       }
 
-      // 3. Update Project paid totals
+      // 3. Update Project paid totals and net pro payout total
       const newTotalPaid = (project.totalPaid || 0) + amount;
       const newEscrowReleased = (project.escrowReleased || 0) + amount;
+      const newNetProPayoutTotal = ((project as any).netProPayoutTotal || 0) + netProPayout;
       await updateDoc(doc(db, "projects", projectId), {
         totalPaid: newTotalPaid,
         escrowReleased: newEscrowReleased,
+        netProPayoutTotal: newNetProPayoutTotal,
         pendingPaymentsAmount: Math.max(0, (project.pendingPaymentsAmount || 0) - amount),
       });
 
@@ -253,7 +262,7 @@ export default function WorkspacePage() {
         projectId,
         type: "payment_released",
         title: `Payment Released via ${gateway}: ₹${amount.toLocaleString("en-IN")}`,
-        description: `Txn Ref: ${paymentId}. Funds disbursed securely.`,
+        description: `Txn Ref: ${paymentId}. Gross: ₹${amount.toLocaleString("en-IN")}, Zenzy Fee (5%): ₹${zenzyFee.toLocaleString("en-IN")}, Net Pro Payout: ₹${netProPayout.toLocaleString("en-IN")}.`,
         actorId: user.uid,
         actorName,
         actorRole: "client",
@@ -1993,7 +2002,7 @@ export default function WorkspacePage() {
         onNavigateTab={(t) => setActiveTab(t as any)}
       />
 
-      <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-28 pb-24 space-y-6">
+      <main className="flex-grow max-w-[1536px] mx-auto w-full px-2 sm:px-4 lg:px-6 pt-24 pb-20 space-y-5">
 
         {/* ── 1. PROJECT SNAPSHOT HEADER (HOMEPAGE DASHBOARD OF EVERY PROJECT) ── */}
         <ProjectSnapshotHeader
