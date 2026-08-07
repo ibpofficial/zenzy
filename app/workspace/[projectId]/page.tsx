@@ -84,6 +84,7 @@ import {
   AlertTriangle,
   Clock,
   ChevronRight,
+  ChevronLeft,
   Info,
   CheckCircle,
   FileDown,
@@ -162,6 +163,19 @@ export default function WorkspacePage() {
   const [rejectReason, setRejectReason] = useState<string>("");
   const [rejectingMilestoneId, setRejectingMilestoneId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollTabsLeft = () => {
+    if (tabsContainerRef.current) {
+      tabsContainerRef.current.scrollBy({ left: -280, behavior: "smooth" });
+    }
+  };
+
+  const handleScrollTabsRight = () => {
+    if (tabsContainerRef.current) {
+      tabsContainerRef.current.scrollBy({ left: 280, behavior: "smooth" });
+    }
+  };
 
   // Daily Log Form State (For Contractor)
   const [logWorkers, setLogWorkers] = useState(2);
@@ -2603,48 +2617,83 @@ export default function WorkspacePage() {
           );
         })()}
 
-        {/* ── PROJECT HUB CONTROL CENTER TABS ── */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 hide-scrollbar border-b border-slate-200">
-          {[
-            { id: "overview", label: "Overview & Activity Feed", icon: Layers, badge: events.length },
-            { id: "stages", label: "Milestones & Stages", icon: CheckCircle2, count: milestones.length },
-            { id: "logs", label: "Daily Work Reports", icon: Clock, count: dailyLogs.length },
-            { id: "decisions", label: "Decision Center", icon: Sparkles, badge: decisions.filter((d) => d.status === "pending").length },
-            { id: "issues", label: "Issues & Changes", icon: AlertTriangle, badge: changeRequests.filter((c) => c.status === "pending").length + issues.filter((i) => i.status === "pending").length },
-            { id: "gallery", label: "Progress Gallery", icon: Camera, count: mediaList.length },
-            { id: "financials", label: "Payments & Escrow", icon: IndianRupee, badge: paymentRequests.filter((p) => p.status === "pending").length },
-            { id: "documents", label: "Categorized Documents", icon: FileText, count: documents.length },
-            { id: "materials", label: "Material Tracker", icon: Wrench, count: materials.length },
-            { id: "team", label: "Team Roster", icon: Users, count: teamMembers.length },
-            { id: "completion", label: "Health & Completion", icon: Award },
-            { id: "communication", label: "Chat & Notes", icon: MessageSquare, badge: chatMessages.length },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
+        {/* ── PROJECT HUB CONTROL CENTER TABS WITH SMOOTH SCROLL ARROWS & PREMIUM STYLING ── */}
+        <div className="relative border-b border-slate-200/90 pb-3 mb-6 font-sans">
+          {/* Top Label & Left/Right Scroll Arrow Controls */}
+          <div className="flex justify-between items-center mb-2 px-0.5">
+            <span className="text-[10.5px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-slate-700" />
+              Workspace Modules (12 Execution Hubs)
+            </span>
+
+            <div className="flex items-center gap-1.5">
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-[6px] font-bold text-xs whitespace-nowrap transition cursor-pointer ${
-                  isActive
-                    ? "bg-slate-900 text-white font-black shadow-xs"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent"
-                }`}
+                type="button"
+                onClick={handleScrollTabsLeft}
+                aria-label="Scroll tabs left"
+                className="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 shadow-2xs flex items-center justify-center cursor-pointer transition"
               >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
-                <span>{tab.label}</span>
-                {tab.badge && tab.badge > 0 ? (
-                  <span className="ml-1 px-1.5 py-0.5 rounded-[4px] text-[9px] font-black bg-indigo-600 text-white">
-                    {tab.badge}
-                  </span>
-                ) : tab.count !== undefined && tab.count > 0 ? (
-                  <span className={`ml-1 px-1.5 py-0.5 rounded-[4px] text-[9px] font-bold ${isActive ? "bg-slate-700 text-white" : "bg-slate-200 text-slate-700"}`}>
-                    {tab.count}
-                  </span>
-                ) : null}
+                <ChevronLeft className="w-4 h-4" />
               </button>
-            );
-          })}
+              <button
+                type="button"
+                onClick={handleScrollTabsRight}
+                aria-label="Scroll tabs right"
+                className="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 shadow-2xs flex items-center justify-center cursor-pointer transition"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div
+            ref={tabsContainerRef}
+            className="flex items-center gap-2 overflow-x-auto hide-scrollbar scroll-smooth py-1 px-0.5"
+          >
+            {[
+              { id: "overview", label: "Overview & Activity Feed", icon: Layers, badge: events.length },
+              { id: "stages", label: "Milestones & Stages", icon: CheckCircle2, count: milestones.length },
+              { id: "logs", label: "Daily Work Reports", icon: Clock, count: dailyLogs.length },
+              { id: "decisions", label: "Decision Center", icon: Sparkles, badge: decisions.filter((d) => d.status === "pending").length },
+              { id: "issues", label: "Issues & Changes", icon: AlertTriangle, badge: changeRequests.filter((c) => c.status === "pending").length + issues.filter((i) => i.status === "pending").length },
+              { id: "gallery", label: "Progress Gallery", icon: Camera, count: mediaList.length },
+              { id: "financials", label: "Payments & Escrow", icon: IndianRupee, badge: paymentRequests.filter((p) => p.status === "pending").length },
+              { id: "documents", label: "Categorized Documents", icon: FileText, count: documents.length },
+              { id: "materials", label: "Material Tracker", icon: Wrench, count: materials.length },
+              { id: "team", label: "Team Roster", icon: Users, count: teamMembers.length },
+              { id: "completion", label: "Health & Completion", icon: Award },
+              { id: "communication", label: "Chat & Notes", icon: MessageSquare, badge: chatMessages.length },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              const hasActionPending = Boolean(tab.badge && tab.badge > 0);
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs whitespace-nowrap transition-all cursor-pointer ${
+                    isActive
+                      ? "bg-[#0f172a] text-white font-black shadow-md border border-slate-800 scale-102"
+                      : hasActionPending
+                      ? "bg-amber-50/90 text-amber-950 font-extrabold border border-amber-300 hover:bg-amber-100"
+                      : "bg-white text-slate-700 font-bold hover:text-slate-900 hover:bg-slate-100 border border-slate-200/90 shadow-2xs"
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-amber-400" : hasActionPending ? "text-amber-600" : "text-slate-500"}`} />
+                  <span className={isActive ? "font-black tracking-tight" : "font-bold"}>{tab.label}</span>
+                  {tab.badge && tab.badge > 0 ? (
+                    <span className="ml-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-black bg-amber-500 text-slate-950">
+                      {tab.badge}
+                    </span>
+                  ) : tab.count !== undefined && tab.count > 0 ? (
+                    <span className={`ml-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-bold ${isActive ? "bg-slate-800 text-slate-200" : "bg-slate-100 text-slate-600 border border-slate-200"}`}>
+                      {tab.count}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* ── SECTION 1: OVERVIEW & GITHUB-STYLE ACTIVITY TIMELINE FEED ── */}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { collection, query, where, onSnapshot, addDoc, updateDoc, doc } from "firebase/firestore";
@@ -16,6 +16,7 @@ import {
   Mail,
   MapPin,
   ChevronRight,
+  ChevronLeft,
   CheckCircle2,
   X,
   Briefcase,
@@ -101,12 +102,11 @@ export default function ProfessionalCrmSuitePage() {
 
     const proUid = user.uid;
 
-    // A. Listen to Real Inquiries & Bookings from Firestore (inquiries + professionalEnquiries + bookings)
+    // A. Listen to Real Inquiries & Bookings from Firestore
     const unsubInquiries = onSnapshot(collection(db, "inquiries"), (snap) => {
       const realLeads: CrmLead[] = [];
       snap.forEach((docSnap) => {
         const data = docSnap.data();
-        // Check if inquiry belongs to logged-in professional
         if (data.businessId === proUid || data.workerId === proUid || data.professionalId === proUid) {
           realLeads.push({
             id: docSnap.id,
@@ -125,7 +125,7 @@ export default function ProfessionalCrmSuitePage() {
             aiReasons: data.aiReasons || ["Active inquiry", "Budget verified"],
             followUps: data.followUps || [],
             timeline: data.timeline || [
-              { id: `t-${docSnap.id}`, title: "Inquiry Received", description: "Submitted via Zenzy", timestamp: new Date(data.createdAt || Date.now()).toLocaleDateString() }
+              { id: `t-${docSnap.id}`, title: "Inquiry Received", description: "Submitted via Zenzy Profile", timestamp: new Date(data.createdAt || Date.now()).toLocaleDateString() }
             ],
             notes: data.notes || []
           });
@@ -359,27 +359,27 @@ export default function ProfessionalCrmSuitePage() {
   const pendingFollowUpsCount = leads.flatMap((l) => l.followUps || []).filter((f) => f.status === "pending").length;
 
   return (
-    <div className="space-y-8 font-sans text-slate-900 text-left max-w-[1536px] mx-auto p-2 sm:p-4">
+    <div className="space-y-6 font-sans text-slate-900 text-left max-w-[1536px] mx-auto p-3 sm:p-6">
       
-      {/* ── HIGH-IMPACT SPACY HEADER BANNER ── */}
-      <div className="bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-slate-800 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative overflow-hidden">
+      {/* ── HYPER-PREMIUM EXECUTIVE HERO BANNER ── */}
+      <div className="bg-[#0f172a] rounded-2xl p-6 sm:p-8 text-white shadow-xl border border-slate-800 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative overflow-hidden">
         <div className="space-y-2 z-10 max-w-2xl">
           <div className="flex items-center gap-2">
-            <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black uppercase px-3 py-1 rounded-full border border-emerald-400/30 tracking-wider">
-              ⚡ Action-First Professional CRM
+            <span className="bg-slate-800 text-slate-200 text-[10px] font-black uppercase px-3 py-1 rounded-md border border-slate-700 tracking-widest">
+              ⚡ ACTION-FIRST CRM COCKPIT
             </span>
-            <span className="text-xs text-slate-400 font-bold">• 100% Real Firestore Data</span>
+            <span className="text-xs text-slate-400 font-mono font-medium">• Live Firestore Sync Active</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
             Who do I need to talk to today to get more work?
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
-            Live database dashboard prioritizing high-probability leads, scheduled follow-ups, and active project quotes.
+            Zero-noise professional dashboard prioritizing high-probability leads, scheduled follow-ups, and live project quotes.
           </p>
         </div>
 
-        {/* Tab Selector */}
-        <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-700/80 z-10 w-full lg:w-auto">
+        {/* Tab Navigation Pill Bar */}
+        <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar bg-slate-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-700/80 z-10 w-full lg:w-auto">
           {[
             { id: "dashboard", label: "Dashboard", icon: Home },
             { id: "leads", label: "Leads", icon: Flame, badge: leads.length },
@@ -394,16 +394,16 @@ export default function ProfessionalCrmSuitePage() {
               <button
                 key={tb.id}
                 onClick={() => setActiveTab(tb.id as any)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap ${
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
                   isActive
-                    ? "bg-indigo-600 text-white shadow-md scale-105"
+                    ? "bg-indigo-600 text-white shadow-md scale-102"
                     : "text-slate-300 hover:text-white hover:bg-slate-800/80"
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4 shrink-0" />
                 <span>{tb.label}</span>
                 {tb.badge !== undefined && (
-                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-black ${isActive ? "bg-amber-400 text-slate-950" : "bg-slate-800 text-slate-300"}`}>
+                  <span className={`px-2 py-0.5 rounded-md text-[9.5px] font-black ${isActive ? "bg-amber-400 text-slate-950" : "bg-slate-800 text-slate-300"}`}>
                     {tb.badge}
                   </span>
                 )}
@@ -414,63 +414,63 @@ export default function ProfessionalCrmSuitePage() {
       </div>
 
       {/* ───────────────────────────────────────────────────────────
-          1. DASHBOARD TAB
+          1. DASHBOARD TAB (ACTION-FIRST SCREEN)
           ─────────────────────────────────────────────────────────── */}
       {activeTab === "dashboard" && (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-6 animate-fade-in">
           
-          {/* Executive Stat Cards */}
+          {/* Executive Metric KPI Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="bg-white border border-slate-200/90 p-5 rounded-2xl shadow-sm text-center space-y-1 hover:border-indigo-300 transition">
+            <div className="bg-white border border-slate-200/90 p-4.5 rounded-xl shadow-2xs text-center space-y-1 hover:border-slate-300 transition">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Active Leads</span>
-              <span className="text-3xl font-black text-slate-900 block">{leads.length}</span>
-              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-block">
-                Firestore Sync
+              <span className="text-3xl font-black text-slate-900 block font-mono">{leads.length}</span>
+              <span className="text-[9.5px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
+                Live Inquiries
               </span>
             </div>
 
-            <div className="bg-amber-50/40 border border-amber-200 p-5 rounded-2xl shadow-sm text-center space-y-1">
+            <div className="bg-white border border-amber-200 p-4.5 rounded-xl shadow-2xs text-center space-y-1">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 block">Follow Ups Today</span>
-              <span className="text-3xl font-black text-amber-600 block">{pendingFollowUpsCount}</span>
-              <span className="text-[10px] font-bold text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-full inline-block">
+              <span className="text-3xl font-black text-amber-600 block font-mono">{pendingFollowUpsCount}</span>
+              <span className="text-[9.5px] font-extrabold text-amber-900 bg-amber-100 px-2 py-0.5 rounded inline-block">
                 Pending Actions
               </span>
             </div>
 
-            <div className="bg-white border border-slate-200/90 p-5 rounded-2xl shadow-sm text-center space-y-1 hover:border-indigo-300 transition">
+            <div className="bg-white border border-slate-200/90 p-4.5 rounded-xl shadow-2xs text-center space-y-1 hover:border-slate-300 transition">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Projects Running</span>
-              <span className="text-3xl font-black text-slate-900 block">{projects.length}</span>
-              <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200 inline-block">
+              <span className="text-3xl font-black text-slate-900 block font-mono">{projects.length}</span>
+              <span className="text-[9.5px] font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 inline-block">
                 Live Workspaces
               </span>
             </div>
 
-            <div className="bg-white border border-slate-200/90 p-5 rounded-2xl shadow-sm text-center space-y-1 hover:border-indigo-300 transition">
+            <div className="bg-white border border-slate-200/90 p-4.5 rounded-xl shadow-2xs text-center space-y-1 hover:border-slate-300 transition">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Quotations Pending</span>
-              <span className="text-3xl font-black text-indigo-600 block">
+              <span className="text-3xl font-black text-slate-900 block font-mono">
                 {quotations.filter((q) => q.status === "sent" || q.status === "draft").length}
               </span>
-              <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full inline-block">
+              <span className="text-[9.5px] font-extrabold text-slate-600 bg-slate-100 px-2 py-0.5 rounded inline-block">
                 Awaiting Client
               </span>
             </div>
 
-            <div className="bg-emerald-50/40 border border-emerald-200 p-5 rounded-2xl shadow-sm text-center space-y-1">
+            <div className="bg-white border border-emerald-200 p-4.5 rounded-xl shadow-2xs text-center space-y-1">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-900 block">Expected Revenue</span>
               <span className="text-2xl font-black text-emerald-700 block font-mono">
                 ₹{expectedRevenueTotal.toLocaleString("en-IN")}
               </span>
-              <span className="text-[10px] font-bold text-emerald-900 bg-emerald-100 px-2.5 py-0.5 rounded-full inline-block">
+              <span className="text-[9.5px] font-extrabold text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded inline-block">
                 Pipeline Value
               </span>
             </div>
 
-            <div className="bg-white border border-slate-200/90 p-5 rounded-2xl shadow-sm text-center space-y-1">
+            <div className="bg-white border border-slate-200/90 p-4.5 rounded-xl shadow-2xs text-center space-y-1">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Conversion Rate</span>
-              <span className="text-3xl font-black text-slate-900 block">
+              <span className="text-3xl font-black text-slate-900 block font-mono">
                 {leads.length > 0 ? `${Math.round((leads.filter((l) => l.status === "won").length / leads.length) * 100)}%` : "0%"}
               </span>
-              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-block">
+              <span className="text-[9.5px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
                 Real Ratio
               </span>
             </div>
@@ -478,46 +478,46 @@ export default function ProfessionalCrmSuitePage() {
 
           {/* Today's Priority Call Queue */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-5 shadow-sm">
-              <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+            <div className="lg:col-span-2 bg-white border border-slate-200/90 rounded-2xl p-6 space-y-5 shadow-2xs">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3.5">
                 <div>
-                  <h3 className="font-extrabold text-base text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                    <CheckSquare className="w-5 h-5 text-indigo-600" /> Today's Priority Action Calls
+                  <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <CheckSquare className="w-4 h-4 text-indigo-600" /> Today's Priority Action Calls
                   </h3>
                   <p className="text-xs text-slate-500 font-medium mt-0.5">High-probability client interactions logged in your database</p>
                 </div>
-                <span className="bg-amber-100 text-amber-900 text-xs font-black px-3 py-1 rounded-full border border-amber-300">
+                <span className="bg-amber-100 text-amber-900 text-xs font-black px-3 py-1 rounded-md border border-amber-300">
                   {leads.length} Live Leads
                 </span>
               </div>
 
               {leads.length === 0 ? (
-                <div className="py-16 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 p-8 space-y-3">
+                <div className="py-14 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200 p-8 space-y-3">
                   <div className="w-12 h-12 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto">
                     <Inbox className="w-6 h-6" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-900">No Leads Found in Database</h4>
-                  <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                    Inquiries submitted by customers on your Zenzy business profile will appear here automatically. You can also click "+ Add Lead" to record direct clients.
+                  <h4 className="text-sm font-bold text-slate-900">No Client Inquiries Found</h4>
+                  <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
+                    Customer inquiries from your Zenzy business profile will appear here automatically, or click "+ Add Lead" to record direct clients.
                   </p>
                   <button
                     onClick={() => setShowAddLeadModal(true)}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-xs hover:bg-indigo-700 transition cursor-pointer"
+                    className="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold shadow-xs hover:bg-slate-800 transition cursor-pointer"
                   >
-                    + Add Your First Client Lead
+                    + Add Direct Client Lead
                   </button>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {leads.slice(0, 5).map((lead) => (
-                    <div key={lead.id} className="bg-slate-50/70 border border-slate-200 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-indigo-300 transition">
-                      <div className="space-y-1.5">
+                    <div key={lead.id} className="bg-slate-50/80 border border-slate-200 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300 transition">
+                      <div className="space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-extrabold text-base text-slate-900">{lead.name}</span>
-                          <span className="bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-md border border-indigo-200">
+                          <span className="font-extrabold text-sm text-slate-900">{lead.name}</span>
+                          <span className="bg-indigo-50 text-indigo-700 text-[9.5px] font-black uppercase px-2 py-0.5 rounded border border-indigo-200">
                             {lead.serviceNeeded}
                           </span>
-                          <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2.5 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1">
+                          <span className="bg-emerald-50 text-emerald-700 text-[9.5px] font-black px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
                             <Bot className="w-3 h-3 text-emerald-600" /> AI Score {lead.aiScore}%
                           </span>
                         </div>
@@ -528,14 +528,14 @@ export default function ProfessionalCrmSuitePage() {
                         {lead.phone && (
                           <a
                             href={`tel:${lead.phone}`}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-sm flex items-center gap-1.5"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition shadow-2xs flex items-center gap-1.5"
                           >
                             <Phone className="w-3.5 h-3.5" /> Call
                           </a>
                         )}
                         <button
                           onClick={() => setSelectedLead(lead)}
-                          className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-sm cursor-pointer"
+                          className="bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition shadow-2xs cursor-pointer"
                         >
                           View 360
                         </button>
@@ -548,7 +548,7 @@ export default function ProfessionalCrmSuitePage() {
 
             {/* AI Growth Copilot Widget */}
             <div className="space-y-5">
-              <div className="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-6 rounded-3xl space-y-4 border border-indigo-800 shadow-md">
+              <div className="bg-[#0f172a] text-white p-6 rounded-2xl space-y-4 border border-slate-800 shadow-md">
                 <div className="flex items-center gap-2 text-amber-400 font-black text-xs uppercase tracking-wider">
                   <Bot className="w-4 h-4" /> AI Growth Intelligence
                 </div>
@@ -563,8 +563,8 @@ export default function ProfessionalCrmSuitePage() {
                 </button>
               </div>
 
-              <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm">
-                <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <div className="bg-white border border-slate-200/90 p-5 rounded-2xl space-y-3.5 shadow-2xs">
+                <div className="flex justify-between items-center border-b border-slate-100 pb-2.5">
                   <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-500">Quick Actions</h4>
                   <button onClick={() => setShowAddLeadModal(true)} className="text-xs font-bold text-indigo-600 hover:underline">
                     + Add New Lead
@@ -591,10 +591,10 @@ export default function ProfessionalCrmSuitePage() {
           ─────────────────────────────────────────────────────────── */}
       {activeTab === "leads" && (
         <div className="space-y-6 animate-fade-in">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 p-4.5 rounded-2xl border border-slate-200">
             <div>
-              <h3 className="font-black text-base text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Flame className="w-5 h-5 text-rose-500" /> Active Lead Pipeline ({leads.length})
+              <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <Flame className="w-4 h-4 text-rose-500" /> Active Lead Pipeline ({leads.length})
               </h3>
               <p className="text-xs text-slate-500 font-medium mt-0.5">Real Firestore database entries</p>
             </div>
@@ -617,7 +617,7 @@ export default function ProfessionalCrmSuitePage() {
 
               <button
                 onClick={() => setShowAddLeadModal(true)}
-                className="bg-[#0f2744] hover:bg-[#1e3a8a] text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0"
+                className="bg-[#0f172a] hover:bg-[#1e3a8a] text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0"
               >
                 <Plus className="w-4 h-4" /> Add Lead
               </button>
@@ -625,9 +625,9 @@ export default function ProfessionalCrmSuitePage() {
           </div>
 
           {leads.length === 0 ? (
-            <div className="py-20 text-center bg-white rounded-3xl border border-slate-200 p-8 space-y-4 shadow-sm">
-              <div className="w-16 h-16 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center mx-auto">
-                <Flame className="w-8 h-8" />
+            <div className="py-16 text-center bg-white rounded-2xl border border-slate-200 p-8 space-y-3 shadow-2xs">
+              <div className="w-14 h-14 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center mx-auto">
+                <Flame className="w-7 h-7" />
               </div>
               <h3 className="text-base font-black text-slate-900">No Client Leads Saved Yet</h3>
               <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-medium">
@@ -635,7 +635,7 @@ export default function ProfessionalCrmSuitePage() {
               </p>
               <button
                 onClick={() => setShowAddLeadModal(true)}
-                className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition cursor-pointer"
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition cursor-pointer"
               >
                 + Add Your First Client Lead
               </button>
@@ -651,7 +651,7 @@ export default function ProfessionalCrmSuitePage() {
                 ].map((col) => {
                   const stageLeads = leads.filter((l) => l.status === col.stage || (col.stage === "new" && l.status === "contacted"));
                   return (
-                    <div key={col.stage} className={`bg-white border-t-4 ${col.bg} border-x border-b border-slate-200 p-4 rounded-2xl shadow-sm space-y-4 min-w-[260px]`}>
+                    <div key={col.stage} className={`bg-white border-t-4 ${col.bg} border-x border-b border-slate-200 p-4 rounded-xl shadow-2xs space-y-3.5 min-w-[260px]`}>
                       <div className="flex justify-between items-center border-b border-slate-100 pb-2.5">
                         <span className="font-extrabold text-xs uppercase tracking-wider">{col.label}</span>
                         <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-black">
@@ -686,7 +686,7 @@ export default function ProfessionalCrmSuitePage() {
                 })}
               </div>
             ) : (
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm overflow-x-auto">
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs overflow-x-auto">
                 <table className="w-full text-left text-xs font-semibold border-collapse">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100 text-[10px] uppercase text-slate-400 tracking-wider">
@@ -735,17 +735,17 @@ export default function ProfessionalCrmSuitePage() {
           ─────────────────────────────────────────────────────────── */}
       {activeTab === "customers" && (
         <div className="space-y-6 animate-fade-in">
-          <div className="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-200">
+          <div className="flex justify-between items-center bg-slate-50 p-4.5 rounded-2xl border border-slate-200">
             <div>
-              <h3 className="font-black text-base text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Users className="w-5 h-5 text-emerald-600" /> Converted Customer Vault ({customers.length})
+              <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <Users className="w-4 h-4 text-emerald-600" /> Converted Customer Vault ({customers.length})
               </h3>
               <p className="text-xs text-slate-500 font-medium mt-0.5">Verified active clients &amp; repeat project accounts in Firestore</p>
             </div>
           </div>
 
           {customers.length === 0 ? (
-            <div className="py-16 text-center bg-white rounded-3xl border border-slate-200 p-8 space-y-3 shadow-sm">
+            <div className="py-16 text-center bg-white rounded-2xl border border-slate-200 p-8 space-y-3 shadow-2xs">
               <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
                 <Users className="w-6 h-6" />
               </div>
@@ -757,10 +757,10 @@ export default function ProfessionalCrmSuitePage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {customers.map((c) => (
-                <div key={c.id} className="bg-white border border-slate-200 rounded-3xl p-6 space-y-4 shadow-sm hover:border-slate-300 transition">
+                <div key={c.id} className="bg-white border border-slate-200/90 rounded-2xl p-6 space-y-4 shadow-2xs hover:border-slate-300 transition">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white font-black text-base flex items-center justify-center shadow-md">
+                      <div className="w-11 h-11 rounded-xl bg-slate-900 text-white font-black text-base flex items-center justify-center shadow-xs">
                         {c.name.charAt(0)}
                       </div>
                       <div>
@@ -776,7 +776,7 @@ export default function ProfessionalCrmSuitePage() {
                     )}
                   </div>
 
-                  <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                  <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
                     <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Customer 360 Preferences</span>
                     {c.preferredTime && (
                       <p className="text-slate-800 font-semibold flex items-center gap-2">
@@ -795,7 +795,7 @@ export default function ProfessionalCrmSuitePage() {
                     )}
                   </div>
 
-                  <div className="pt-2 flex justify-between items-center text-xs font-bold">
+                  <div className="pt-1 flex justify-between items-center text-xs font-bold">
                     {c.phone && (
                       <a href={`tel:${c.phone}`} className="text-indigo-600 hover:underline flex items-center gap-1">
                         <Phone className="w-3.5 h-3.5" /> Call {c.phone}
@@ -815,17 +815,17 @@ export default function ProfessionalCrmSuitePage() {
           ─────────────────────────────────────────────────────────── */}
       {activeTab === "projects" && (
         <div className="space-y-6 animate-fade-in">
-          <div className="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-200">
+          <div className="flex justify-between items-center bg-slate-50 p-4.5 rounded-2xl border border-slate-200">
             <div>
-              <h3 className="font-black text-base text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Briefcase className="w-5 h-5 text-indigo-600" /> Active Running Projects ({projects.length})
+              <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-indigo-600" /> Active Running Projects ({projects.length})
               </h3>
               <p className="text-xs text-slate-500 font-medium mt-0.5">Clicking any project opens its live Zenzy Workspace</p>
             </div>
           </div>
 
           {projects.length === 0 ? (
-            <div className="py-16 text-center bg-white rounded-3xl border border-slate-200 p-8 space-y-3 shadow-sm">
+            <div className="py-16 text-center bg-white rounded-2xl border border-slate-200 p-8 space-y-3 shadow-2xs">
               <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
                 <Briefcase className="w-6 h-6" />
               </div>
@@ -837,7 +837,7 @@ export default function ProfessionalCrmSuitePage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {projects.map((p) => (
-                <div key={p.id} className="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm hover:border-indigo-400 transition">
+                <div key={p.id} className="bg-white border border-slate-200/90 p-6 rounded-2xl space-y-4 shadow-2xs hover:border-indigo-400 transition">
                   <div>
                     <h4 className="font-extrabold text-base text-slate-900">{p.title}</h4>
                     <p className="text-xs text-slate-500 font-medium mt-0.5">Client: {p.clientName || "Customer"}</p>
@@ -855,7 +855,7 @@ export default function ProfessionalCrmSuitePage() {
 
                   <Link
                     href={`/workspace/${p.id}`}
-                    className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition shadow-sm flex items-center justify-center gap-1.5 cursor-pointer block text-center"
+                    className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer block text-center"
                   >
                     <span>Open Live Workspace</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -872,10 +872,10 @@ export default function ProfessionalCrmSuitePage() {
           ─────────────────────────────────────────────────────────── */}
       {activeTab === "quotations" && (
         <div className="space-y-6 animate-fade-in">
-          <div className="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-200">
+          <div className="flex justify-between items-center bg-slate-50 p-4.5 rounded-2xl border border-slate-200">
             <div>
-              <h3 className="font-black text-base text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <FileText className="w-5 h-5 text-indigo-600" /> Sent Quotations ({quotations.length})
+              <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <FileText className="w-4 h-4 text-indigo-600" /> Sent Quotations ({quotations.length})
               </h3>
               <p className="text-xs text-slate-500 font-medium mt-0.5">Proposals created in Firestore</p>
             </div>
@@ -889,7 +889,7 @@ export default function ProfessionalCrmSuitePage() {
           </div>
 
           {quotations.length === 0 ? (
-            <div className="py-16 text-center bg-white rounded-3xl border border-slate-200 p-8 space-y-3 shadow-sm">
+            <div className="py-16 text-center bg-white rounded-2xl border border-slate-200 p-8 space-y-3 shadow-2xs">
               <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
                 <FileText className="w-6 h-6" />
               </div>
@@ -901,7 +901,7 @@ export default function ProfessionalCrmSuitePage() {
           ) : (
             <div className="space-y-4">
               {quotations.map((q) => (
-                <div key={q.id} className="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm">
+                <div key={q.id} className="bg-white border border-slate-200/90 p-6 rounded-2xl space-y-4 shadow-2xs">
                   <div className="flex justify-between items-start flex-wrap gap-2 border-b border-slate-100 pb-3">
                     <div>
                       <h4 className="font-extrabold text-base text-slate-900">{q.projectTitle}</h4>
@@ -936,17 +936,17 @@ export default function ProfessionalCrmSuitePage() {
           ─────────────────────────────────────────────────────────── */}
       {activeTab === "invoices" && (
         <div className="space-y-6 animate-fade-in">
-          <div className="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-200">
+          <div className="flex justify-between items-center bg-slate-50 p-4.5 rounded-2xl border border-slate-200">
             <div>
-              <h3 className="font-black text-base text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-emerald-600" /> Invoices &amp; Payment Ledger ({invoices.length})
+              <h3 className="font-black text-sm text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-emerald-600" /> Invoices &amp; Payment Ledger ({invoices.length})
               </h3>
               <p className="text-xs text-slate-500 font-medium mt-0.5">Track GST bills &amp; payment requests in Firestore</p>
             </div>
           </div>
 
           {invoices.length === 0 ? (
-            <div className="py-16 text-center bg-white rounded-3xl border border-slate-200 p-8 space-y-3 shadow-sm">
+            <div className="py-16 text-center bg-white rounded-2xl border border-slate-200 p-8 space-y-3 shadow-2xs">
               <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
                 <DollarSign className="w-6 h-6" />
               </div>
@@ -958,7 +958,7 @@ export default function ProfessionalCrmSuitePage() {
           ) : (
             <div className="space-y-4">
               {invoices.map((inv) => (
-                <div key={inv.id} className="bg-white border border-slate-200 p-6 rounded-3xl flex justify-between items-center flex-wrap gap-4 shadow-sm">
+                <div key={inv.id} className="bg-white border border-slate-200/90 p-6 rounded-2xl flex justify-between items-center flex-wrap gap-4 shadow-2xs">
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-black text-base text-slate-900">{inv.invoiceNumber}</span>
@@ -975,7 +975,7 @@ export default function ProfessionalCrmSuitePage() {
                   <div className="text-right space-y-2">
                     <span className="text-2xl font-black text-slate-900 font-mono block">₹{inv.totalAmount.toLocaleString("en-IN")}</span>
                     {inv.status === "pending" && (
-                      <button className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-sm">
+                      <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-xs">
                         Send Payment Link
                       </button>
                     )}
@@ -988,12 +988,11 @@ export default function ProfessionalCrmSuitePage() {
       )}
 
       {/* ───────────────────────────────────────────────────────────
-          LEAD 360° DRAWER (EVERYTHING IN ONE PLACE)
+          LEAD 360° DRAWER
           ─────────────────────────────────────────────────────────── */}
       {selectedLead && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex justify-end animate-fade-in font-sans">
           <div className="bg-white w-full max-w-2xl h-full overflow-y-auto p-6 sm:p-8 space-y-6 shadow-2xl relative border-l border-slate-200 text-left">
-            {/* Drawer Header */}
             <div className="flex justify-between items-start border-b border-slate-100 pb-4">
               <div>
                 <div className="flex items-center gap-2">
@@ -1015,12 +1014,11 @@ export default function ProfessionalCrmSuitePage() {
               </button>
             </div>
 
-            {/* Quick Phone Call & Quote Buttons */}
             <div className="flex gap-3">
               {selectedLead.phone && (
                 <a
                   href={`tel:${selectedLead.phone}`}
-                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition text-center flex items-center justify-center gap-2 shadow-sm"
+                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition text-center flex items-center justify-center gap-2 shadow-xs"
                 >
                   <Phone className="w-4 h-4" /> Call Client
                 </a>
@@ -1029,13 +1027,12 @@ export default function ProfessionalCrmSuitePage() {
                 onClick={() => {
                   setShowAiQuoteModal(true);
                 }}
-                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition text-center flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition text-center flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
                 <Bot className="w-4 h-4" /> AI Quotation
               </button>
             </div>
 
-            {/* Status Update Selector */}
             <div className="bg-slate-50 p-4.5 rounded-2xl border border-slate-200 space-y-2">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Update Lead Status</span>
               <div className="flex flex-wrap gap-1.5">
@@ -1055,7 +1052,6 @@ export default function ProfessionalCrmSuitePage() {
               </div>
             </div>
 
-            {/* Timeline */}
             <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
               <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-900">Lead Audit Timeline</h4>
               <div className="space-y-3 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
@@ -1069,7 +1065,6 @@ export default function ProfessionalCrmSuitePage() {
               </div>
             </div>
 
-            {/* Follow Up Engine */}
             <div className="bg-amber-50/50 border border-amber-200 p-5 rounded-2xl space-y-3">
               <h4 className="font-extrabold text-xs uppercase tracking-wider text-amber-900">Follow Up Engine</h4>
               
@@ -1087,7 +1082,6 @@ export default function ProfessionalCrmSuitePage() {
                 ))}
               </div>
 
-              {/* Add Followup Form */}
               <div className="pt-2 space-y-2">
                 <input
                   type="text"
@@ -1108,12 +1102,10 @@ export default function ProfessionalCrmSuitePage() {
         </div>
       )}
 
-      {/* ───────────────────────────────────────────────────────────
-          MODAL: ADD NEW LEAD
-          ─────────────────────────────────────────────────────────── */}
+      {/* MODAL: ADD NEW LEAD */}
       {showAddLeadModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 font-sans">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-4 text-left">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-4 text-left">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-base font-black text-slate-900">Add New Client Lead</h3>
               <button onClick={() => setShowAddLeadModal(false)} className="text-slate-400 hover:text-slate-600">
@@ -1207,12 +1199,10 @@ export default function ProfessionalCrmSuitePage() {
         </div>
       )}
 
-      {/* ───────────────────────────────────────────────────────────
-          MODAL: AI QUOTE GENERATOR
-          ─────────────────────────────────────────────────────────── */}
+      {/* MODAL: AI QUOTE GENERATOR */}
       {showAiQuoteModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 font-sans">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-4 text-left">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-4 text-left">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <Bot className="w-5 h-5 text-indigo-600" />
@@ -1230,14 +1220,14 @@ export default function ProfessionalCrmSuitePage() {
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
                 placeholder="e.g. Kitchen Renovation 120 sq ft Premium with soft-close Hettich fittings and quartz top"
-                className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-3.5 text-xs text-slate-900 outline-none focus:border-indigo-600 font-medium"
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-xs text-slate-900 outline-none focus:border-indigo-600 font-medium"
               />
             </div>
 
             <button
               onClick={handleGenerateAiQuote}
               disabled={aiGenerating}
-              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-wider rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {aiGenerating ? (
                 <>
