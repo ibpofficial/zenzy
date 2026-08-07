@@ -884,7 +884,7 @@ export interface CrmLead {
   serviceNeeded: string;
   budget: number;
   propertyType: "Residential" | "Commercial" | "Villa" | "Apartment" | "Office";
-  leadSource: "Zenzy Marketplace" | "Direct Website" | "WhatsApp" | "Referral" | "Instagram";
+  leadSource: "Zenzy Marketplace" | "Direct Website" | "WhatsApp" | "Referral" | "Instagram" | "Direct Profile Inquiry" | "Direct Professional CRM" | string;
   createdAt: string;
   updatedAt?: string;
   status: "new" | "contacted" | "site_visit" | "quotation_sent" | "negotiation" | "won" | "lost";

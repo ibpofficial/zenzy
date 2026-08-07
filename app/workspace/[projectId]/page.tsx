@@ -2029,7 +2029,7 @@ export default function WorkspacePage() {
           todaysWorkDone={(dailyLogs.length > 0 && dailyLogs[0].workSummary ? dailyLogs[0].workSummary[0] : "Wiring Completed")}
           nextTaskName={milestones.find((m) => m.status === "pending")?.title || "False Ceiling"}
           pendingApprovalsCount={pendingApprovalsCount + decisions.filter((d) => d.status === "pending").length}
-          openIssuesCount={issues.filter((i) => i.status === "pending" || i.status === "open").length || 1}
+          openIssuesCount={issues.filter((i) => i.status === "pending" || (i.status as string) === "open").length || 1}
           changeRequestsCount={changeRequests.filter((c) => c.status === "pending").length || 1}
           lastUpdateAgo={events.length > 0 ? "25 min ago" : "Just now"}
           daysElapsed={12}

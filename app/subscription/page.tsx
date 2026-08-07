@@ -17,9 +17,11 @@ import {
   MessageSquare,
   Briefcase,
   Shield,
+  Gift,
+  Tag
 } from "lucide-react";
 
-/* ═══════════════════ PLAN DATA ═══════════════════ */
+/* ═══════════════════ PLAN DATA (10% INCREASED PRICING) ═══════════════════ */
 
 const customerPlans = [
   {
@@ -28,14 +30,14 @@ const customerPlans = [
     cta: "Get Started", popular: false,
   },
   {
-    id: "c-pro", name: "Pro", tag: "Most popular", price: 999, yearly: 8999,
+    id: "c-pro", name: "Pro", tag: "Most popular", price: 1099, yearly: 9899,
     highlights: ["Unlimited bookings", "AI search & smart matching", "Compare pros side-by-side", "Live chat & job tracking", "AI cost estimation", "10% off all bookings", "Priority support (4h)"],
-    cta: "Upgrade to Pro (₹999)", popular: true,
+    cta: "Upgrade to Pro (₹1,099)", popular: true,
   },
   {
-    id: "c-elite", name: "Elite", tag: "Full experience", price: 1499, yearly: 4999,
+    id: "c-elite", name: "Elite", tag: "Full experience", price: 1649, yearly: 5499,
     highlights: ["Everything in Pro", "Video consultations", "Emergency priority booking", "Warranty management", "AI Project Planner", "25% off all bookings", "Dedicated manager", "Instant support (30 min)"],
-    cta: "Go Elite (₹4,999)", popular: false,
+    cta: "Go Elite (₹1,649)", popular: false,
   },
 ];
 
@@ -46,14 +48,14 @@ const professionalPlans = [
     cta: "Start Free", popular: false,
   },
   {
-    id: "p-business", name: "Business", tag: "Grow & scale", price: 999, yearly: 8499,
+    id: "p-business", name: "Business", tag: "Grow & scale", price: 1099, yearly: 9349,
     highlights: ["Personal website (zenzy.shop/you)", "Unlimited portfolio", "CRM & customer database", "Smart calendar & scheduling", "Quote & invoice generator", "AI proposal generator", "Business analytics", "WhatsApp integration", "Priority support (4h)"],
-    cta: "Upgrade to Business (₹999)", popular: true,
+    cta: "Upgrade to Business (₹1,099)", popular: true,
   },
   {
-    id: "p-enterprise", name: "Enterprise", tag: "Full business suite", price: 2499, yearly: 9999,
+    id: "p-enterprise", name: "Enterprise", tag: "Full business suite", price: 2749, yearly: 10999,
     highlights: ["Everything in Business", "Team management (25 members)", "AI Business Coach", "AI Content Creator", "Full website customization", "Marketing tools suite", "Branded invoices & contracts", "25% lower commission", "API access", "Dedicated manager"],
-    cta: "Go Enterprise (₹9,999)", popular: false,
+    cta: "Go Enterprise (₹2,749)", popular: false,
   },
 ];
 
@@ -145,63 +147,14 @@ export default function SubscriptionPage() {
   const comparison = tab === "customer" ? customerComparison : professionalComparison;
   const labels = tab === "customer" ? ["Free", "Pro", "Elite"] : ["Starter", "Business", "Enterprise"];
 
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
-  const [couponError, setCouponError] = useState("");
-
-  const handleApplyCoupon = async () => {
-    setCouponError("");
-    if (!couponCode.trim()) return;
-    try {
-      const { collection, query, where, getDocs } = await import("firebase/firestore");
-      const { db } = await import("@/lib/firebase");
-
-      const q = query(
-        collection(db, "coupons"),
-        where("code", "==", couponCode.toUpperCase().trim())
-      );
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        setCouponError("Invalid coupon code.");
-        setAppliedCoupon(null);
-        return;
-      }
-      const cDoc = snap.docs[0];
-      const coupon = { id: cDoc.id, ...cDoc.data() } as any;
-      const isActive = coupon.active !== false && coupon.status !== "inactive" && coupon.status !== "expired";
-      if (!isActive) {
-        setCouponError("This coupon is no longer active.");
-        setAppliedCoupon(null);
-        return;
-      }
-      const expiry = coupon.expiryDate || coupon.expiresAt || coupon.validUntil;
-      if (expiry && new Date(expiry).getTime() < Date.now()) {
-        setCouponError("This coupon has expired.");
-        setAppliedCoupon(null);
-        return;
-      }
-      setAppliedCoupon(coupon);
-      alert(`✓ Coupon "${coupon.code}" applied successfully!`);
-    } catch (err) {
-      console.error("Apply coupon error:", err);
-      setCouponError("Failed to apply coupon.");
-    }
-  };
-
   const price = (p: any) => p.price === 0 ? 0 : billing === "yearly" ? p.yearly : p.price;
   const savings = (p: any) => p.price === 0 ? 0 : (p.price * 12) - p.yearly;
 
-  const getDiscountedPrice = (plan: any) => {
+  // New Member Welcome Discount (15% Auto-Discount for New Users)
+  const getWelcomeDiscountedPrice = (plan: any) => {
     const raw = price(plan);
-    if (!appliedCoupon || raw === 0) return raw;
-    const cType = (appliedCoupon.type || "").toLowerCase();
-    const val = Number(appliedCoupon.value || appliedCoupon.discountValue || 0);
-    if (cType === "percent" || cType === "percentage") {
-      return Math.max(0, Math.round(raw - (raw * (val / 100))));
-    } else if (cType === "flat" || cType === "fixed") {
-      return Math.max(0, raw - val);
-    }
-    return raw;
+    if (raw === 0) return 0;
+    return Math.round(raw * 0.85); // 15% discount for new members
   };
 
   const handleRazorpaySubscription = async (plan: any) => {
@@ -210,8 +163,8 @@ export default function SubscriptionPage() {
       return;
     }
 
-    const planAmount = getDiscountedPrice(plan);
-    if (planAmount === 0 && price(plan) === 0) {
+    const finalAmount = getWelcomeDiscountedPrice(plan);
+    if (finalAmount === 0) {
       alert("You are on the Free Plan.");
       return;
     }
@@ -232,7 +185,7 @@ export default function SubscriptionPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: planAmount,
+          amount: finalAmount,
           currency: "INR",
           receipt: `sub_${plan.id}_${Date.now().toString().slice(-6)}`,
         }),
@@ -262,7 +215,7 @@ export default function SubscriptionPage() {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
-                amount: planAmount,
+                amount: finalAmount,
                 clientId: user.uid,
                 clientName: userData?.name || user.displayName || user.email || "Subscriber",
                 clientEmail: user.email || "",
@@ -286,7 +239,7 @@ export default function SubscriptionPage() {
                 userType: tab === "customer" ? "Customer" : "Professional",
                 planName: plan.name,
                 planId: plan.id,
-                amount: planAmount,
+                amount: finalAmount,
                 billingCycle: billing,
                 paymentId: response.razorpay_payment_id,
                 orderId: response.razorpay_order_id,
@@ -348,15 +301,23 @@ export default function SubscriptionPage() {
       <main className="flex-grow">
 
         {/* ─── HERO ─── */}
-        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pt-32 pb-14 text-center">
-          <div className="space-y-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Pricing</p>
+        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pt-32 pb-10 text-center">
+          <div className="space-y-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Zenzy Premium</p>
             <h1 className="text-4xl md:text-[3.25rem] font-bold tracking-tight leading-[1.1] text-slate-900">
               Simple, transparent pricing.
             </h1>
             <p className="text-slate-500 text-[15px] max-w-lg mx-auto leading-relaxed">
               Choose a plan for booking services or growing your professional business. Scale up or down anytime.
             </p>
+
+            {/* ─── NEW USER WELCOME DISCOUNT BANNER ─── */}
+            <div className="max-w-lg mx-auto bg-gradient-to-r from-emerald-50 to-indigo-50 border border-emerald-200 p-3.5 rounded-xl shadow-xs flex items-center justify-center gap-2.5 text-center">
+              <Gift className="w-4 h-4 text-emerald-600 shrink-0" />
+              <p className="text-xs text-slate-900 font-black">
+                🎁 <span className="text-emerald-700">Welcome Discount Unlocked!</span> As a new member, enjoy an automatic <span className="underline decoration-emerald-500 text-indigo-700 font-extrabold">15% Special Discount</span> on all premium plans below!
+              </p>
+            </div>
           </div>
         </section>
 
@@ -402,121 +363,106 @@ export default function SubscriptionPage() {
               </span>
             )}
           </div>
-
-          {/* Promo Coupon Code Bar */}
-          <div className="max-w-md mx-auto mt-6 bg-slate-50 border border-slate-200/80 p-3 rounded-xl space-y-2">
-            <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block text-center">
-              Have a Promo / Coupon Code?
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="e.g. SAVE500"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-black uppercase text-slate-900 outline-none focus:border-amber-500"
-              />
-              <button
-                type="button"
-                onClick={handleApplyCoupon}
-                className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-4 py-1.5 rounded-lg text-xs uppercase tracking-wider transition cursor-pointer border-none shadow-xs"
-              >
-                Apply Code
-              </button>
-            </div>
-            {appliedCoupon ? (
-              <p className="text-[10px] text-emerald-600 font-bold text-center">
-                ✓ Coupon "{appliedCoupon.code}" active!
-              </p>
-            ) : couponError ? (
-              <p className="text-[10px] text-rose-600 font-bold text-center">{couponError}</p>
-            ) : null}
-          </div>
         </section>
 
         {/* ─── PRICING CARDS ─── */}
         <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {plans.map((plan, idx) => (
-              <div
-                key={plan.id}
-                className={`relative flex flex-col p-7 rounded-2xl border transition-all duration-200 ${plan.popular
-                    ? "border-slate-900 bg-slate-50/40 shadow-sm"
-                    : "border-slate-200/80 bg-white hover:border-slate-300/80"
-                  }`}
-              >
-                {/* Popular indicator */}
-                {plan.popular && (
-                  <div className="absolute -top-px left-8 right-8 h-[2px] bg-slate-900 rounded-full" />
-                )}
+            {plans.map((plan) => {
+              const normalPrice = price(plan);
+              const discountedPrice = getWelcomeDiscountedPrice(plan);
+              const hasDiscount = normalPrice > 0;
 
-                {/* Header */}
-                <div className="mb-5">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <h3 className="text-[17px] font-semibold text-slate-900 tracking-tight">{plan.name}</h3>
-                    {plan.popular && (
-                      <span className="text-[9px] font-semibold uppercase tracking-wider bg-slate-900 text-white px-2 py-0.5 rounded-full">
-                        Popular
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[12px] font-medium text-slate-400">{plan.tag}</p>
-                </div>
-
-                {/* Price */}
-                <div className="mb-5">
-                  {plan.price === 0 ? (
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-[38px] font-bold text-slate-900 leading-none tracking-tight">₹0</span>
-                      <span className="text-[13px] font-medium text-slate-400">/forever</span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-[38px] font-bold text-slate-900 leading-none tracking-tight">
-                          ₹{price(plan).toLocaleString()}
-                        </span>
-                        <span className="text-[13px] font-medium text-slate-400">
-                          /{billing === "yearly" ? "year" : "mo"}
-                        </span>
-                      </div>
-                      {billing === "yearly" && savings(plan) > 0 && (
-                        <p className="text-[11px] font-medium text-slate-500 mt-1">
-                          ₹{Math.round(price(plan) / 12).toLocaleString()}/mo · Save ₹{savings(plan).toLocaleString()}
-                        </p>
-                      )}
-                    </>
-                  )}
-                </div>
-
-                {/* CTA */}
-                <button
-                  disabled={processingPlanId === plan.id}
-                  onClick={() => handleRazorpaySubscription(plan)}
-                  className={`w-full py-3 rounded-xl text-[12px] font-bold transition-all duration-200 cursor-pointer hover:opacity-90 active:scale-[0.98] mb-6 flex items-center justify-center gap-2 ${plan.popular
-                      ? "bg-slate-900 text-white hover:bg-slate-800"
-                      : "bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+              return (
+                <div
+                  key={plan.id}
+                  className={`relative flex flex-col p-7 rounded-2xl border transition-all duration-200 ${plan.popular
+                      ? "border-slate-900 bg-slate-50/40 shadow-sm"
+                      : "border-slate-200/80 bg-white hover:border-slate-300/80"
                     }`}
                 >
-                  {processingPlanId === plan.id ? (
-                    <span>Processing Payment...</span>
-                  ) : (
-                    <span>{plan.cta}</span>
+                  {/* Popular indicator */}
+                  {plan.popular && (
+                    <div className="absolute -top-px left-8 right-8 h-[2px] bg-slate-900 rounded-full" />
                   )}
-                </button>
 
-                {/* Features */}
-                <div className="space-y-3 flex-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">What's included</p>
-                  {plan.highlights.map((f, i) => (
-                    <div key={i} className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" strokeWidth={2.5} />
-                      <span className="text-[13px] font-medium text-slate-600 leading-snug">{f}</span>
+                  {/* Header */}
+                  <div className="mb-5">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <h3 className="text-[17px] font-semibold text-slate-900 tracking-tight">{plan.name}</h3>
+                      {plan.popular && (
+                        <span className="text-[9px] font-semibold uppercase tracking-wider bg-slate-900 text-white px-2 py-0.5 rounded-full">
+                          Popular
+                        </span>
+                      )}
                     </div>
-                  ))}
+                    <p className="text-[12px] font-medium text-slate-400">{plan.tag}</p>
+                  </div>
+
+                  {/* Price */}
+                  <div className="mb-5">
+                    {plan.price === 0 ? (
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-[38px] font-bold text-slate-900 leading-none tracking-tight">₹0</span>
+                        <span className="text-[13px] font-medium text-slate-400">/forever</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="space-y-1">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-[38px] font-bold text-slate-900 leading-none tracking-tight">
+                              ₹{discountedPrice.toLocaleString("en-IN")}
+                            </span>
+                            <span className="text-sm font-bold text-slate-400 line-through">
+                              ₹{normalPrice.toLocaleString("en-IN")}
+                            </span>
+                            <span className="text-[13px] font-medium text-slate-400">
+                              /{billing === "yearly" ? "year" : "mo"}
+                            </span>
+                          </div>
+                          <span className="inline-block bg-emerald-100 text-emerald-800 text-[9.5px] font-black px-2 py-0.5 rounded uppercase tracking-wider">
+                            15% New Member Welcome Discount Applied
+                          </span>
+                        </div>
+
+                        {billing === "yearly" && savings(plan) > 0 && (
+                          <p className="text-[11px] font-medium text-slate-500 mt-1.5">
+                            ₹{Math.round(discountedPrice / 12).toLocaleString("en-IN")}/mo · Save ₹{savings(plan).toLocaleString("en-IN")}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  {/* CTA */}
+                  <button
+                    disabled={processingPlanId === plan.id}
+                    onClick={() => handleRazorpaySubscription(plan)}
+                    className={`w-full py-3 rounded-xl text-[12px] font-bold transition-all duration-200 cursor-pointer hover:opacity-90 active:scale-[0.98] mb-6 flex items-center justify-center gap-2 ${plan.popular
+                        ? "bg-slate-900 text-white hover:bg-slate-800"
+                        : "bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                      }`}
+                  >
+                    {processingPlanId === plan.id ? (
+                      <span>Processing Payment...</span>
+                    ) : (
+                      <span>{plan.price === 0 ? "Start Free" : `Subscribe for ₹${discountedPrice.toLocaleString("en-IN")}`}</span>
+                    )}
+                  </button>
+
+                  {/* Features */}
+                  <div className="space-y-3 flex-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">What's included</p>
+                    {plan.highlights.map((f, i) => (
+                      <div key={i} className="flex items-start gap-2.5">
+                        <Check className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" strokeWidth={2.5} />
+                        <span className="text-[13px] font-medium text-slate-600 leading-snug">{f}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 

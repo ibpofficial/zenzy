@@ -39,7 +39,7 @@ export default function ProDashboardLayout({ children }: ProDashboardLayoutProps
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const isCustomer = role === "customer" || role === "user" || role === "client";
+  const isCustomer = role === "user" || (role as string) === "customer" || (role as string) === "client";
 
   if (user && isCustomer) {
     return (

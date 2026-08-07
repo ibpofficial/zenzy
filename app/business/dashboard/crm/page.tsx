@@ -167,7 +167,7 @@ export default function ProfessionalCrmSuitePage() {
                 serviceNeeded: data.message || "Custom Renovation",
                 budget: data.budget || 200000,
                 propertyType: "Residential",
-                leadSource: "Direct Profile Inquiry",
+                leadSource: "Direct Website",
                 createdAt: data.createdAt || new Date().toISOString(),
                 status: data.status || "new",
                 aiScore: 85,
