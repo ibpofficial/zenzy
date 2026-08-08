@@ -700,18 +700,20 @@ export default function SubscriptionPage() {
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-                <button
-                  onClick={() => { if (!user) window.location.href = "/auth"; else window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                  className="group relative px-9 py-4 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-black text-[14px] rounded-2xl transition-all duration-300 cursor-pointer active:scale-[0.97] flex items-center gap-2.5 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40"
-                >
-                  <Crown className="w-4 h-4 text-slate-950 fill-slate-950" />
-                  <span>Claim Your Gold Pass</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                </button>
+                <PremiumGoldButton
+                  text="CLAIM PREMIUM PASS"
+                  onClick={() => {
+                    if (!user) window.location.href = "/auth";
+                    else {
+                      const el = document.getElementById("pricing-cards");
+                      if (el) el.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }}
+                />
 
                 <Link
                   href="/contact"
-                  className="group px-9 py-4 text-slate-300 hover:text-white border border-amber-400/30 hover:border-amber-400/60 rounded-2xl font-bold text-[14px] transition-all duration-300 flex items-center gap-2 bg-white/5"
+                  className="group px-7 py-3.5 text-slate-300 hover:text-white border border-amber-400/30 hover:border-amber-400/60 rounded-full font-bold text-[13px] transition-all duration-300 flex items-center gap-2 bg-white/5"
                 >
                   <span>Contact Sales</span>
                   <span className="inline-block transition-all duration-300 group-hover:translate-x-1">→</span>

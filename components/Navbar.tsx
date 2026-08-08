@@ -239,9 +239,10 @@ export default function Navbar({ isProfileView = false, minimal = false }: { isP
         className={
           minimal
             ? "sticky top-0 left-0 right-0 w-full bg-white/95 backdrop-blur-md z-50 border-b border-slate-200/90 shadow-subtle"
-            : `md:fixed absolute left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-full sm:max-w-[1380px] bg-white z-55 border border-slate-200/85 shadow-[0_12px_40px_rgba(37,99,235,0.13)] transition-all duration-300 ease-out ${mobileMenuOpen ? "rounded-[2rem]" : "rounded-full"
-              } ${siteConfig?.showAnnouncement && siteConfig?.announcementBar ? "top-14" : "top-4"
-              } ${showNavbar ? "translate-y-0 opacity-100 scale-100" : "translate-y-[-120%] opacity-0 scale-95 pointer-events-none"
+            : `md:fixed absolute left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-full sm:max-w-[1380px] bg-white/95 backdrop-blur-md z-55 border border-slate-200/90 shadow-[0_12px_35px_rgba(15,23,42,0.08)] transition-all duration-500 cubic-bezier(0.16,1,0.3,1) transform-gpu ${
+                mobileMenuOpen ? "rounded-2xl" : "rounded-2xl"
+              } ${siteConfig?.showAnnouncement && siteConfig?.announcementBar ? "top-14" : "top-4"} ${
+                showNavbar ? "translate-y-0 opacity-100 scale-100" : "-translate-y-28 opacity-0 scale-[0.98] pointer-events-none"
               }`
         }
       >
@@ -253,7 +254,7 @@ export default function Navbar({ isProfileView = false, minimal = false }: { isP
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-black text-[#0f2744] bg-slate-100 hover:bg-slate-200 border border-slate-200 transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black text-[#0f2744] bg-slate-100 hover:bg-slate-200 border border-slate-200 transition cursor-pointer"
                 title="Go back to previous page"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -282,25 +283,36 @@ export default function Navbar({ isProfileView = false, minimal = false }: { isP
                   <Link
                     key={link.name}
                     href={link.href}
-                    className={`relative flex items-center gap-2 px-5 py-2 rounded-full text-[13px] font-extrabold tracking-wide border transition-all duration-150 ${isActive
-                      ? "text-primary-650 bg-white border-primary-500/15 shadow-sm shadow-primary-500/5"
-                      : "text-slate-650 border-transparent hover:text-primary-650 hover:bg-white hover:border-primary-500/15 shadow-xs hover:shadow-sm"
-                      }`}
+                    className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] tracking-wide transition-all duration-200 ${
+                      isActive
+                        ? "bg-[#0f2744] text-white font-extrabold shadow-[0_4px_14px_rgba(15,39,68,0.25)] border border-blue-950/40"
+                        : "text-slate-650 hover:text-slate-900 hover:bg-slate-100/70 font-semibold border border-transparent"
+                    }`}
                   >
-                    <i className={`fas ${link.icon} text-[14px]`} />
-                    <span>{link.name}</span>
+                    <i className={`fas ${link.icon} text-[13px] ${isActive ? "text-amber-400" : "text-slate-400"}`} />
+                    <span className={isActive ? "text-white font-extrabold" : ""}>{link.name}</span>
+                    {isActive && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
+                    )}
                   </Link>
                 );
               })}
               <div className="w-px h-6 bg-slate-200/60 mx-1.5" />
               <Link
                 href="/shop"
-                className="special-badge-border rounded-full py-2 px-5 text-[13px] font-extrabold text-white transition-all duration-200 overflow-hidden flex items-center gap-1.5 shadow-lg shadow-emerald-500/20"
+                className="relative inline-flex items-center group p-[2px] rounded-full overflow-hidden cursor-pointer select-none transition-all duration-300 hover:scale-[1.05] active:scale-[0.98] shrink-0"
               >
-                <div className="special-badge-content flex items-center gap-1.5">
-                  <i className="fas fa-store text-emerald-400" />
-                  <span>Shop</span>
-                </div>
+                {/* Shining Rotating Conic Border Sweep */}
+                <span className="absolute inset-[-150%] animate-[spin_3.5s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0deg,transparent_260deg,#FDE047_310deg,#F59E0B_340deg,transparent_360deg)] pointer-events-none" />
+
+                <span className="relative z-10 flex items-center gap-2.5 bg-gradient-to-r from-[#0a0c0e] via-[#15191e] to-[#0a0c0e] rounded-full px-3 py-1.5 border border-amber-400/40 shadow-md">
+                  <span className="flex items-center justify-center px-2.5 py-1 rounded-full bg-gradient-to-r from-[#B87A1E] via-[#F3C059] to-[#E5A83B] text-slate-950 font-black shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.6)]">
+                    <ShoppingBag className="w-3.5 h-3.5 text-[#241703] stroke-[2.5]" />
+                  </span>
+                  <span className="font-extrabold text-[12px] tracking-wider uppercase bg-gradient-to-b from-[#FFF5C4] via-[#F3C059] to-[#996914] bg-clip-text text-transparent pr-1">
+                    Shop
+                  </span>
+                </span>
               </Link>
             </nav>
           )}
@@ -709,7 +721,7 @@ export default function Navbar({ isProfileView = false, minimal = false }: { isP
 
         {/* ── Mobile Menu ─────────────────────────────────────────────────── */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-100 bg-white w-full px-5 py-6 space-y-2 rounded-b-[2rem] shadow-xl">
+          <div className="md:hidden border-t border-slate-100 bg-white w-full px-5 py-6 space-y-2 rounded-b-2xl shadow-xl">
             {links.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -717,16 +729,17 @@ export default function Navbar({ isProfileView = false, minimal = false }: { isP
                   key={link.name}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center justify-between px-5 py-3 rounded-full border transition-all duration-150 ${isActive
-                    ? "bg-white border-primary-500/15 text-primary-650 font-extrabold shadow-sm shadow-primary-500/5"
-                    : "bg-transparent border-transparent text-slate-750 font-bold hover:border-primary-500/15 hover:text-primary-650 hover:bg-slate-50/40 hover:shadow-xs"
-                    }`}
+                  className={`flex items-center justify-between px-5 py-3 rounded-xl border transition-all duration-300 ${
+                    isActive
+                      ? "bg-white text-primary-650 border-amber-400/30 font-black shadow-[0_4px_20px_rgba(245,158,11,0.12)]"
+                      : "bg-transparent border-transparent text-slate-750 font-bold hover:bg-slate-50/60"
+                  }`}
                 >
                   <div className="flex items-center gap-3.5">
-                    <i className={`fas ${link.icon} text-primary-500 w-5 text-center text-sm`} />
-                    <span className="text-[15px]">{link.name}</span>
+                    <i className={`fas ${link.icon} ${isActive ? "text-primary-600" : "text-slate-400"} w-5 text-center text-sm`} />
+                    <span className={`text-[15px] ${isActive ? "font-black text-primary-650" : ""}`}>{link.name}</span>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                  <ChevronRight className={`w-4 h-4 ${isActive ? "text-amber-500" : "text-slate-400"} shrink-0`} />
                 </Link>
               );
             })}
@@ -744,12 +757,19 @@ export default function Navbar({ isProfileView = false, minimal = false }: { isP
               <Link
                 href="/shop"
                 onClick={() => setMobileMenuOpen(false)}
-                className="special-badge-border rounded-full py-3 px-5 text-[14px] font-extrabold text-white transition-all duration-200 overflow-hidden flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20"
+                className="relative inline-flex items-center justify-center w-full group p-[2px] rounded-full overflow-hidden cursor-pointer select-none transition-all duration-300 active:scale-[0.98]"
               >
-                <div className="special-badge-content flex items-center justify-center gap-1.5">
-                  <i className="fas fa-store text-emerald-400" />
-                  <span>Shop</span>
-                </div>
+                {/* Shining Rotating Conic Border Sweep */}
+                <span className="absolute inset-[-150%] animate-[spin_3.5s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0deg,transparent_260deg,#FDE047_310deg,#F59E0B_340deg,transparent_360deg)] pointer-events-none" />
+
+                <span className="relative z-10 flex items-center justify-center gap-3 w-full bg-gradient-to-r from-[#0a0c0e] via-[#15191e] to-[#0a0c0e] rounded-full px-4 py-2 border border-amber-400/40 shadow-md">
+                  <span className="flex items-center justify-center px-3 py-1.5 rounded-full bg-gradient-to-r from-[#B87A1E] via-[#F3C059] to-[#E5A83B] text-slate-950 font-black shadow-[inset_0_1.5px_2px_rgba(255,255,255,0.6)]">
+                    <ShoppingBag className="w-4 h-4 text-[#241703] stroke-[2.5]" />
+                  </span>
+                  <span className="font-extrabold text-sm tracking-widest uppercase bg-gradient-to-b from-[#FFF5C4] via-[#F3C059] to-[#996914] bg-clip-text text-transparent">
+                    Zenzy Store Shop
+                  </span>
+                </span>
               </Link>
             </div>
             {!user && (

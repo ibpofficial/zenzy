@@ -9,6 +9,7 @@ import { db } from "@/lib/firebase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoadingScreen from "@/components/LoadingScreen";
+import PremiumGoldButton from "@/components/PremiumGoldButton";
 import { reverseGeocode, detectLocationByIP } from "@/lib/locationUtils";
 
 import { performFuzzySearch, recordSearchClick, SearchIndexItem, SpellingSuggestion } from "@/lib/search";
@@ -1754,41 +1755,58 @@ export default function HomePage() {
               <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10 px-8 sm:px-14 py-12 sm:py-16">
 
                 {/* LEFT */}
-                <div className="flex flex-col gap-5 max-w-2xl">
+                <div className="flex flex-col gap-4 max-w-2xl">
                   <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" strokeWidth={2} />
-                    <span className="text-emerald-400 uppercase tracking-[0.18em] font-semibold text-[11px]">Zenzy Guarantee</span>
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" strokeWidth={2.5} />
+                    <span className="text-emerald-400 uppercase tracking-[0.2em] font-black text-[11px]">Zenzy Certified Guarantee</span>
                   </div>
 
-                  {/* Heading — looping typewriter */}
-                  <h2 className="text-white leading-[1.15]" style={{ fontWeight: 700, fontSize: "clamp(1.6rem, 3vw, 2.5rem)", letterSpacing: "-0.015em", minHeight: "1.2em" }}>
-                    {guaranteeText}
-                    <span className="guarantee-caret" aria-hidden="true" />
-                  </h2>
+                  {/* Heading — looping typewriter with fixed height to prevent layout shift glitch */}
+                  <div className="min-h-[4rem] sm:min-h-[4.5rem] flex items-center">
+                    <h2 className="text-white font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight leading-[1.2]">
+                      {guaranteeText}
+                      <span className="guarantee-caret" aria-hidden="true" />
+                    </h2>
+                  </div>
 
-                  <p className="text-slate-400 leading-relaxed max-w-xl text-[14px]">
+                  <p className="text-slate-300 leading-relaxed max-w-xl text-[14px] font-medium">
                     Compare verified professionals, review real portfolio proof, negotiate directly with contractors, and book with our 100% satisfaction guarantee.
                   </p>
                 </div>
 
-                {/* RIGHT — Premium navy CTA */}
+                {/* RIGHT — Luxury Pill Button with rotating glowing border animation */}
                 <div className="shrink-0 flex flex-col items-center lg:items-end gap-4">
-                  <div className="relative group">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-[#1e3a8a] via-blue-500 to-[#1e3a8a] rounded-2xl opacity-0 group-hover:opacity-50 blur-lg transition-all duration-700 z-0" />
-                    <Link
-                      href="/services"
-                      className="btn-guarantee-navy relative z-10 inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-white text-[15px] font-bold shadow-lg hover:shadow-blue-900/40 hover:shadow-2xl active:scale-[0.97] transition-all duration-300 group/btn"
-                    >
-                      <span>Connect with Professionals</span>
-                      <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1.5 transition-transform duration-300" />
-                    </Link>
-                  </div>
+                  <Link
+                    href="/services"
+                    className="relative inline-flex items-center group p-[2px] rounded-full overflow-hidden cursor-pointer select-none transition-all duration-300 hover:scale-[1.04] active:scale-[0.98]"
+                  >
+                    {/* Rotating Conic Gold Border Sweep */}
+                    <span className="absolute inset-[-150%] animate-[spin_3.5s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0deg,transparent_260deg,#FDE047_310deg,#F59E0B_340deg,transparent_360deg)] pointer-events-none" />
 
-                  <div className="flex items-center gap-3 text-slate-500 text-[11px] font-medium">
-                    <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />SSL Secured</span>
-                    <span className="text-slate-700">·</span>
+                    {/* Main Button Body */}
+                    <span className="relative z-10 flex items-center justify-between gap-3 bg-gradient-to-r from-[#0a0c0e] via-[#15191e] to-[#0a0c0e] rounded-full px-2.5 py-2 border border-amber-400/40 shadow-[0_10px_25px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.15)] group-hover:border-amber-400/70 transition-colors">
+                      {/* Left Shield Pill */}
+                      <span className="relative flex items-center justify-center px-3.5 py-2.5 rounded-full bg-gradient-to-r from-[#B87A1E] via-[#F3C059] to-[#E5A83B] text-slate-950 font-black shadow-[inset_0_2px_4px_rgba(255,255,255,0.6)]">
+                        <ShieldCheck className="w-5 h-5 text-[#241703] stroke-[2.5]" />
+                      </span>
+
+                      {/* Text */}
+                      <span className="font-black text-xs sm:text-[13px] tracking-[0.18em] uppercase bg-gradient-to-b from-[#FFF5C4] via-[#F3C059] to-[#996914] bg-clip-text text-transparent px-2">
+                        Connect with Professionals
+                      </span>
+
+                      {/* Right Chevron Circle */}
+                      <span className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-b from-[#FFF0A3] via-[#E8B244] to-[#996713] text-slate-950 shadow-md group-hover:scale-105 transition-transform">
+                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-[#2A1A02] stroke-[3]" />
+                      </span>
+                    </span>
+                  </Link>
+
+                  <div className="flex items-center gap-3 text-slate-400 text-[11px] font-bold">
+                    <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />SSL Secured</span>
+                    <span className="text-slate-600">·</span>
                     <span>No Booking Fees</span>
-                    <span className="text-slate-700">·</span>
+                    <span className="text-slate-600">·</span>
                     <span>100% Verified Pros</span>
                   </div>
                 </div>
@@ -1801,40 +1819,22 @@ export default function HomePage() {
           {/* PREMIUM SUBSCRIPTION CTA */}
           <section className="max-w-7xl mx-auto w-full px-5 sm:px-8 py-10 animate-fade-up">
             <div className="flex flex-col items-center justify-center text-center">
-              {/* Floating glow behind button */}
-              <div className="relative group">
-                {/* Animated glow ring */}
-                <div className="absolute -inset-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 rounded-[18px] opacity-0 group-hover:opacity-85 blur-2xl transition-all duration-700 animate-[glow-pulse_3s_ease-in-out_infinite] z-0" />
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 rounded-[17px] opacity-25 group-hover:opacity-50 transition-opacity duration-500 z-0" />
-
-                <Link
-                  href="/subscription"
-                  className="btn-subscription-premium w-full sm:w-auto inline-block rounded-2xl transition-all duration-500"
-                >
-                  <div className="btn-subscription-premium-content">
-                    {/* Crown icon with glow */}
-                    <div className="relative shrink-0">
-                      <div className="absolute inset-0 bg-amber-400/40 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <Crown className="w-6 h-6 text-amber-400 group-hover:text-amber-300 transition-colors duration-300 relative z-10 group-hover:rotate-[-12deg] group-hover:scale-115 transform transition-transform" />
-                    </div>
-
-                    <div className="flex flex-col items-start gap-0.5 text-left min-w-0">
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-400/80 group-hover:text-amber-300 transition-colors truncate">Unlock Exclusive Benefits</span>
-                      <span className="text-[16px] sm:text-[18px] font-black text-white tracking-tight group-hover:text-amber-50 transition-colors">Premium Subscriptions</span>
-                    </div>
-
-                    <ArrowRight className="w-5 h-5 text-amber-400/60 group-hover:text-amber-300 group-hover:translate-x-1.5 transition-all duration-300 ml-auto shrink-0" />
-                  </div>
-                </Link>
+              {/* Premium Gold Button matching uploaded design with glowing border animation */}
+              <div className="py-2">
+                <PremiumGoldButton
+                  text="PREMIUM"
+                  onClick={() => router.push("/subscription")}
+                  className="scale-105 sm:scale-110"
+                />
               </div>
 
               {/* Subtle trust indicators below */}
-              <div className="flex items-center gap-4 mt-4 text-[10px] font-bold text-slate-400">
-                <span className="flex items-center gap-1"><Sparkles className="w-3 h-3 text-amber-500" /> Priority Support</span>
+              <div className="flex items-center gap-4 mt-5 text-[10.5px] font-extrabold text-slate-500">
+                <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-amber-500" /> Priority VIP Matching</span>
                 <span className="text-slate-300">•</span>
-                <span className="flex items-center gap-1"><ShieldCheck className="w-3 h-3 text-emerald-500" /> Cancel Anytime</span>
+                <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> 100% Escrow Protection</span>
                 <span className="text-slate-300">•</span>
-                <span className="flex items-center gap-1"><Star className="w-3 h-3 text-indigo-500" /> Exclusive Perks</span>
+                <span className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-amber-500" /> Exclusive Member Rates</span>
               </div>
             </div>
           </section>
