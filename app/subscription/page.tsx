@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import PremiumGoldButton from "@/components/PremiumGoldButton";
 import {
   Crown,
   Check,
@@ -18,26 +19,29 @@ import {
   Briefcase,
   Shield,
   Gift,
-  Tag
+  Tag,
+  Star,
+  Award,
+  ShieldCheck
 } from "lucide-react";
 
-/* ═══════════════════ PLAN DATA (10% INCREASED PRICING) ═══════════════════ */
+/* ═══════════════════ PLAN DATA ═══════════════════ */
 
 const customerPlans = [
   {
     id: "c-free", name: "Free", tag: "For individuals", price: 0, yearly: 0,
     highlights: ["3 bookings per month", "Browse verified profiles", "Basic search filters", "Standard support (48h)", "Service history"],
-    cta: "Get Started", popular: false,
+    cta: "Get Started", popular: false, tier: "starter"
   },
   {
     id: "c-pro", name: "Pro", tag: "Most popular", price: 1099, yearly: 9899,
     highlights: ["Unlimited bookings", "AI search & smart matching", "Compare pros side-by-side", "Live chat & job tracking", "AI cost estimation", "10% off all bookings", "Priority support (4h)"],
-    cta: "Upgrade to Pro (₹1,099)", popular: true,
+    cta: "Upgrade to Pro (₹1,099)", popular: true, tier: "pro"
   },
   {
     id: "c-elite", name: "Elite", tag: "Full experience", price: 1649, yearly: 5499,
     highlights: ["Everything in Pro", "Video consultations", "Emergency priority booking", "Warranty management", "AI Project Planner", "25% off all bookings", "Dedicated manager", "Instant support (30 min)"],
-    cta: "Go Elite (₹1,649)", popular: false,
+    cta: "Go Elite (₹1,649)", popular: false, tier: "elite"
   },
 ];
 
@@ -45,17 +49,17 @@ const professionalPlans = [
   {
     id: "p-starter", name: "Starter", tag: "Launch your business", price: 0, yearly: 0,
     highlights: ["Business profile & verification", "Portfolio (10 images)", "Accept/reject bookings", "Basic earnings overview", "Customer reviews", "Standard search listing"],
-    cta: "Start Free", popular: false,
+    cta: "Start Free", popular: false, tier: "starter"
   },
   {
     id: "p-business", name: "Business", tag: "Grow & scale", price: 1099, yearly: 9349,
     highlights: ["Personal website (zenzy.shop/you)", "Unlimited portfolio", "CRM & customer database", "Smart calendar & scheduling", "Quote & invoice generator", "AI proposal generator", "Business analytics", "WhatsApp integration", "Priority support (4h)"],
-    cta: "Upgrade to Business (₹1,099)", popular: true,
+    cta: "Upgrade to Business (₹1,099)", popular: true, tier: "pro"
   },
   {
     id: "p-enterprise", name: "Enterprise", tag: "Full business suite", price: 2749, yearly: 10999,
     highlights: ["Everything in Business", "Team management (25 members)", "AI Business Coach", "AI Content Creator", "Full website customization", "Marketing tools suite", "Branded invoices & contracts", "25% lower commission", "API access", "Dedicated manager"],
-    cta: "Go Enterprise (₹2,749)", popular: false,
+    cta: "Go Enterprise (₹2,749)", popular: false, tier: "elite"
   },
 ];
 
@@ -276,7 +280,7 @@ export default function SubscriptionPage() {
           contact: userData?.phone || "",
         },
         theme: {
-          color: "#0f2744",
+          color: "#d97706",
         },
       };
 
@@ -289,33 +293,74 @@ export default function SubscriptionPage() {
     }
   };
 
-  const cell = (v: any) => {
-    if (v === true) return <Check className="w-4 h-4 text-slate-800 mx-auto" strokeWidth={2.5} />;
-    if (v === false) return <span className="block w-1 h-1 rounded-full bg-slate-300 mx-auto" />;
-    return <span className="text-[11px] font-medium text-slate-500">{v}</span>;
+  const cell = (v: any, isPro = false, isElite = false) => {
+    if (v === true) {
+      return (
+        <div className="flex justify-center">
+          {isElite ? (
+            <Crown className="w-4 h-4 text-amber-400 fill-amber-400/30" />
+          ) : isPro ? (
+            <Check className="w-4.5 h-4.5 text-amber-500 font-bold" strokeWidth={3} />
+          ) : (
+            <Check className="w-4 h-4 text-slate-700" strokeWidth={2.5} />
+          )}
+        </div>
+      );
+    }
+    if (v === false) return <span className="block w-1.5 h-1.5 rounded-full bg-slate-300 mx-auto" />;
+    return (
+      <span className={`text-[11px] font-bold ${isElite ? "text-amber-400" : isPro ? "text-amber-600" : "text-slate-600"}`}>
+        {v}
+      </span>
+    );
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white text-slate-900 font-sans transition-colors">
+    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 font-sans transition-colors relative overflow-hidden">
       <Navbar />
-      <main className="flex-grow">
+      
+      {/* Background Gold Ambient Glow Orbs */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-gradient-to-b from-amber-400/10 via-yellow-500/5 to-transparent blur-3xl pointer-events-none rounded-full" />
+      <div className="absolute top-96 -right-40 w-[500px] h-[500px] bg-amber-500/5 blur-3xl pointer-events-none rounded-full" />
+
+      <main className="flex-grow relative z-10">
 
         {/* ─── HERO ─── */}
-        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pt-32 pb-10 text-center">
+        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pt-28 pb-10 text-center">
           <div className="space-y-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">Zenzy Premium</p>
-            <h1 className="text-4xl md:text-[3.25rem] font-bold tracking-tight leading-[1.1] text-slate-900">
-              Simple, transparent pricing.
+            
+            {/* Crown Premium Badge Button */}
+            <div className="flex justify-center pb-2">
+              <PremiumGoldButton
+                text="PREMIUM"
+                onClick={() => {
+                  const el = document.getElementById("pricing-cards");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
+                }}
+              />
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl md:text-[3.5rem] font-black tracking-tight leading-[1.1] text-slate-900">
+              Unlock Extraordinary Value with{" "}
+              <span className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-600 bg-clip-text text-transparent drop-shadow-xs">
+                Zenzy Gold
+              </span>
             </h1>
-            <p className="text-slate-500 text-[15px] max-w-lg mx-auto leading-relaxed">
-              Choose a plan for booking services or growing your professional business. Scale up or down anytime.
+
+            <p className="text-slate-600 text-[15px] max-w-xl mx-auto leading-relaxed font-medium">
+              Elevate your home services with VIP matching, zero waiting times, AI cost forecasting, and exclusive gold tier discounts.
             </p>
 
-            {/* ─── NEW USER WELCOME DISCOUNT BANNER ─── */}
-            <div className="max-w-lg mx-auto bg-gradient-to-r from-emerald-50 to-indigo-50 border border-emerald-200 p-3.5 rounded-xl shadow-xs flex items-center justify-center gap-2.5 text-center">
-              <Gift className="w-4 h-4 text-emerald-600 shrink-0" />
-              <p className="text-xs text-slate-900 font-black">
-                🎁 <span className="text-emerald-700">Welcome Discount Unlocked!</span> As a new member, enjoy an automatic <span className="underline decoration-emerald-500 text-indigo-700 font-extrabold">15% Special Discount</span> on all premium plans below!
+            {/* ─── GOLD WELCOME DISCOUNT BANNER ─── */}
+            <div className="max-w-xl mx-auto bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 text-white border border-amber-500/40 p-4 rounded-2xl shadow-lg shadow-amber-900/10 flex items-center justify-center gap-3 text-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/10 rounded-full blur-xl pointer-events-none" />
+              <Gift className="w-5 h-5 text-amber-400 shrink-0" />
+              <p className="text-xs text-slate-200 font-semibold leading-snug">
+                ✨ <span className="text-amber-300 font-extrabold">Gold Pass Unlocked!</span> New members get an automatic{" "}
+                <span className="bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 bg-clip-text text-transparent font-black underline decoration-amber-400/50">
+                  15% Luxury Welcome Discount
+                </span>{" "}
+                applied on all plans below!
               </p>
             </div>
           </div>
@@ -325,7 +370,7 @@ export default function SubscriptionPage() {
         <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-10">
           {/* Audience Tab */}
           <div className="flex justify-center mb-6">
-            <div className="inline-flex bg-slate-100/80 rounded-xl p-1 gap-1 border border-slate-200/50">
+            <div className="inline-flex bg-slate-900 p-1.5 rounded-2xl gap-1 border border-amber-500/30 shadow-md">
               {[
                 { key: "customer", label: "For Customers", icon: <Users className="w-3.5 h-3.5" /> },
                 { key: "professional", label: "For Professionals", icon: <Briefcase className="w-3.5 h-3.5" /> },
@@ -333,10 +378,11 @@ export default function SubscriptionPage() {
                 <button
                   key={t.key}
                   onClick={() => { setTab(t.key as any); setTableExpanded(false); }}
-                  className={`flex items-center gap-2 px-5 sm:px-7 py-2.5 rounded-lg text-[12px] font-semibold transition-all duration-200 cursor-pointer ${tab === t.key
-                    ? "bg-white text-slate-900 shadow-sm border border-slate-200/50"
-                    : "text-slate-500 hover:text-slate-700"
-                    }`}
+                  className={`flex items-center gap-2 px-6 sm:px-8 py-2.5 rounded-xl text-[12px] font-extrabold transition-all duration-200 cursor-pointer ${
+                    tab === t.key
+                      ? "bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
+                      : "text-slate-400 hover:text-white"
+                  }`}
                 >
                   {t.icon} {t.label}
                 </button>
@@ -346,87 +392,104 @@ export default function SubscriptionPage() {
 
           {/* Billing */}
           <div className="flex items-center justify-center gap-3">
-            <span className={`text-[12px] font-medium ${billing === "monthly" ? "text-slate-900" : "text-slate-400"}`}>Monthly</span>
+            <span className={`text-[12px] font-bold ${billing === "monthly" ? "text-slate-900" : "text-slate-400"}`}>Monthly</span>
             <button
               onClick={() => setBilling(billing === "monthly" ? "yearly" : "monthly")}
-              className="relative w-11 h-6 rounded-full bg-slate-300 transition-colors cursor-pointer p-0.5"
+              className="relative w-12 h-6 rounded-full bg-slate-800 transition-colors cursor-pointer p-0.5 border border-amber-500/30"
               aria-label="Toggle billing"
             >
-              <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${billing === "yearly" ? "translate-x-5" : "translate-x-0"}`} />
+              <div className={`w-5 h-5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 shadow-sm transition-transform duration-200 ${billing === "yearly" ? "translate-x-6" : "translate-x-0"}`} />
             </button>
-            <span className={`text-[12px] font-medium ${billing === "yearly" ? "text-slate-900" : "text-slate-400"}`}>
+            <span className={`text-[12px] font-bold ${billing === "yearly" ? "text-slate-900" : "text-slate-400"}`}>
               Yearly
             </span>
             {billing === "yearly" && (
-              <span className="text-[10px] font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200/60">
-                Save 30%
+              <span className="text-[10px] font-black text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-400 px-3 py-1 rounded-full shadow-xs uppercase tracking-wider">
+                Save 30% Gold Perk
               </span>
             )}
           </div>
         </section>
 
         {/* ─── PRICING CARDS ─── */}
-        <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20">
+        <section id="pricing-cards" className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20 scroll-mt-24">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {plans.map((plan) => {
               const normalPrice = price(plan);
               const discountedPrice = getWelcomeDiscountedPrice(plan);
-              const hasDiscount = normalPrice > 0;
+              const isPopular = plan.popular;
+              const isEliteTier = plan.tier === "elite";
 
               return (
                 <div
                   key={plan.id}
-                  className={`relative flex flex-col p-7 rounded-2xl border transition-all duration-200 ${plan.popular
-                      ? "border-slate-900 bg-slate-50/40 shadow-sm"
-                      : "border-slate-200/80 bg-white hover:border-slate-300/80"
-                    }`}
+                  className={`relative flex flex-col p-7 rounded-3xl transition-all duration-300 ${
+                    isEliteTier
+                      ? "bg-gradient-to-b from-slate-950 via-slate-900 to-amber-950 text-white border-2 border-amber-500/60 shadow-[0_15px_40px_rgba(245,158,11,0.2)] hover:-translate-y-1"
+                      : isPopular
+                      ? "bg-gradient-to-b from-amber-50/60 via-white to-amber-50/30 text-slate-900 border-2 border-amber-400 shadow-[0_12px_35px_rgba(245,158,11,0.18)] hover:-translate-y-1"
+                      : "bg-white text-slate-900 border border-slate-200 hover:border-amber-300 shadow-subtle hover:-translate-y-0.5"
+                  }`}
                 >
-                  {/* Popular indicator */}
-                  {plan.popular && (
-                    <div className="absolute -top-px left-8 right-8 h-[2px] bg-slate-900 rounded-full" />
+                  {/* Top Gold Shimmer Border for Popular / Elite */}
+                  {isPopular && (
+                    <div className="absolute -top-px left-8 right-8 h-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 rounded-full" />
                   )}
 
                   {/* Header */}
                   <div className="mb-5">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <h3 className="text-[17px] font-semibold text-slate-900 tracking-tight">{plan.name}</h3>
-                      {plan.popular && (
-                        <span className="text-[9px] font-semibold uppercase tracking-wider bg-slate-900 text-white px-2 py-0.5 rounded-full">
-                          Popular
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <h3 className={`text-[19px] font-black tracking-tight ${isEliteTier ? "text-white" : "text-slate-900"}`}>
+                        {plan.name}
+                      </h3>
+                      
+                      {isPopular && (
+                        <span className="inline-flex items-center gap-1 text-[9.5px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 px-2.5 py-0.5 rounded-full shadow-xs">
+                          <Crown className="w-3 h-3 text-slate-950 fill-slate-950" /> Most Popular
+                        </span>
+                      )}
+
+                      {isEliteTier && (
+                        <span className="inline-flex items-center gap-1 text-[9.5px] font-black uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2.5 py-0.5 rounded-full">
+                          <Crown className="w-3 h-3 text-amber-400 fill-amber-400" /> Gold VIP
                         </span>
                       )}
                     </div>
-                    <p className="text-[12px] font-medium text-slate-400">{plan.tag}</p>
+                    <p className={`text-[12px] font-bold ${isEliteTier ? "text-amber-300/80" : "text-slate-400"}`}>{plan.tag}</p>
                   </div>
 
                   {/* Price */}
                   <div className="mb-5">
                     {plan.price === 0 ? (
                       <div className="flex items-baseline gap-1">
-                        <span className="text-[38px] font-bold text-slate-900 leading-none tracking-tight">₹0</span>
-                        <span className="text-[13px] font-medium text-slate-400">/forever</span>
+                        <span className={`text-[40px] font-black leading-none tracking-tight ${isEliteTier ? "text-white" : "text-slate-900"}`}>₹0</span>
+                        <span className="text-[13px] font-bold text-slate-400">/forever</span>
                       </div>
                     ) : (
                       <>
-                        <div className="space-y-1">
+                        <div className="space-y-1.5">
                           <div className="flex items-baseline gap-2">
-                            <span className="text-[38px] font-bold text-slate-900 leading-none tracking-tight">
+                            <span className={`text-[40px] font-black leading-none tracking-tight ${
+                              isEliteTier 
+                                ? "bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 bg-clip-text text-transparent"
+                                : "text-slate-900"
+                            }`}>
                               ₹{discountedPrice.toLocaleString("en-IN")}
                             </span>
                             <span className="text-sm font-bold text-slate-400 line-through">
                               ₹{normalPrice.toLocaleString("en-IN")}
                             </span>
-                            <span className="text-[13px] font-medium text-slate-400">
+                            <span className={`text-[13px] font-bold ${isEliteTier ? "text-slate-400" : "text-slate-500"}`}>
                               /{billing === "yearly" ? "year" : "mo"}
                             </span>
                           </div>
-                          <span className="inline-block bg-emerald-100 text-emerald-800 text-[9.5px] font-black px-2 py-0.5 rounded uppercase tracking-wider">
-                            15% New Member Welcome Discount Applied
+                          <span className="inline-block bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/40 text-amber-700 dark:text-amber-300 text-[9.5px] font-black px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                            ✨ 15% Gold Discount Applied
                           </span>
                         </div>
 
                         {billing === "yearly" && savings(plan) > 0 && (
-                          <p className="text-[11px] font-medium text-slate-500 mt-1.5">
+                          <p className={`text-[11px] font-bold mt-1.5 ${isEliteTier ? "text-amber-200/70" : "text-amber-700"}`}>
                             ₹{Math.round(discountedPrice / 12).toLocaleString("en-IN")}/mo · Save ₹{savings(plan).toLocaleString("en-IN")}
                           </p>
                         )}
@@ -438,25 +501,44 @@ export default function SubscriptionPage() {
                   <button
                     disabled={processingPlanId === plan.id}
                     onClick={() => handleRazorpaySubscription(plan)}
-                    className={`w-full py-3 rounded-xl text-[12px] font-bold transition-all duration-200 cursor-pointer hover:opacity-90 active:scale-[0.98] mb-6 flex items-center justify-center gap-2 ${plan.popular
-                        ? "bg-slate-900 text-white hover:bg-slate-800"
-                        : "bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 hover:border-slate-300"
-                      }`}
+                    className={`w-full py-3.5 rounded-2xl text-[12.5px] font-black transition-all duration-200 cursor-pointer mb-6 flex items-center justify-center gap-2 ${
+                      isEliteTier
+                        ? "bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-500 hover:to-yellow-500 text-slate-950 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 active:scale-[0.98]"
+                        : isPopular
+                        ? "bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 shadow-md shadow-amber-500/20 hover:shadow-amber-500/35 active:scale-[0.98]"
+                        : "bg-slate-900 text-white hover:bg-slate-800 border border-slate-800 hover:border-amber-400/30 active:scale-[0.98]"
+                    }`}
                   >
                     {processingPlanId === plan.id ? (
-                      <span>Processing Payment...</span>
+                      <span className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 animate-spin text-slate-950" />
+                        Processing...
+                      </span>
                     ) : (
-                      <span>{plan.price === 0 ? "Start Free" : `Subscribe for ₹${discountedPrice.toLocaleString("en-IN")}`}</span>
+                      <span className="flex items-center gap-1.5">
+                        {(isPopular || isEliteTier) && <Crown className="w-4 h-4 text-slate-950 fill-slate-950" />}
+                        {plan.price === 0 ? "Start Free" : `Subscribe for ₹${discountedPrice.toLocaleString("en-IN")}`}
+                      </span>
                     )}
                   </button>
 
                   {/* Features */}
                   <div className="space-y-3 flex-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">What's included</p>
+                    <p className={`text-[10px] font-black uppercase tracking-wider ${isEliteTier ? "text-amber-300/60" : "text-slate-400"}`}>
+                      Gold Vault Benefits
+                    </p>
                     {plan.highlights.map((f, i) => (
                       <div key={i} className="flex items-start gap-2.5">
-                        <Check className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" strokeWidth={2.5} />
-                        <span className="text-[13px] font-medium text-slate-600 leading-snug">{f}</span>
+                        {isEliteTier ? (
+                          <Crown className="w-4 h-4 text-amber-400 fill-amber-400/30 shrink-0 mt-0.5" />
+                        ) : isPopular ? (
+                          <Sparkles className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                        ) : (
+                          <Check className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" strokeWidth={2.5} />
+                        )}
+                        <span className={`text-[13px] font-medium leading-snug ${isEliteTier ? "text-slate-200" : "text-slate-700"}`}>
+                          {f}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -469,33 +551,41 @@ export default function SubscriptionPage() {
         {/* ─── COMPARISON TABLE ─── */}
         <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Compare all features</h2>
-            <p className="text-[13px] font-medium text-slate-400 mt-1">
-              {tab === "customer" ? `${customerComparison.length} features across all customer plans` : `${professionalComparison.length} features across all professional plans`}
+            <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-600 mb-1">
+              <Award className="w-4 h-4 text-amber-500" /> Detailed Tier Matrix
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Compare all features & gold benefits</h2>
+            <p className="text-[13px] font-medium text-slate-500 mt-1">
+              {tab === "customer" ? `${customerComparison.length} features across customer tiers` : `${professionalComparison.length} features across professional tiers`}
             </p>
           </div>
 
-          <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+          <div className="border border-amber-500/20 rounded-3xl overflow-hidden bg-white shadow-card">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[560px]">
                 <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className="text-left px-5 py-4 text-[11px] font-semibold text-slate-400 uppercase tracking-wider w-[46%]">Feature</th>
+                  <tr className="border-b border-amber-500/20 bg-gradient-to-r from-amber-50/50 via-white to-amber-50/50">
+                    <th className="text-left px-6 py-4 text-[11px] font-black text-slate-500 uppercase tracking-wider w-[44%]">Feature</th>
                     {labels.map((l, i) => (
-                      <th key={i} className={`px-3 py-4 text-[11px] font-semibold uppercase tracking-wider text-center ${i === 1 ? "text-slate-900" : "text-slate-400"
-                        }`}>
-                        {l}
+                      <th key={i} className={`px-4 py-4 text-[11px] font-black uppercase tracking-wider text-center ${
+                        i === 2 ? "text-amber-600 font-extrabold flex-1" : i === 1 ? "text-slate-900 font-extrabold" : "text-slate-400"
+                      }`}>
+                        <div className="flex items-center justify-center gap-1">
+                          {i === 2 && <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
+                          {i === 1 && <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
+                          {l}
+                        </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {(tableExpanded ? comparison : comparison.slice(0, 10)).map((row, idx) => (
-                    <tr key={idx} className="border-b border-slate-50 last:border-none">
-                      <td className="px-5 py-3 text-[12.5px] font-medium text-slate-600">{row.f}</td>
-                      <td className="px-3 py-3 text-center">{cell(row.a)}</td>
-                      <td className="px-3 py-3 text-center bg-slate-50/30">{cell(row.b)}</td>
-                      <td className="px-3 py-3 text-center">{cell(row.c)}</td>
+                    <tr key={idx} className="hover:bg-amber-50/20 transition-colors">
+                      <td className="px-6 py-3.5 text-[12.5px] font-bold text-slate-700">{row.f}</td>
+                      <td className="px-4 py-3.5 text-center">{cell(row.a)}</td>
+                      <td className="px-4 py-3.5 text-center bg-amber-50/20">{cell(row.b, true, false)}</td>
+                      <td className="px-4 py-3.5 text-center bg-amber-50/40">{cell(row.c, false, true)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -505,9 +595,9 @@ export default function SubscriptionPage() {
             {!tableExpanded && comparison.length > 10 && (
               <button
                 onClick={() => setTableExpanded(true)}
-                className="w-full border-t border-slate-100 py-3.5 text-[12px] font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                className="w-full border-t border-slate-100 py-4 text-[12px] font-bold text-amber-700 hover:text-amber-900 hover:bg-amber-50/40 transition-all cursor-pointer flex items-center justify-center gap-1.5"
               >
-                Show all {comparison.length} features <ChevronDown className="w-3.5 h-3.5" />
+                Show all {comparison.length} feature benchmarks <ChevronDown className="w-4 h-4 text-amber-500" />
               </button>
             )}
           </div>
@@ -515,10 +605,19 @@ export default function SubscriptionPage() {
 
         {/* ─── PLATFORM FEATURES ─── */}
         <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20">
-          <div className="bg-slate-900 rounded-2xl p-8 md:p-12 border border-slate-800">
-            <div className="max-w-2xl mx-auto text-center space-y-5">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Included in every plan</p>
-              <h2 className="text-2xl font-bold text-white tracking-tight">Enterprise-grade infrastructure</h2>
+          <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 rounded-3xl p-8 md:p-12 border border-amber-500/30 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="max-w-2xl mx-auto text-center space-y-5 relative z-10">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 border border-amber-400/30 rounded-full">
+                <Crown className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">Standard Across All Tiers</span>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Enterprise Gold Infrastructure & Security
+              </h2>
+
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-3 pt-3 text-left max-w-lg mx-auto">
                 {[
                   "AI-Powered Search",
@@ -535,8 +634,8 @@ export default function SubscriptionPage() {
                   "Referral System",
                 ].map((f, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-slate-500 shrink-0" strokeWidth={2.5} />
-                    <span className="text-[12px] font-medium text-slate-400">{f}</span>
+                    <Check className="w-4 h-4 text-amber-400 shrink-0" strokeWidth={2.5} />
+                    <span className="text-[12px] font-bold text-slate-300">{f}</span>
                   </div>
                 ))}
               </div>
@@ -546,22 +645,23 @@ export default function SubscriptionPage() {
 
         {/* ─── FAQ ─── */}
         <section className="max-w-2xl mx-auto w-full px-5 sm:px-8 pb-20">
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight text-center mb-8">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-center mb-8">
             Frequently asked questions
           </h2>
-          <div className="divide-y divide-slate-100 border-t border-b border-slate-100">
+          <div className="divide-y divide-slate-200/80 border-t border-b border-slate-200/80">
             {faqs.map((faq, idx) => (
               <div key={idx}>
                 <button
                   onClick={() => setFaqOpen(faqOpen === idx ? null : idx)}
                   className="w-full flex items-center justify-between py-5 text-left cursor-pointer group"
                 >
-                  <span className="text-[14px] font-medium text-slate-900 pr-6 group-hover:text-slate-600 transition-colors">{faq.q}</span>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${faqOpen === idx ? "rotate-180" : ""
-                    }`} />
+                  <span className="text-[14px] font-bold text-slate-900 pr-6 group-hover:text-amber-600 transition-colors">
+                    {faq.q}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-amber-500 shrink-0 transition-transform duration-200 ${faqOpen === idx ? "rotate-180" : ""}`} />
                 </button>
                 {faqOpen === idx && (
-                  <p className="pb-5 text-[13px] font-medium text-slate-500 leading-relaxed -mt-1">{faq.a}</p>
+                  <p className="pb-5 text-[13px] font-medium text-slate-600 leading-relaxed -mt-1">{faq.a}</p>
                 )}
               </div>
             ))}
@@ -570,50 +670,48 @@ export default function SubscriptionPage() {
 
         {/* ─── BOTTOM CTA ─── */}
         <section className="max-w-5xl mx-auto w-full px-5 sm:px-8 pb-20">
-          <div className="relative overflow-hidden bg-slate-900 rounded-2xl p-10 md:p-14 text-center border border-slate-800">
+          <div className="relative overflow-hidden bg-gradient-to-br from-amber-950 via-slate-900 to-indigo-950 rounded-3xl p-10 md:p-14 text-center border border-amber-500/40 shadow-2xl">
 
-            {/* Subtle glow effects */}
-            <div className="absolute -top-24 -right-24 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -left-24 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+            {/* Glowing Orbs */}
+            <div className="absolute -top-24 -right-24 w-[400px] h-[400px] bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -left-24 w-[400px] h-[400px] bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative max-w-2xl mx-auto space-y-6">
 
               {/* Premium badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-white/10 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span className="text-[10px] font-medium text-white/60 tracking-[0.15em] uppercase">No credit card required</span>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-500/20 border border-amber-400/40 rounded-full">
+                <Crown className="w-4 h-4 text-amber-400 fill-amber-400" />
+                <span className="text-[10px] font-black text-amber-300 tracking-[0.15em] uppercase">No credit card required upfront</span>
               </div>
 
               {/* Main headline */}
               <div className="space-y-2">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-[1.15]">
-                  Start your
-                  <span className="block text-white/80">
-                    7-day free trial
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.15]">
+                  Start your free{" "}
+                  <span className="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+                    7-day Gold Trial
                   </span>
                 </h2>
-                <p className="text-[14px] font-normal text-white/40 leading-relaxed max-w-lg mx-auto">
-                  Join thousands of teams already building better products.
-                  <span className="block text-white/25 text-xs mt-0.5">Upgrade, downgrade, or cancel — it's always your choice.</span>
+                <p className="text-[14px] font-medium text-slate-300 leading-relaxed max-w-lg mx-auto">
+                  Experience full VIP access to verified professionals and business scaling tools.
+                  <span className="block text-slate-400 text-xs mt-1">Upgrade, downgrade, or cancel anytime from your dashboard.</span>
                 </p>
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
                 <button
                   onClick={() => { if (!user) window.location.href = "/auth"; else window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                  className="group relative px-9 py-3.5 bg-white text-slate-900 hover:bg-slate-100 rounded-xl font-medium text-[14px] transition-all duration-300 cursor-pointer active:scale-[0.97] flex items-center gap-2.5 shadow-sm"
+                  className="group relative px-9 py-4 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-black text-[14px] rounded-2xl transition-all duration-300 cursor-pointer active:scale-[0.97] flex items-center gap-2.5 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40"
                 >
-                  <span>Get Started</span>
+                  <Crown className="w-4 h-4 text-slate-950 fill-slate-950" />
+                  <span>Claim Your Gold Pass</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                  <span className="absolute -top-1.5 -right-1.5 px-2 py-0.5 bg-emerald-400 text-[9px] font-medium text-black rounded-full shadow-sm">
-                    Free
-                  </span>
                 </button>
 
                 <Link
                   href="/contact"
-                  className="group px-9 py-3.5 text-white/40 hover:text-white border border-white/10 hover:border-white/20 rounded-xl font-medium text-[14px] transition-all duration-300 flex items-center gap-2"
+                  className="group px-9 py-4 text-slate-300 hover:text-white border border-amber-400/30 hover:border-amber-400/60 rounded-2xl font-bold text-[14px] transition-all duration-300 flex items-center gap-2 bg-white/5"
                 >
                   <span>Contact Sales</span>
                   <span className="inline-block transition-all duration-300 group-hover:translate-x-1">→</span>
@@ -621,22 +719,22 @@ export default function SubscriptionPage() {
               </div>
 
               {/* Trust indicators */}
-              <div className="flex flex-wrap items-center justify-center gap-5 pt-4 border-t border-white/5">
-                <div className="flex items-center gap-2 text-white/30">
-                  <Check className="w-3.5 h-3.5 text-emerald-400/60" strokeWidth={2.5} />
-                  <span className="text-xs font-medium">Full access</span>
+              <div className="flex flex-wrap items-center justify-center gap-5 pt-4 border-t border-white/10">
+                <div className="flex items-center gap-2 text-slate-300">
+                  <Check className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
+                  <span className="text-xs font-bold">Full VIP access</span>
                 </div>
-                <div className="flex items-center gap-2 text-white/30">
-                  <Check className="w-3.5 h-3.5 text-emerald-400/60" strokeWidth={2.5} />
-                  <span className="text-xs font-medium">Cancel anytime</span>
+                <div className="flex items-center gap-2 text-slate-300">
+                  <Check className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
+                  <span className="text-xs font-bold">Cancel anytime</span>
                 </div>
-                <div className="flex items-center gap-2 text-white/30">
-                  <Check className="w-3.5 h-3.5 text-emerald-400/60" strokeWidth={2.5} />
-                  <span className="text-xs font-medium">No risk</span>
+                <div className="flex items-center gap-2 text-slate-300">
+                  <Check className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
+                  <span className="text-xs font-bold">Zero risk</span>
                 </div>
-                <div className="flex items-center gap-2 text-white/30">
-                  <Check className="w-3.5 h-3.5 text-emerald-400/60" strokeWidth={2.5} />
-                  <span className="text-xs font-medium">7-day trial</span>
+                <div className="flex items-center gap-2 text-slate-300">
+                  <Check className="w-4 h-4 text-amber-400" strokeWidth={2.5} />
+                  <span className="text-xs font-bold">7-day free trial</span>
                 </div>
               </div>
             </div>

@@ -138,30 +138,30 @@ export default function AdminPremiumPage() {
 
       <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 pt-24 pb-20 space-y-6">
         {/* Top Header Banner */}
-        <div className="bg-gradient-to-r from-amber-950 via-slate-900 to-indigo-950 text-white rounded-pro-md p-6 sm:p-8 shadow-card border border-amber-900/30 relative overflow-hidden">
-          <div className="absolute -top-24 -right-24 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 text-white rounded-2xl p-6 sm:p-8 shadow-2xl border border-amber-500/40 relative overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs">
                 <Link
                   href="/admin"
-                  className="text-amber-300 hover:text-white font-bold flex items-center gap-1 bg-white/10 px-2.5 py-1 rounded-pro-sm transition"
+                  className="text-amber-300 hover:text-white font-extrabold flex items-center gap-1 bg-white/10 px-3 py-1 rounded-xl transition border border-amber-400/20"
                 >
                   <ChevronLeft className="w-4 h-4" /> Admin Center
                 </Link>
                 <span className="text-slate-500">•</span>
-                <span className="text-amber-300 font-extrabold uppercase text-[10px] bg-amber-500/20 px-2.5 py-0.5 rounded-pro-sm border border-amber-500/30 flex items-center gap-1">
-                  <Crown className="w-3 h-3 text-amber-400" /> Premium Memberships
+                <span className="text-slate-950 font-black uppercase text-[10px] bg-gradient-to-r from-amber-400 to-yellow-400 px-3 py-1 rounded-full border border-amber-300 flex items-center gap-1 shadow-xs">
+                  <Crown className="w-3.5 h-3.5 text-slate-950 fill-slate-950" /> Gold Memberships Vault
                 </span>
               </div>
 
-              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight flex items-center gap-2">
-                <Crown className="w-6 h-6 text-amber-400 fill-amber-400/20" />
-                Premium Subscriptions & Revenue Vault
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight flex items-center gap-2.5">
+                <Crown className="w-7 h-7 text-amber-400 fill-amber-400/30" />
+                Premium Subscriptions & Gold Revenue Vault
               </h1>
-              <p className="text-xs text-slate-300 font-medium">
-                Live monitoring of all Pro, Elite, and Enterprise paid plan subscriptions processed via Razorpay Test Mode.
+              <p className="text-xs text-slate-300 font-semibold">
+                Live monitoring of all Pro, Elite, and Enterprise paid plan subscriptions processed via Razorpay.
               </p>
             </div>
 
@@ -169,9 +169,9 @@ export default function AdminPremiumPage() {
               <button
                 type="button"
                 onClick={handleExportCSV}
-                className="pro-btn-secondary px-4 py-2 text-xs font-extrabold flex items-center gap-2 cursor-pointer shadow-subtle hover:-translate-y-0.5 transition-all"
+                className="px-5 py-2.5 rounded-xl text-xs font-black text-slate-950 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-500 hover:to-yellow-500 flex items-center gap-2 cursor-pointer shadow-md shadow-amber-500/20 hover:-translate-y-0.5 transition-all"
               >
-                <Download className="w-4 h-4 text-amber-600" />
+                <Download className="w-4 h-4 text-slate-950" />
                 Export CSV Audit Report
               </button>
             </div>
@@ -180,38 +180,38 @@ export default function AdminPremiumPage() {
 
         {/* Hero Revenue Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="pro-card bg-white border border-slate-200 p-4.5 rounded-pro-sm shadow-subtle">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-              Total Premium Revenue
+          <div className="bg-gradient-to-b from-amber-500/10 to-white border-2 border-amber-400/80 p-5 rounded-2xl shadow-card">
+            <span className="text-[10px] font-black text-amber-800 uppercase tracking-wider block flex items-center gap-1">
+              <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Total Gold Revenue
             </span>
-            <span className="text-xl font-black text-amber-600 font-mono tabular-nums mt-1 block">
+            <span className="text-2xl font-black bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent font-mono tabular-nums mt-1 block">
               ₹{totalRevenue.toLocaleString("en-IN")}
             </span>
           </div>
 
-          <div className="pro-card bg-white border border-slate-200 p-4.5 rounded-pro-sm shadow-subtle">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+          <div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-subtle hover:border-amber-300 transition">
+            <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
               Active Paid Subscribers
             </span>
-            <span className="text-xl font-black text-slate-900 font-mono tabular-nums mt-1 block">
+            <span className="text-2xl font-black text-slate-900 font-mono tabular-nums mt-1 block">
               {activeCount} Members
             </span>
           </div>
 
-          <div className="pro-card bg-white border border-slate-200 p-4.5 rounded-pro-sm shadow-subtle">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
-              Pro Members (₹999/mo)
+          <div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-subtle hover:border-amber-300 transition">
+            <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
+              Pro Members (₹1,099/mo)
             </span>
-            <span className="text-xl font-black text-indigo-600 font-mono tabular-nums mt-1 block">
+            <span className="text-2xl font-black text-amber-600 font-mono tabular-nums mt-1 block">
               {proMonthlyCount}
             </span>
           </div>
 
-          <div className="pro-card bg-white border border-slate-200 p-4.5 rounded-pro-sm shadow-subtle">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+          <div className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-subtle hover:border-amber-300 transition">
+            <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
               Elite & Enterprise
             </span>
-            <span className="text-xl font-black text-emerald-600 font-mono tabular-nums mt-1 block">
+            <span className="text-2xl font-black text-slate-900 font-mono tabular-nums mt-1 block">
               {eliteCount}
             </span>
           </div>
